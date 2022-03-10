@@ -9,10 +9,11 @@
     "prepare": "svelte-kit sync"
   },
   "devDependencies": {
+    "@supabase/supabase-js": "^1.8.0",
     "@sveltejs/adapter-auto": "next",
     "@sveltejs/kit": "next",
-    "svelte": "^3.44.0",
-    "@supabase/supabase-js": "^1.8.0"
+    "@tsconfig/svelte": "^3.0.0",
+    "svelte": "^3.44.0"
   },
   "type": "module"
 }
