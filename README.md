@@ -1,4 +1,5 @@
-# The first fighting themed recipe website! 
-### For bodyguards by bodyguards! 
+# The first fighting themed recipe website!
 
-Visit at [recipow.com](https://recipow.com) 
+### For bodyguards by bodyguards!
+
+Visit at [recipow.com](https://recipow.com)
