@@ -22,7 +22,6 @@
 	let showSignUp = true
 
 	export const logOut = async () => {
-
 		const response = await fetch('auth', {
 			method: 'POST',
 			body: JSON.stringify({

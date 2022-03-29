@@ -1,13 +1,11 @@
 import Redis from "ioredis"
-import * as dotenv from 'dotenv'
 
-dotenv.config()
-const { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD } = process.env
+const { VITE_REDIS_PORT, VITE_REDIS_HOST, VITE_REDIS_PASSWORD } = import.meta.env
 
 const redis = new Redis({
-    port: REDIS_PORT as unknown as number,
-    host: REDIS_HOST,
-    password: REDIS_PASSWORD,
+    port: VITE_REDIS_PORT,
+    host: VITE_REDIS_HOST,
+    password: VITE_REDIS_PASSWORD,
 })
 
 export default redis

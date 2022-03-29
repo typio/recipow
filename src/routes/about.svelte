@@ -23,7 +23,8 @@
 
 	<p>
 		This is a recipe website made for bodyguards by bodyguards! Please share your yummy recipies
-		whether they be generational treasures or your own concoction, and try cooking something out of our abundant catalouge!
+		whether they be generational treasures or your own concoction, and try cooking something out of
+		our abundant catalouge!
 	</p>
 </div>
 

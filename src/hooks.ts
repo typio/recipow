@@ -1,4 +1,5 @@
 import cookie from 'cookie'
+
 import redis from '$lib/db'
 
 export const getSession = async ({ request }: any) => {
@@ -6,7 +7,7 @@ export const getSession = async ({ request }: any) => {
 
 	const { email }: any = await (async () => {
 		try {
-			return JSON.parse(await redis.get(userid) || '{}')
+			return JSON.parse((await redis.get(userid)) || '{}')
 		} catch (error) {
 			console.log('Failed to parse JSON of redis value, error:', error)
 			return {}
@@ -23,4 +24,5 @@ export const getSession = async ({ request }: any) => {
 			auth: false
 		}
 	}
+
 }
