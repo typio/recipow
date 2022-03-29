@@ -1,16 +1,11 @@
 <script lang="ts">
 	import Header from '$lib/components/header/Header.svelte'
 	import '../app.css'
-
-	import { amp, browser, dev, mode, prerendering } from '$app/env'
-
-	
 </script>
 
 <Header />
 
 <main>
-
 	<slot />
 </main>
 

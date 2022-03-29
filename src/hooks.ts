@@ -1,24 +1,26 @@
 import cookie from 'cookie'
-import { v4 as uuid } from 'uuid'
-import type { Handle } from '@sveltejs/kit'
+import redis from '$lib/db'
 
-export const handle: Handle = async ({ event, resolve }) => {
-	const cookies = cookie.parse(event.request.headers.get('cookie') || '')
-	event.locals.userid = cookies.userid || uuid()
+export const getSession = async ({ request }: any) => {
+	const { userid } = cookie.parse(request.headers.get('cookie') || '')
 
-	const response = await resolve(event)
+	const { email }: any = await (async () => {
+		try {
+			return JSON.parse(await redis.get(userid) || '{}')
+		} catch (error) {
+			console.log('Failed to parse JSON of redis value, error:', error)
+			return {}
+		}
+	})()
 
-	if (!cookies.userid) {
-		// if this is the first time the user has visited this app,
-		// set a cookie so that we recognise them when they return
-		response.headers.set(
-			'set-cookie',
-			cookie.serialize('userid', event.locals.userid, {
-				path: '/',
-				httpOnly: true
-			})
-		)
+	if (email) {
+		return {
+			auth: true,
+			email: email
+		}
+	} else {
+		return {
+			auth: false
+		}
 	}
-
-	return response
 }

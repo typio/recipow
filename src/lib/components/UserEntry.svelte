@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { createEventDispatcher } from 'svelte'
-	import { browser } from '$app/env'
+	import { page } from '$app/stores'
 
 	const dispatch = createEventDispatcher()
 
@@ -13,61 +13,58 @@
 	let signUpEmail: string
 	let signUpPassword: string
 
+	let errorMessage = ''
+
 	export const signUp = async () => {
-		// const response = await fetch('auth', {
-		// 	method: 'POST',
-		// 	headers: {
-		// 		'Content-Type': 'application/json'
-		// 	},
-		// 	body: JSON.stringify({
-		// 		type: 'signup',
-		// 		email: signUpEmail,
-		// 		password: signUpPassword
-		// 	})
-		// })
-		// if (response.ok) {
-		// 	console.log('Success')
-		// 	dispatch('Success')
-		// } else {
-		// 	console.log('Error')
-		// }
-
-		const { response } = await (
-			await fetch('auth', {
-				method: 'POST'
-			})
-		).json()
-		console.log(response)
-	}
-
-	const logIn = async () => {
-		alert('login')
-		// if (error == null) goto('/profile')
-	}
-
-	let gotValue = 'before'
-
-	const getMessage = async () => {
 		const response = await fetch('auth', {
-			method: 'GET',
+			method: 'POST',
+			body: JSON.stringify({
+				type: 'signup',
+				email: signUpEmail,
+				password: signUpPassword
+			}),
 			headers: {
 				'Content-Type': 'application/json'
 			}
 		})
-		if (response.ok) {
-			console.log('Success')
-			dispatch('Success')
-			const { message } = await (await fetch('auth')).json()
-			console.log(message)
-			gotValue = message
+
+		if (response.status === 200) {
+			dispatch('success')
+			const data = await response.json()
+			console.log(data)
+			location.reload()
 		} else {
-			console.log('Error')
+			const data = await response.json()
+			errorMessage = data.message
+			dispatch('error')
+		}
+	}
+
+	const logIn = async () => {
+		const response = await fetch('auth', {
+			method: 'POST',
+			body: JSON.stringify({
+				type: 'login',
+				email: logInEmail,
+				password: logInPassword
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+
+		if (response.status === 200) {
+			dispatch('success')
+			const data = await response.json()
+			console.log(data)
+			location.reload()
+		} else {
+			const data = await response.json()
+			errorMessage = data.message
+			dispatch('error')
 		}
 	}
 </script>
-
-<p>{gotValue}</p>
-<button on:click={getMessage}>test</button>
 
 <div class="user-entry-form" style="display: {showForm ? 'block' : 'none'}">
 	<div class="hello">
@@ -78,6 +75,7 @@
 					class:selected={showSignUp === true}
 					on:click={() => {
 						showSignUp = true
+						errorMessage = ''
 					}}>Sign Up</button>
 			</li>
 			<li>
@@ -86,6 +84,7 @@
 					class:selected={showSignUp === false}
 					on:click={() => {
 						showSignUp = false
+						errorMessage = ''
 					}}>Log In</button>
 			</li>
 		</ul>
@@ -96,7 +95,12 @@
 			}}>X</button>
 	</div>
 
-	<form method="POST" class="signup-form" style="display: {showSignUp ? 'block' : 'none'}">
+	<div class="error-message"><p>{errorMessage}</p></div>
+	<form
+		on:submit|preventDefault={signUp}
+		method="POST"
+		class="signup-form"
+		style="display: {showSignUp ? 'block' : 'none'}">
 		<div>
 			<div><label for="signup-email-input">Email:</label></div>
 			<div><input id="signup-email-input" type="email" bind:value={signUpEmail} /></div>
@@ -107,10 +111,14 @@
 			<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
 		</div>
 
-		<button class="submit-form-buttons" on:click={signUp}> Sign Up </button>
+		<button type="submit" class="submit-form-buttons"> Sign Up </button>
 	</form>
 
-	<form method="POST" class="login-form" style="display: {showSignUp ? 'none' : 'block'}">
+	<form
+		on:submit|preventDefault={logIn}
+		method="POST"
+		class="login-form"
+		style="display: {showSignUp ? 'none' : 'block'}">
 		<div>
 			<div><label for="login-email-input">Email:</label></div>
 			<div><input id="login-email-input" type="email" bind:value={logInEmail} /></div>
@@ -120,7 +128,7 @@
 			<div><label for="login-password-input">Password:</label></div>
 			<div><input id="login-password-input" type="password" bind:value={logInPassword} /></div>
 		</div>
-		<button class="submit-form-buttons" on:click={logIn}> Log In </button>
+		<button type="submit" class="submit-form-buttons"> Log In </button>
 	</form>
 </div>
 

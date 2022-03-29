@@ -1,15 +1,49 @@
 <script lang="ts">
-	import { page } from '$app/stores'
+	import { page, session } from '$app/stores'
+	import { get } from 'svelte/store'
+	import { goto } from '$app/navigation'
 	import svelte_logo from './svelte-logo.svg'
 	import github_logo from './github-mark.svg'
-	
 
 	import UserEntry from '$lib/components/UserEntry.svelte'
 
-	let showForm = true
+	import { createEventDispatcher } from 'svelte'
+
+	const dispatch = createEventDispatcher()
+
+	interface Sesh {
+		[x: string]: any
+	}
+
+	const sesh: Sesh = get(session)
+	const loggedIn = sesh.auth
+
+	let showForm = false
 	let showSignUp = true
 
-	
+	export const logOut = async () => {
+
+		const response = await fetch('auth', {
+			method: 'POST',
+			body: JSON.stringify({
+				type: 'logout',
+				email: '',
+				password: ''
+			}),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+
+		if (response.status === 200) {
+			dispatch('success')
+			const data = await response.json()
+			console.log(data)
+			location.reload()
+		} else {
+			dispatch('error')
+		}
+	}
 </script>
 
 <header>
@@ -28,33 +62,32 @@
 			<li class:active={$page.url.pathname === '/about'}>
 				<a sveltekit:prefetch href="/about">About</a>
 			</li>
-			<li class:active={$page.url.pathname === '/todos'}>
+			<!-- <li class:active={$page.url.pathname === '/todos'}>
 				<a sveltekit:prefetch href="/todos">Todos</a>
-			</li>
-			<li class:active={$page.url.pathname === '/profile'}>
+			</li> -->
+			<li
+				style="display: {loggedIn ? 'block' : 'none'}"
+				class:active={$page.url.pathname === '/profile'}>
 				<a sveltekit:prefetch href="/profile">Profile</a>
 			</li>
-			
-		
-			<!-- <li>
+
+			<li style="display: {loggedIn ? 'none' : 'block'}">
 				<button
 					on:click={() => {
 						showForm = true
 						showSignUp = false
 					}}>Log In</button>
 			</li>
-			<li>
+			<li style="display: {loggedIn ? 'none' : 'block'}">
 				<button
 					on:click={() => {
 						showForm = true
 						showSignUp = true
 					}}>Sign Up</button>
-			</li> -->
-			<li class:active={$page.url.pathname === '/auth'}>
-				<a sveltekit:prefetch href="/auth">Log In</a>
 			</li>
-			<li class:active={$page.url.pathname === '/auth'}>
-				<a sveltekit:prefetch href="/auth">Sign Up</a>
+
+			<li style="display: {loggedIn ? 'block' : 'none'}">
+				<button on:click={logOut}>Log Out</button>
 			</li>
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
