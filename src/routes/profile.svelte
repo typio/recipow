@@ -1,41 +1,45 @@
-<script>
-  import { session } from '$app/stores'
-
-  let fname, lname, avatar, website
-
-  //   const updateProfile = async () => {
-  //     const { user, session, error } = await supabase.auth.signUp({
-  //       data: {
-  //         fname,
-  //         lname,
-  //         avatar,
-  //         website,
-  //       },
-  //     })
-  //     console.log(user, error)
-  //   }
+<script context="module" lang="ts">
+	export const load = async ({ session }: any) => {
+		if (!session.auth) {
+			return {
+				status: 302,
+				redirect: '/'
+			}
+		} else {
+			return {
+				props: {
+					email: session.email
+				}
+			}
+		}
+	}
 </script>
 
-<h2>profile</h2>
+<script lang="ts">
+	import { onMount } from 'svelte'
 
-<div>
-  <label for="fname-entry">First Name:</label>
-  <input id="fname-entry" type="text" bind:value={fname} />
+	export let email: any
+	let name: string
 
-  <label for="lname-entry">Last Name:</label>
-  <input id="lname-entry" type="text" bind:value={lname} />
+	// TODO: implement USER endpoint and mongoDB
 
-  <label for="pfp-entry">Profile Picture:</label>
-  <input id="pfp-entry" type="file" accept="image/*" bind:value={avatar} />
+	// onMount(async () => {
+	// 	const res = await fetch('/user')
+	// 	const user = await res.json()
+	// 	name = user.name
+	// 	email = user.email
+	// })
+</script>
 
-  <label for="website-entry">Website:</label>
-  <input id="website-entry" type="text" bind:value={website} />
+<svelte:head>
+	<title>Profile</title>
+</svelte:head>
 
-  <button>Update Profile</button>
+<div class="content">
+	<h1>Profile</h1>
+
+	<h2>
+		Hello {name}!
+	</h2>
+	<p>Email: {email}</p>
 </div>
-
-<pre style="width: 80vw; height: 80vh;">
-    <code>
-      {JSON.stringify($session, null, 2)}
-    </code>
-  </pre>

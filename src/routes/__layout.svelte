@@ -1,80 +1,45 @@
-<script>
-  import { session } from '$app/stores'
-  import { browser } from '$app/env'
-  // import { goto } from "$app/navigation"
-
-  import SignIn from '$lib/components/SignIn.svelte'
-
-  let show_form = false
-  let show_signup = true
-
-  if (browser) {
-    $session
-  }
-
-  const signOut = () => {
-    return
-  }
+<script lang="ts">
+	import Header from '$lib/components/header/Header.svelte'
+	import '../app.css'
 </script>
 
+<Header />
 
+<main>
+	<slot />
+</main>
 
-<nav>
-  <a href="/">Home</a>
-  <button
-    on:click={() => {
-      show_form = true
-      show_signup = true
-    }}>Sign Up</button
-  >
-  <button
-    on:click={() => {
-      show_form = true
-      show_signup = false
-    }}>Sign In</button
-  >
-  <a href="/profile">Profile</a>
-  <button on:click={signOut}>Log Out</button>
-</nav>
-
-
-<div
-  class="sign-form-overlay"
-  style="display: {show_form ? 'block' : 'none'}"
-  on:click={() => {
-    show_form = false
-  }}
-/>
-
-<div class="sign-form">
-  <SignIn bind:show_form bind:show_signup />
-</div>
-
-<slot />
-
-
-
+<footer>
+	<p>This is a website. Here is <a href="https://google.com">google.com</a>.</p>
+</footer>
 
 <style>
-  :global(body) {
-    margin: 0;
-  }
+	main {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		padding: 1rem;
+		width: 100%;
+		max-width: 1024px;
+		margin: 0 auto;
+		box-sizing: border-box;
+	}
 
-  .sign-form {
-    position: absolute;
-    width: 500px;
-    top: calc(50% - 250px);
-    left: calc(50% - 250px);
-    ;
-  }
+	footer {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		padding: 40px;
+	}
 
-  .sign-form-overlay {
-    position:absolute;
-    margin: 0;
-    top: 0;
+	footer a {
+		font-weight: bold;
+	}
 
-    width: 100%;
-    height: 100%;
-    background-color: hsla(0, 0%, 0%, 40%);
-  }
+	@media (min-width: 480px) {
+		footer {
+			padding: 40px 0;
+		}
+	}
 </style>
