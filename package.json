@@ -15,6 +15,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/adapter-netlify": "^1.0.0-next.64",
 		"@sveltejs/adapter-node": "^1.0.0-next.73",
 		"@sveltejs/kit": "next",
 		"@types/cookie": "^0.4.1",
@@ -28,6 +29,7 @@
 		"eslint": "^7.32.0",
 		"eslint-config-prettier": "^8.3.0",
 		"eslint-plugin-svelte3": "^3.4.1",
+		"mongodb": "^4.5.0",
 		"prettier": "^2.5.1",
 		"prettier-plugin-svelte": "^2.5.0",
 		"redis-json": "^6.0.3",
