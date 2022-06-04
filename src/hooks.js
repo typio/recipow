@@ -2,10 +2,11 @@ import cookie from 'cookie'
 
 import redis from '$lib/db'
 
-export const getSession = async ({ request }: any) => {
+/** @type {import('@sveltejs/kit').GetSession} */
+export const getSession = async ({ request }) => {
 	const { userid } = cookie.parse(request.headers.get('cookie') || '')
 
-	const { email }: any = await (async () => {
+	const { email } = await (async () => {
 		try {
 			return JSON.parse((await redis.get(userid)) || '{}')
 		} catch (error) {
@@ -24,5 +25,4 @@ export const getSession = async ({ request }: any) => {
 			auth: false
 		}
 	}
-
 }

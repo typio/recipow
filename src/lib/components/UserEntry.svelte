@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 	import { goto } from '$app/navigation'
 	import { createEventDispatcher } from 'svelte'
 	import { page } from '$app/stores'
@@ -8,11 +8,15 @@
 	export let showForm = false
 	export let showSignUp = true
 
-	let logInEmail: string
-	let logInPassword: string
-	let signUpEmail: string
-	let signUpPassword: string
-
+	/** @type {string} */
+	let logInEmail
+	/** @type {string} */
+	let logInPassword
+	/** @type {string} */
+	let signUpEmail
+	/** @type {string} */
+	let signUpPassword
+	/** @type {string} */
 	let errorMessage = ''
 
 	export const signUp = async () => {

@@ -1,5 +1,6 @@
-<script context="module" lang="ts">
-	export const load = async ({ session }: any) => {
+<script context="module">
+	/** @type {import('@sveltejs/kit').Load} */
+	export const load = async ({ session }) => {
 		if (!session.auth) {
 			return {
 				status: 302,
@@ -15,11 +16,14 @@
 	}
 </script>
 
-<script lang="ts">
+<script>
 	import { onMount } from 'svelte'
 
-	export let email: any
-	let name: string
+	/** @type {string} */
+	export let email
+
+	/** @type {string} */
+	let name
 
 	// TODO: implement USER endpoint and mongoDB
 

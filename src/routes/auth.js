@@ -14,7 +14,8 @@ export const get = async () => {
 	}
 }
 
-export const post = async ({ request }: any) => {
+/** @type {import('./__types/auth').RequestHandler} */
+export const post = async ({ request }) => {
 	const { email, password, type } = await request.json()
 
 	if (type != 'login' && type != 'signup' && type != 'logout') {
@@ -66,7 +67,8 @@ export const post = async ({ request }: any) => {
 		}
 	}
 
-	const user: any = await (async () => {
+	/** @type {import('$lib/types').authUser} */
+	const user = await (async () => {
 		try {
 			return JSON.parse((await redis.get(email)) || '{}')
 		} catch (error) {
@@ -91,7 +93,7 @@ export const post = async ({ request }: any) => {
 			email,
 			JSON.stringify({
 				email,
-				password: hash
+				passwordHash: hash
 			})
 		)
 
@@ -121,7 +123,7 @@ export const post = async ({ request }: any) => {
 
 	if (type == 'login') {
 		// no need to check email i think, bc user will be {} if email not in redis
-		if (user.password != hash) {
+		if (user.passwordHash != hash) {
 			return {
 				status: 400,
 				body: {
@@ -181,6 +183,12 @@ export const post = async ({ request }: any) => {
 			body: {
 				message: 'User validated successfully'
 			}
+		}
+	}
+	return {
+		status: 400,
+		body: {
+			message: 'End of control reached'
 		}
 	}
 }
