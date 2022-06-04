@@ -1,15 +1,17 @@
-import adapter from '@sveltejs/adapter-node'
-import preprocess from 'svelte-preprocess'
+import adapter from '@sveltejs/adapter-netlify';
 
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: preprocess(),
+export default {
+  kit: {
+    // default options are shown
+    adapter: adapter({
+      // if true, will create a Netlify Edge Function rather
+      // than using standard Node-based functions
+      edge: false,
 
-	kit: {
-		adapter: adapter()
-	}
-}
-
-export default config
+      // if true, will split your app into multiple functions
+      // instead of creating a single one for the entire app.
+      // if `edge` is true, this option cannot be used
+      split: false
+    })
+  }
+};

@@ -11,12 +11,7 @@
 
 	const dispatch = createEventDispatcher()
 
-	interface Sesh {
-		[x: string]: any
-	}
-
-	const sesh: Sesh = get(session)
-	const loggedIn = sesh.auth
+	const loggedIn = get(session).auth
 
 	let showForm = false
 	let showSignUp = true
