@@ -41,7 +41,9 @@ export const post = async ({ request }) => {
 					{
 						path: '/',
 						httpOnly: true,
-						maxAge: -1
+						maxAge: -1,
+						sameSite: 'strict',
+						secure: true
 					}
 				)
 			}
@@ -109,10 +111,14 @@ export const post = async ({ request }) => {
 		return {
 			status: 200,
 			headers: {
-				'Set-Cookie': cookie.serialize('userid', cookieId, {
+				'Set-Cookie': cookie.serialize(
+					'userid',
+					cookieId, {
 					path: '/',
 					httpOnly: true,
-					maxAge: TOKEN_EXPIRE_TIME
+					maxAge: TOKEN_EXPIRE_TIME,
+					sameSite: 'strict',
+					secure: true
 				})
 			},
 			body: {
@@ -155,7 +161,9 @@ export const post = async ({ request }) => {
 						{
 							path: '/',
 							httpOnly: true,
-							maxAge: TOKEN_EXPIRE_TIME
+							maxAge: TOKEN_EXPIRE_TIME,
+							sameSite: 'strict',
+							secure: true
 						}
 					)
 				}
@@ -177,7 +185,9 @@ export const post = async ({ request }) => {
 				'Set-Cookie': cookie.serialize('userid', cookieId, {
 					path: '/',
 					httpOnly: true,
-					maxAge: TOKEN_EXPIRE_TIME
+					maxAge: TOKEN_EXPIRE_TIME,
+					sameSite: 'strict',
+					secure: true
 				})
 			},
 			body: {
