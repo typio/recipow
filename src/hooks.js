@@ -22,7 +22,8 @@ export const getSession = async ({ request }) => {
 		}
 	} else {
 		return {
-			auth: false
+			auth: false,
+			email: ""
 		}
 	}
 }

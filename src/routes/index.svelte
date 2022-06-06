@@ -11,6 +11,8 @@
 
 <section>
 	<h1>Welcome</h1>
+
+	<h2>All recipes are at least 95% protein.</h2>
 </section>
 
 <style>
