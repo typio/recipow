@@ -2,7 +2,7 @@ import * as cookie from 'cookie'
 import { v4 as uuidv4 } from 'uuid'
 import stringHash from 'string-hash'
 
-import redis from '$lib/db'
+import { redis, mongoClient } from '$lib/db'
 
 const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 90 // 90 days
 
@@ -91,6 +91,7 @@ export const post = async ({ request }) => {
 			}
 		}
 
+		// add user in redis
 		await redis.set(
 			email,
 			JSON.stringify({
@@ -99,6 +100,16 @@ export const post = async ({ request }) => {
 			})
 		)
 
+		// add user in mongo
+		let newMongoUser = {
+			id: email,
+			name: email.split('@')[0],
+			email,
+			avatar: 'https://www.fillmurray.com/' + (Math.floor(32 + Math.random() * 96) + '/').repeat(2)
+		}
+		await mongoClient.db('recipow').collection('users').insertOne(newMongoUser)
+
+		// add cookie in redis
 		await redis.set(
 			cookieId,
 			JSON.stringify({
@@ -128,6 +139,9 @@ export const post = async ({ request }) => {
 	}
 
 	if (type == 'login') {
+
+
+
 		// no need to check email i think, bc user will be {} if email not in redis
 		if (user.passwordHash != hash) {
 			return {

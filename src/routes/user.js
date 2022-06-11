@@ -1,17 +1,39 @@
 import { session } from '$app/stores'
-import db from '$lib/db'
+import { redis, mongoClient } from '$lib/db'
 
 /** @type {import('./__types/user').RequestHandler} */
-export const get = async ({ request }) => {
-	return {
-		body: {
-			user: {
-				id: '123',
-				name: 'John Doe',
-				email: ' ',
-				avatar: 'https://placekitten.com/200/200'
+export const post = async ({ request }) => {
+	const { id } = await request.json()
+
+	const user = await mongoClient.db('recipow').collection('users').findOne({ "id": id })
+
+	if (user) {
+		return {
+			body: {
+				id: user.id,
+				name: user.name,
+				email: user.email,
+				avatar: user.avatar
+
+			},
+			status: 200
+		}
+	} else {
+		return {
+			status: 500,
+			body: {
+				message: 'User not found'
 			}
-		},
-		status: 200
+		}
+	}
+}
+
+/** @type {import('./__types/auth').RequestHandler} */
+export const patch = async ({ request }) => {
+	return {
+		status: 400,
+		body: {
+			message: 'bad bad bad'
+		}
 	}
 }

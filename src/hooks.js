@@ -1,6 +1,6 @@
 import cookie from 'cookie'
 
-import redis from '$lib/db'
+import { redis } from '$lib/db'
 
 /** @type {import('@sveltejs/kit').GetSession} */
 export const getSession = async ({ request }) => {

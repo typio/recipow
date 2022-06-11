@@ -5,6 +5,8 @@
 
 	const dispatch = createEventDispatcher()
 
+	// TODO: consider add/remove component instead of hiding it with CSS
+	// https://svelte.dev/repl/28996f04783542ceafed7cc6a85128b9?version=3.23.0
 	export let showForm = false
 	export let showSignUp = true
 
