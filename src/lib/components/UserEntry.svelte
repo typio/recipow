@@ -35,6 +35,19 @@
 		})
 
 		if (response.status === 200) {
+			const res = await fetch('/api/user', {
+				method: 'POST',
+				body: JSON.stringify({
+					type: 'createUser',
+					id: signUpEmail
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+
+			if (res.status)
+
 			dispatch('success')
 			const data = await response.json()
 			console.log(data)

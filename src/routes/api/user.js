@@ -2,30 +2,35 @@ import { mongoClient } from '$lib/db'
 
 /** @type {import('../api/__types/user').RequestHandler} */
 export const post = async ({ request }) => {
-	const res = await request.json()
+	const { type, id } = await request.json()
 
-	const { id } = res
+	if (type == "getUser") {
 
-	const user = await mongoClient.db('recipow').collection('users').findOne({ "id": id }) || undefined
+		const user = await mongoClient.db('recipow').collection('users').findOne({ "id": id }) || undefined
 
-	if (user) {
+		if (user) {
+			return {
+				body: {
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					avatar: user.avatar
+
+				},
+				status: 200
+			}
+		}
+
 		return {
+			status: 500,
 			body: {
-				id: user.id,
-				name: user.name,
-				email: user.email,
-				avatar: user.avatar
-
-			},
-			status: 200
+				message: 'User not found'
+			}
 		}
 	}
-	
-	return {
-		status: 500,
-		body: {
-			message: 'User not found'
-		}
+
+	if (type == "createUser") {
+		
 	}
 }
 

@@ -47,6 +47,7 @@
 			const res = await fetch('/api/user', {
 				method: 'POST',
 				body: JSON.stringify({
+					type: 'getUser',
 					id: (await (await fetch('/api/auth')).json()).email
 				}),
 				headers: {

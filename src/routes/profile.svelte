@@ -1,7 +1,6 @@
 <script context="module">
 	/** @type {import('@sveltejs/kit').Load} */
 	export const load = async ({ session }) => {
-		
 		// if not logged in redirect to home page
 		if (session.sessionId === undefined) {
 			return {
@@ -23,6 +22,7 @@
 		const res = await fetch('/api/user', {
 			method: 'POST',
 			body: JSON.stringify({
+				type: 'getUser',
 				id: (await (await fetch('/api/auth')).json()).email
 			}),
 			headers: {

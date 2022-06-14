@@ -13,6 +13,5 @@ import cookie from 'cookie'
 export const getSession = async ({ request }) => {
 	const { sessionId } = cookie.parse(request.headers.get('cookie') || '')
 
-
 	return { sessionId }
 }
