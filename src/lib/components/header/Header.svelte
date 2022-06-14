@@ -2,16 +2,15 @@
 	import { onMount } from 'svelte'
 	import { page, session } from '$app/stores'
 	import { get } from 'svelte/store'
+	import { createEventDispatcher } from 'svelte'
+
 	import svelte_logo from '$lib/assets/svelte-logo.svg'
 	import github_logo from '$lib/assets/github-mark.svg'
 
 	import UserEntry from '$lib/components/UserEntry.svelte'
 
-	import { createEventDispatcher } from 'svelte'
-
 	const dispatch = createEventDispatcher()
 
-	console.log($session);
 	const loggedIn = get(session).sessionId !== undefined
 	const userId = get(session).sessionId
 

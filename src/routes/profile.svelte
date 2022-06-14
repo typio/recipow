@@ -1,6 +1,7 @@
 <script context="module">
 	/** @type {import('@sveltejs/kit').Load} */
 	export const load = async ({ session }) => {
+		
 		// if not logged in redirect to home page
 		if (session.sessionId === undefined) {
 			return {

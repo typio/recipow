@@ -29,12 +29,6 @@ export const redis = new Redis({
 	password: VITE_REDIS_PASSWORD ?? ''
 })
 
-// export const redis = new Redis({
-// 	port: 11949,
-// 	host: "redis-11949.c60.us-west-1-2.ec2.cloud.redislabs.com",
-// 	password: "PtkyD8GZrYWT5XZqDaZXDmZL7EiCPhOh"
-// })
-
 const uri = `mongodb+srv://${VITE_MONGO_USERNAME}:${VITE_MONGO_PASSWORD}@${VITE_MONGO_CLUSTER}.bx9bt.mongodb.net`
 
 export const mongoClient = await (async (uri) => {

@@ -1,8 +1,7 @@
-<script context="module" lang="ts">
-	export const prerender = true
+<script context="module">
 </script>
 
-<script lang="ts">
+<script>
 </script>
 
 <svelte:head>
