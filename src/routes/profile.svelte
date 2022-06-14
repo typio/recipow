@@ -2,7 +2,7 @@
 	/** @type {import('@sveltejs/kit').Load} */
 	export const load = async ({ session }) => {
 		// if not logged in redirect to home page
-		if (!session.auth) {
+		if (session.sessionId === undefined) {
 			return {
 				status: 302,
 				redirect: '/'
@@ -16,18 +16,13 @@
 </script>
 
 <script>
-	import { session } from '$app/stores'
 	import { onMount } from 'svelte'
-	import { get } from 'svelte/store'
 
-	const userId = get(session).email
-
-	// TODO: implement USER endpoint and MongoDB
 	onMount(async () => {
-		const res = await fetch('/user', {
+		const res = await fetch('/api/user', {
 			method: 'POST',
 			body: JSON.stringify({
-				id: userId
+				id: (await (await fetch('/api/auth')).json()).email
 			}),
 			headers: {
 				'Content-Type': 'application/json'

@@ -22,7 +22,7 @@
 	let errorMessage = ''
 
 	export const signUp = async () => {
-		const response = await fetch('auth', {
+		const response = await fetch('/api/auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				type: 'signup',
@@ -47,7 +47,7 @@
 	}
 
 	const logIn = async () => {
-		const response = await fetch('auth', {
+		const response = await fetch('/api/auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				type: 'login',

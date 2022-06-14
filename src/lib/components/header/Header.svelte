@@ -1,8 +1,7 @@
-<script lang="ts">
+<script>
 	import { onMount } from 'svelte'
 	import { page, session } from '$app/stores'
 	import { get } from 'svelte/store'
-	import { goto } from '$app/navigation'
 	import svelte_logo from '$lib/assets/svelte-logo.svg'
 	import github_logo from '$lib/assets/github-mark.svg'
 
@@ -12,14 +11,15 @@
 
 	const dispatch = createEventDispatcher()
 
-	const loggedIn = get(session).auth
-	const userId = get(session).email
+	console.log($session);
+	const loggedIn = get(session).sessionId !== undefined
+	const userId = get(session).sessionId
 
 	let showForm = false
 	let showSignUp = true
 
 	export const logOut = async () => {
-		const response = await fetch('auth', {
+		const response = await fetch('/api/auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				type: 'logout',
@@ -44,16 +44,19 @@
 	let avatar = ''
 
 	onMount(async () => {
-		const res = await fetch('/user', {
-			method: 'POST',
-			body: JSON.stringify({
-				id: userId
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-		avatar = (await res.json()).avatar
+		if (loggedIn) {
+			const res = await fetch('/api/user', {
+				method: 'POST',
+				body: JSON.stringify({
+					id: (await (await fetch('/api/auth')).json()).email
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+
+			avatar = (await res.json()).avatar
+		}
 	})
 </script>
 
