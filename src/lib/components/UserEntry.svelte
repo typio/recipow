@@ -46,7 +46,9 @@
 				}
 			})
 
-			if (res.status)
+			if (res.status) {
+				console.log("Successfully created user");
+			}
 
 			dispatch('success')
 			const data = await response.json()

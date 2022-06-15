@@ -2,7 +2,7 @@ import * as cookie from 'cookie'
 import { v4 as uuidv4 } from 'uuid'
 import stringHash from 'string-hash'
 
-import { redis, mongoClient } from '$lib/db'
+import { redis } from '$lib/db'
 
 const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 90 // 90 days
 
@@ -93,17 +93,6 @@ export const post = async ({ request }) => {
 				passwordHash: hash
 			})
 		)
-
-		// TODO: check if this is vulnerable to double posting
-		// it would be nice to add mongo user in user.js endpoint but that caused double user creation and might need a semaphore to get working
-		// add user in mongo
-		let newMongoUser = {
-			id: email,
-			name: email.split('@')[0],
-			email,
-			avatar: 'https://www.fillmurray.com/' + (Math.floor(32 + Math.random() * 96) + '/').repeat(2)
-		}
-		await mongoClient.db('recipow').collection('users').insertOne(newMongoUser)
 
 		// add cookie in redis
 		await redis.set(
