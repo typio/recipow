@@ -1,5 +1,7 @@
 <script>
+	import { goto } from '$app/navigation'
 	import { createEventDispatcher } from 'svelte'
+	import { page } from '$app/stores'
 
 	const dispatch = createEventDispatcher()
 
@@ -18,7 +20,7 @@
 	let errorMessage = ''
 
 	export const signUp = async () => {
-		const response = await fetch('/api/auth', {
+		const response = await fetch('auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				type: 'signup',
@@ -31,21 +33,6 @@
 		})
 
 		if (response.status === 200) {
-			const res = await fetch('/api/user', {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'createUser',
-					id: signUpEmail
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			})
-
-			if (res.status) {
-				console.log('Successfully created user')
-			}
-
 			dispatch('success')
 			const data = await response.json()
 			console.log(data)
@@ -58,7 +45,7 @@
 	}
 
 	const logIn = async () => {
-		const response = await fetch('/api/auth', {
+		const response = await fetch('auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				type: 'login',
@@ -83,7 +70,7 @@
 	}
 </script>
 
-<div class="user-entry-form">
+<div class="user-entry-form" style="display: {showForm ? 'block' : 'none'}">
 	<div class="hello">
 		<ul>
 			<li>
@@ -113,34 +100,40 @@
 	</div>
 
 	<div class="error-message"><p>{errorMessage}</p></div>
-	{#if showSignUp}
-		<form on:submit|preventDefault={signUp} method="POST" class="signup-form">
-			<div>
-				<div><label for="signup-email-input">Email:</label></div>
-				<div><input id="signup-email-input" type="email" bind:value={signUpEmail} /></div>
-			</div>
+	<form
+		on:submit|preventDefault={signUp}
+		method="POST"
+		class="signup-form"
+		style="display: {showSignUp ? 'block' : 'none'}">
+		<div>
+			<div><label for="signup-email-input">Email:</label></div>
+			<div><input id="signup-email-input" type="email" bind:value={signUpEmail} /></div>
+		</div>
 
-			<div>
-				<div><label for="signup-password-input">Password:</label></div>
-				<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
-			</div>
+		<div>
+			<div><label for="signup-password-input">Password:</label></div>
+			<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
+		</div>
 
-			<button type="submit" class="submit-form-buttons"> Sign Up </button>
-		</form>
-	{:else}
-		<form on:submit|preventDefault={logIn} method="POST" class="login-form">
-			<div>
-				<div><label for="login-email-input">Email:</label></div>
-				<div><input id="login-email-input" type="email" bind:value={logInEmail} /></div>
-			</div>
+		<button type="submit" class="submit-form-buttons"> Sign Up </button>
+	</form>
 
-			<div>
-				<div><label for="login-password-input">Password:</label></div>
-				<div><input id="login-password-input" type="password" bind:value={logInPassword} /></div>
-			</div>
-			<button type="submit" class="submit-form-buttons"> Log In </button>
-		</form>
-	{/if}
+	<form
+		on:submit|preventDefault={logIn}
+		method="POST"
+		class="login-form"
+		style="display: {showSignUp ? 'none' : 'block'}">
+		<div>
+			<div><label for="login-email-input">Email:</label></div>
+			<div><input id="login-email-input" type="email" bind:value={logInEmail} /></div>
+		</div>
+
+		<div>
+			<div><label for="login-password-input">Password:</label></div>
+			<div><input id="login-password-input" type="password" bind:value={logInPassword} /></div>
+		</div>
+		<button type="submit" class="submit-form-buttons"> Log In </button>
+	</form>
 </div>
 
 <style>

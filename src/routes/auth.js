@@ -2,28 +2,33 @@ import * as cookie from 'cookie'
 import { v4 as uuidv4 } from 'uuid'
 import stringHash from 'string-hash'
 
-import { redis } from '$lib/db'
-
-export const prerender = true
+import redis from '$lib/db'
 
 const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 90 // 90 days
 
-/** @type {import('../api/__types/auth').RequestHandler} */
-export const get = async ({ request }) => {
-	const { sessionId } = cookie.parse(request.headers.get('cookie') || '')
+export const get = async () => {
 	return {
-		body: JSON.parse((await redis.get(sessionId)) || '{}')
+		body: {
+			message: 'Hello from auth'
+		}
 	}
 }
 
-/** @type {import('../api/__types/auth').RequestHandler} */
+/** @type {import('./__types/auth').RequestHandler} */
 export const post = async ({ request }) => {
 	const { email, password, type } = await request.json()
 
-	const previousCookie = cookie.parse(request.headers.get('cookie') || '').sessionId
+	if (type != 'login' && type != 'signup' && type != 'logout') {
+		return {
+			status: 400,
+			body: {
+				message: 'Missing type'
+			}
+		}
+	}
 
 	if (type == 'logout') {
-		await redis.del(previousCookie)
+		await redis.del(cookie.parse(request.headers.get('cookie') || '').userid)
 		return {
 			status: 200,
 			body: {
@@ -31,8 +36,8 @@ export const post = async ({ request }) => {
 			},
 			headers: {
 				'Set-Cookie': cookie.serialize(
-					'sessionId',
-					previousCookie,
+					'userid',
+					cookie.parse(request.headers.get('cookie') || '').userid,
 					{
 						path: '/',
 						httpOnly: true,
@@ -45,8 +50,7 @@ export const post = async ({ request }) => {
 		}
 	}
 
-	if (typeof email !== 'string' ||
-		!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+	if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
 		return {
 			status: 400,
 			body: {
@@ -87,7 +91,6 @@ export const post = async ({ request }) => {
 			}
 		}
 
-		// add user in redis
 		await redis.set(
 			email,
 			JSON.stringify({
@@ -96,7 +99,6 @@ export const post = async ({ request }) => {
 			})
 		)
 
-		// add cookie in redis
 		await redis.set(
 			cookieId,
 			JSON.stringify({
@@ -110,7 +112,7 @@ export const post = async ({ request }) => {
 			status: 200,
 			headers: {
 				'Set-Cookie': cookie.serialize(
-					'sessionId',
+					'userid',
 					cookieId, {
 					path: '/',
 					httpOnly: true,
@@ -137,10 +139,10 @@ export const post = async ({ request }) => {
 		}
 
 		// if user already logged in dont create new cookie
-		if (await redis.get(previousCookie)) {
+		if (await redis.get(cookie.parse(request.headers.get('cookie') || '').userid)) {
 			// refresh expire time on redis and local cookie
 			await redis.set(
-				previousCookie,
+				cookie.parse(request.headers.get('cookie') || '').userid,
 				JSON.stringify({
 					email
 				}),
@@ -154,8 +156,8 @@ export const post = async ({ request }) => {
 				},
 				headers: {
 					'Set-Cookie': cookie.serialize(
-						'sessionId',
-						previousCookie,
+						'userid',
+						cookie.parse(request.headers.get('cookie') || '').userid,
 						{
 							path: '/',
 							httpOnly: true,
@@ -180,7 +182,7 @@ export const post = async ({ request }) => {
 		return {
 			status: 200,
 			headers: {
-				'Set-Cookie': cookie.serialize('sessionId', cookieId, {
+				'Set-Cookie': cookie.serialize('userid', cookieId, {
 					path: '/',
 					httpOnly: true,
 					maxAge: TOKEN_EXPIRE_TIME,
@@ -189,18 +191,16 @@ export const post = async ({ request }) => {
 				})
 			},
 			body: {
-				message: 'User validated successfully',
+				message: 'User validated successfully'
 			}
 		}
 	}
-
 	return {
 		status: 400,
 		body: {
-			message: 'Missing type'
+			message: 'End of control reached'
 		}
 	}
-
 }
 
 // export const delete_ = async ({ request }: any) => {
