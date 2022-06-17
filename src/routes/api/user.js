@@ -1,5 +1,7 @@
 import { mongoClient } from '$lib/db'
 
+export const prerender = true
+
 /** @type {import('../api/__types/user').RequestHandler} */
 export const post = async ({ request }) => {
 	const { type, id } = await request.json()

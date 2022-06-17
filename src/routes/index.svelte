@@ -1,4 +1,5 @@
 <script context="module">
+	const response = await fetch('api/test.json.js')
 </script>
 
 <script>

@@ -4,6 +4,8 @@ import stringHash from 'string-hash'
 
 import { redis } from '$lib/db'
 
+export const prerender = true
+
 const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 90 // 90 days
 
 /** @type {import('../api/__types/auth').RequestHandler} */
