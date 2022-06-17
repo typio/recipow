@@ -2,33 +2,28 @@ import * as cookie from 'cookie'
 import { v4 as uuidv4 } from 'uuid'
 import stringHash from 'string-hash'
 
-import { redis, mongoClient } from '$lib/db'
+import { redis } from '$lib/db'
+
+export const prerender = true
 
 const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 90 // 90 days
 
-export const get = async () => {
+/** @type {import('../api/__types/auth').RequestHandler} */
+export const get = async ({ request }) => {
+	const { sessionId } = cookie.parse(request.headers.get('cookie') || '')
 	return {
-		body: {
-			message: 'Hello from auth'
-		}
+		body: JSON.parse((await redis.get(sessionId)) || '{}')
 	}
 }
 
-/** @type {import('./__types/auth').RequestHandler} */
+/** @type {import('../api/__types/auth').RequestHandler} */
 export const post = async ({ request }) => {
 	const { email, password, type } = await request.json()
 
-	if (type != 'login' && type != 'signup' && type != 'logout') {
-		return {
-			status: 400,
-			body: {
-				message: 'Missing type'
-			}
-		}
-	}
+	const previousCookie = cookie.parse(request.headers.get('cookie') || '').sessionId
 
 	if (type == 'logout') {
-		await redis.del(cookie.parse(request.headers.get('cookie') || '').userid)
+		await redis.del(previousCookie)
 		return {
 			status: 200,
 			body: {
@@ -36,8 +31,8 @@ export const post = async ({ request }) => {
 			},
 			headers: {
 				'Set-Cookie': cookie.serialize(
-					'userid',
-					cookie.parse(request.headers.get('cookie') || '').userid,
+					'sessionId',
+					previousCookie,
 					{
 						path: '/',
 						httpOnly: true,
@@ -50,7 +45,8 @@ export const post = async ({ request }) => {
 		}
 	}
 
-	if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+	if (typeof email !== 'string' ||
+		!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
 		return {
 			status: 400,
 			body: {
@@ -100,15 +96,6 @@ export const post = async ({ request }) => {
 			})
 		)
 
-		// add user in mongo
-		let newMongoUser = {
-			id: email,
-			name: email.split('@')[0],
-			email,
-			avatar: 'https://www.fillmurray.com/' + (Math.floor(32 + Math.random() * 96) + '/').repeat(2)
-		}
-		await mongoClient.db('recipow').collection('users').insertOne(newMongoUser)
-
 		// add cookie in redis
 		await redis.set(
 			cookieId,
@@ -123,7 +110,7 @@ export const post = async ({ request }) => {
 			status: 200,
 			headers: {
 				'Set-Cookie': cookie.serialize(
-					'userid',
+					'sessionId',
 					cookieId, {
 					path: '/',
 					httpOnly: true,
@@ -139,9 +126,6 @@ export const post = async ({ request }) => {
 	}
 
 	if (type == 'login') {
-
-
-
 		// no need to check email i think, bc user will be {} if email not in redis
 		if (user.passwordHash != hash) {
 			return {
@@ -153,10 +137,10 @@ export const post = async ({ request }) => {
 		}
 
 		// if user already logged in dont create new cookie
-		if (await redis.get(cookie.parse(request.headers.get('cookie') || '').userid)) {
+		if (await redis.get(previousCookie)) {
 			// refresh expire time on redis and local cookie
 			await redis.set(
-				cookie.parse(request.headers.get('cookie') || '').userid,
+				previousCookie,
 				JSON.stringify({
 					email
 				}),
@@ -170,8 +154,8 @@ export const post = async ({ request }) => {
 				},
 				headers: {
 					'Set-Cookie': cookie.serialize(
-						'userid',
-						cookie.parse(request.headers.get('cookie') || '').userid,
+						'sessionId',
+						previousCookie,
 						{
 							path: '/',
 							httpOnly: true,
@@ -196,7 +180,7 @@ export const post = async ({ request }) => {
 		return {
 			status: 200,
 			headers: {
-				'Set-Cookie': cookie.serialize('userid', cookieId, {
+				'Set-Cookie': cookie.serialize('sessionId', cookieId, {
 					path: '/',
 					httpOnly: true,
 					maxAge: TOKEN_EXPIRE_TIME,
@@ -205,16 +189,18 @@ export const post = async ({ request }) => {
 				})
 			},
 			body: {
-				message: 'User validated successfully'
+				message: 'User validated successfully',
 			}
 		}
 	}
+
 	return {
 		status: 400,
 		body: {
-			message: 'End of control reached'
+			message: 'Missing type'
 		}
 	}
+
 }
 
 // export const delete_ = async ({ request }: any) => {

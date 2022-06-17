@@ -1,8 +1,7 @@
-<script context="module" lang="ts">
-	export const prerender = true
+<script context="module">
 </script>
 
-<script lang="ts">
+<script>
 </script>
 
 <svelte:head>
@@ -11,8 +10,6 @@
 
 <section>
 	<h1>Welcome</h1>
-
-	<h2>All recipes are at least 95% protein.</h2>
 </section>
 
 <style>

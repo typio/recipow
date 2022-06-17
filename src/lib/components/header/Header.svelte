@@ -1,25 +1,26 @@
-<script lang="ts">
+<script>
 	import { onMount } from 'svelte'
 	import { page, session } from '$app/stores'
 	import { get } from 'svelte/store'
-	import { goto } from '$app/navigation'
+	import { createEventDispatcher } from 'svelte'
+
 	import svelte_logo from '$lib/assets/svelte-logo.svg'
 	import github_logo from '$lib/assets/github-mark.svg'
 
-	import UserEntry from '$lib/components/UserEntry.svelte'
-
-	import { createEventDispatcher } from 'svelte'
+	import UserEntry from '$lib/components/header/UserEntry.svelte'
+	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
 
 	const dispatch = createEventDispatcher()
 
-	const loggedIn = get(session).auth
-	const userId = get(session).email
+	const loggedIn = get(session).sessionId !== undefined
 
 	let showForm = false
 	let showSignUp = true
 
+	let showProfileModal = false
+
 	export const logOut = async () => {
-		const response = await fetch('auth', {
+		const response = await fetch('/api/auth', {
 			method: 'POST',
 			body: JSON.stringify({
 				type: 'logout',
@@ -44,16 +45,20 @@
 	let avatar = ''
 
 	onMount(async () => {
-		const res = await fetch('/user', {
-			method: 'POST',
-			body: JSON.stringify({
-				id: userId
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-		avatar = (await res.json()).avatar
+		if (loggedIn) {
+			const res = await fetch('/api/user', {
+				method: 'POST',
+				body: JSON.stringify({
+					type: 'getUser',
+					id: (await (await fetch('/api/auth')).json()).email
+				}),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+
+			avatar = (await res.json()).avatar
+		}
 	})
 </script>
 
@@ -75,17 +80,18 @@
 			<li class:active={$page.url.pathname === '/about'}>
 				<a sveltekit:prefetch href="/about">About</a>
 			</li>
-			<!-- <li class:active={$page.url.pathname === '/todos'}>
-				<a sveltekit:prefetch href="/todos">Todos</a>
-			</li> -->
 			<li
 				class:active={$page.url.pathname === '/profile'}
 				style="display: {loggedIn ? 'block' : 'none'}">
-				<a href="/profile">
+				<button
+					class="profile-button"
+					on:click={() => {
+						showProfileModal = !showProfileModal
+					}}>
 					<div style="background-color: #d0dde9; width: 32px; height: 32px; border-radius:100%">
 						<img src={avatar} alt="" style="width: 32px; height: 32px;  border-radius:100%; " />
 					</div>
-				</a>
+				</button>
 			</li>
 			<li style="display: {loggedIn ? 'none' : 'block'}">
 				<button
@@ -112,21 +118,28 @@
 	</nav>
 
 	<div class="corner">
-		<!-- TODO put something else here? github link? -->
 		<a href="https://github.com/typio/recipow">
 			<img src={github_logo} alt="Github" />
 		</a>
 	</div>
 
-	<div
-		class="user-entry-overlay"
-		style="display: {showForm ? 'block' : 'none'}"
-		on:click={() => {
-			showForm = false
-		}} />
-	<div class="user-entry-form">
-		<UserEntry bind:showForm bind:showSignUp />
-	</div>
+	{#if showForm}
+		<div
+			class="user-entry-overlay"
+			style="display: {showForm ? 'block' : 'none'}"
+			on:click={() => {
+				showForm = false
+				showProfileModal = false
+			}} />
+
+		<div class="user-entry-form">
+			<UserEntry bind:showForm bind:showSignUp />
+		</div>
+	{/if}
+
+	{#if showProfileModal}
+		<ProfileModal />
+	{/if}
 </header>
 
 <style>
@@ -162,7 +175,6 @@
 
 	.user-entry-overlay {
 		position: absolute;
-		margin: 0;
 		top: 0;
 
 		width: 100%;
@@ -172,6 +184,7 @@
 
 	.user-entry-form {
 		position: absolute;
+		margin: 15vh 0 0 0;
 		width: 500px;
 		top: calc(50% - 250px);
 		left: calc(50% - 250px);
