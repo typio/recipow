@@ -23,18 +23,26 @@ if (!VITE_REDIS_PORT) {
 	} = import.meta.env)
 }
 
-const redis = new Redis({
-	port: VITE_REDIS_PORT,
-	host: VITE_REDIS_HOST,
-	password: VITE_REDIS_PASSWORD
+export const redis = new Redis({
+	port: parseInt(VITE_REDIS_PORT ?? '6379'),
+	host: VITE_REDIS_HOST ?? '',
+	password: VITE_REDIS_PASSWORD ?? ''
 })
 
-const uri = `mongodb+srv://${VITE_MONGO_USERNAME}:${VITE_MONGO_PASSWORD}@${VITE_MONGO_CLUSTER}`
-const client = new MongoClient(uri)
-client.connect(err => {
-	const collection = client.db('test').collection('devices')
-	// perform actions on the collection object
-	client.close()
-})
+const uri = `mongodb+srv://${VITE_MONGO_USERNAME}:${VITE_MONGO_PASSWORD}@${VITE_MONGO_CLUSTER}.bx9bt.mongodb.net`
 
-export default redis
+export const mongoClient = await (async (uri) => {
+	let mongoClient
+
+	try {
+		mongoClient = new MongoClient(uri)
+		console.log('Connecting to MongoDB Atlas cluster...')
+		await mongoClient.connect()
+		console.log('Successfully connected to MongoDB Atlas!')
+
+		return mongoClient
+	} catch (error) {
+		console.error('Connection to MongoDB Atlas failed!', error)
+		process.exit()
+	}
+})(uri)

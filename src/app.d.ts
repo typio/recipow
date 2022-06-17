@@ -4,14 +4,13 @@
 // for information about these interfaces
 declare namespace App {
 	interface Locals {
-		userid: string
+		userId: string
 	}
 
 	// interface Platform {}
 
 	interface Session {
-		auth: boolean
-		email: string
+		sessionId: string
 	}
 
 	// interface Stuff {}
