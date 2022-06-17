@@ -1,12 +1,8 @@
 <script>
-	import { goto } from '$app/navigation'
 	import { createEventDispatcher } from 'svelte'
-	import { page } from '$app/stores'
 
 	const dispatch = createEventDispatcher()
 
-	// TODO: consider add/remove component instead of hiding it with CSS
-	// https://svelte.dev/repl/28996f04783542ceafed7cc6a85128b9?version=3.23.0
 	export let showForm = false
 	export let showSignUp = true
 
@@ -47,7 +43,7 @@
 			})
 
 			if (res.status) {
-				console.log("Successfully created user");
+				console.log('Successfully created user')
 			}
 
 			dispatch('success')
@@ -87,7 +83,7 @@
 	}
 </script>
 
-<div class="user-entry-form" style="display: {showForm ? 'block' : 'none'}">
+<div class="user-entry-form">
 	<div class="hello">
 		<ul>
 			<li>
@@ -117,40 +113,34 @@
 	</div>
 
 	<div class="error-message"><p>{errorMessage}</p></div>
-	<form
-		on:submit|preventDefault={signUp}
-		method="POST"
-		class="signup-form"
-		style="display: {showSignUp ? 'block' : 'none'}">
-		<div>
-			<div><label for="signup-email-input">Email:</label></div>
-			<div><input id="signup-email-input" type="email" bind:value={signUpEmail} /></div>
-		</div>
+	{#if showSignUp}
+		<form on:submit|preventDefault={signUp} method="POST" class="signup-form">
+			<div>
+				<div><label for="signup-email-input">Email:</label></div>
+				<div><input id="signup-email-input" type="email" bind:value={signUpEmail} /></div>
+			</div>
 
-		<div>
-			<div><label for="signup-password-input">Password:</label></div>
-			<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
-		</div>
+			<div>
+				<div><label for="signup-password-input">Password:</label></div>
+				<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
+			</div>
 
-		<button type="submit" class="submit-form-buttons"> Sign Up </button>
-	</form>
+			<button type="submit" class="submit-form-buttons"> Sign Up </button>
+		</form>
+	{:else}
+		<form on:submit|preventDefault={logIn} method="POST" class="login-form">
+			<div>
+				<div><label for="login-email-input">Email:</label></div>
+				<div><input id="login-email-input" type="email" bind:value={logInEmail} /></div>
+			</div>
 
-	<form
-		on:submit|preventDefault={logIn}
-		method="POST"
-		class="login-form"
-		style="display: {showSignUp ? 'none' : 'block'}">
-		<div>
-			<div><label for="login-email-input">Email:</label></div>
-			<div><input id="login-email-input" type="email" bind:value={logInEmail} /></div>
-		</div>
-
-		<div>
-			<div><label for="login-password-input">Password:</label></div>
-			<div><input id="login-password-input" type="password" bind:value={logInPassword} /></div>
-		</div>
-		<button type="submit" class="submit-form-buttons"> Log In </button>
-	</form>
+			<div>
+				<div><label for="login-password-input">Password:</label></div>
+				<div><input id="login-password-input" type="password" bind:value={logInPassword} /></div>
+			</div>
+			<button type="submit" class="submit-form-buttons"> Log In </button>
+		</form>
+	{/if}
 </div>
 
 <style>
