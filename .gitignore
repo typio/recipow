@@ -10,4 +10,3 @@ node_modules
 .vercel_build_output
 .netlify
 .output
-package-lock.json
