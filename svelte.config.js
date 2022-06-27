@@ -1,6 +1,11 @@
-import vercel from '@sveltejs/adapter-vercel';
+import vercel from '@sveltejs/adapter-vercel'
+import preprocess from 'svelte-preprocess'
 
-export default {
+const config = {
+  // Consult https://github.com/sveltejs/svelte-preprocess
+  // for more information about preprocessors
+  preprocess: preprocess(),
+
   kit: {
     // default options are shown
     adapter: vercel({
@@ -16,6 +21,11 @@ export default {
       // if true, will split your app into multiple functions
       // instead of creating a single one for the entire app
       split: false
-    })
+    }),
+    prerender: {
+      enabled: false
+    }
   }
-};
+}
+
+export default config
