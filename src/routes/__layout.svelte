@@ -1,11 +1,29 @@
+<script context="module">
+	/** @type {import('@sveltejs/kit').Load} */
+	export const load = async ({ session }) => {
+		// if not logged in redirect to home page
+		const loggedIn = session.sessionId !== undefined
+
+		return {
+			status: 200,
+			props: {
+				loggedIn: loggedIn
+			}
+		}
+	}
+</script>
+
 <script>
 	import Header from '$lib/components/header/Header.svelte'
 	import { page, session } from '$app/stores'
-	import { get } from 'svelte/store';
+	import { get } from 'svelte/store'
 	import '../app.css'
+
+	/** @type {boolean}*/
+	export let loggedIn
 </script>
 
-<Header />
+<Header {loggedIn} />
 
 <main>
 	<slot />

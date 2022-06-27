@@ -1,5 +1,4 @@
 <script context="module">
-
 	export const logOut = async () => {
 		const response = await fetch('/api/auth', {
 			method: 'POST',
@@ -22,10 +21,10 @@
 	}
 </script>
 
-<script>
+<script loggedIn>
 	import { onMount } from 'svelte'
 	import { page, session } from '$app/stores'
-	import { get } from 'svelte/store'
+	import { get, writable } from 'svelte/store'
 
 	import svelte_logo from '$lib/assets/svelte-logo.svg'
 	import github_logo from '$lib/assets/github-mark.svg'
@@ -33,18 +32,17 @@
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
 
-	/** @type {boolean} */
-	let loggedIn
-
 	let showForm = false
 	let showSignUp = true
+
+	/** @type {boolean} */
+	export let loggedIn
 
 	let showProfileModal = false
 
 	let avatar = ''
 
 	onMount(async () => {
-		loggedIn = get(session).sessionId !== undefined
 		if (loggedIn) {
 			const res = await fetch('/api/user', {
 				method: 'POST',
@@ -96,24 +94,26 @@
 					<ProfileModal bind:showProfileModal />
 				{/if}
 			</li>
-			<li style="display: {loggedIn ? 'none' : 'block'}">
-				<button
-					on:click={() => {
-						showForm = true
-						showSignUp = false
-					}}>Log In</button>
-			</li>
-			<li style="display: {loggedIn ? 'none' : 'block'}">
-				<button
-					on:click={() => {
-						showForm = true
-						showSignUp = true
-					}}>Sign Up</button>
-			</li>
-
-			<li style="display: {loggedIn ? 'block' : 'none'}">
-				<button on:click={logOut}>Log Out</button>
-			</li>
+			{#if !loggedIn}
+				<li>
+					<button
+						on:click={() => {
+							showForm = true
+							showSignUp = false
+						}}>Log In</button>
+				</li>
+				<li>
+					<button
+						on:click={() => {
+							showForm = true
+							showSignUp = true
+						}}>Sign Up</button>
+				</li>
+			{:else}
+				<li style="display: {loggedIn ? 'block' : 'none'}">
+					<button on:click={logOut}>Log Out</button>
+				</li>
+			{/if}
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
 			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
@@ -178,7 +178,7 @@
 	nav {
 		display: flex;
 		justify-content: center;
-		--background: 	var(--color-grey-13);
+		--background: var(--color-grey-13);
 	}
 
 	.user-entry-overlay {

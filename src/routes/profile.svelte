@@ -48,7 +48,6 @@
 	})
 
 	const updateUser = async () => {
-		console.log(name);
 		const res = await fetch('/api/user', {
 			method: 'PATCH',
 			body: JSON.stringify({
@@ -61,7 +60,6 @@
 				'Content-Type': 'application/json'
 			}
 		})
-		console.log(await res.json())
 		location.reload()
 	}
 </script>
@@ -91,7 +89,10 @@
 		<p>Email: {user.email}</p>
 		<!-- <input type="text" label="Name: " value="{user.email}"> -->
 	</div>
-	<button on:click={updateUser}>Update Details</button>
+	<button
+		on:click={() => {
+			if (name.length > 0) updateUser()
+		}}>Update Details</button>
 	<br />
 	<br />
 	<button class="button-red">Delete Account</button>
