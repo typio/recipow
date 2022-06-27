@@ -7,5 +7,7 @@ node_modules
 .env.*
 !.env.example
 .vercel
+.vercel_build_output
 .netlify
 .output
+package-lock.json
