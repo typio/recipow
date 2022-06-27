@@ -100,7 +100,7 @@ export const post = async ({ request }) => {
 			JSON.stringify({
 				email
 			}),
-			'ex',
+			'EX',
 			TOKEN_EXPIRE_TIME
 		)
 
@@ -142,7 +142,7 @@ export const post = async ({ request }) => {
 				JSON.stringify({
 					email
 				}),
-				'ex',
+				'EX',
 				TOKEN_EXPIRE_TIME
 			)
 			return {
@@ -171,7 +171,7 @@ export const post = async ({ request }) => {
 			JSON.stringify({
 				email
 			}),
-			'ex',
+			'EX',
 			TOKEN_EXPIRE_TIME
 		)
 
