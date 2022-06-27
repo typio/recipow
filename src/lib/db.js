@@ -29,20 +29,6 @@ export const redis = new Redis({
 	password: VITE_REDIS_PASSWORD ?? ''
 })
 
-const uri = `mongodb+srv://${VITE_MONGO_USERNAME}:${VITE_MONGO_PASSWORD}@${VITE_MONGO_CLUSTER}.bx9bt.mongodb.net`
+const uri = `mongodb+srv://${VITE_MONGO_USERNAME}:${VITE_MONGO_PASSWORD}@${VITE_MONGO_CLUSTER}.bx9bt.mongodb.net/?retryWrites=true&w=majority`
 
-export const mongoClient = await (async (uri) => {
-	let mongoClient
-
-	try {
-		mongoClient = new MongoClient(uri)
-		console.log('Connecting to MongoDB Atlas cluster...')
-		await mongoClient.connect()
-		console.log('Successfully connected to MongoDB Atlas!')
-
-		return mongoClient
-	} catch (error) {
-		console.error('Connection to MongoDB Atlas failed!', error)
-		process.exit()
-	}
-})(uri)
+export const mongoClient = new MongoClient(uri)

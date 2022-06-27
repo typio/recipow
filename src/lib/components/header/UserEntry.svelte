@@ -112,8 +112,14 @@
 			}}>X</button>
 	</div>
 
-	<div class="error-message"><p>{errorMessage}</p></div>
+	{#if errorMessage}
+		<div class="error-message"><p>{errorMessage}</p></div>
+	{/if}
+
 	{#if showSignUp}
+		<p style="font-weight: 700; font-size: .94rem; color:#555">
+			Password must have one lowercase, uppercase, number and be 8+ characters.
+		</p>
 		<form on:submit|preventDefault={signUp} method="POST" class="signup-form">
 			<div>
 				<div><label for="signup-email-input">Email:</label></div>
@@ -124,7 +130,6 @@
 				<div><label for="signup-password-input">Password:</label></div>
 				<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
 			</div>
-
 			<button type="submit" class="submit-form-buttons"> Sign Up </button>
 		</form>
 	{:else}
@@ -160,15 +165,16 @@
 
 	form {
 		display: flex;
+		flex-flow: wrap;
 		justify-content: center;
-		align-items: center;
 	}
 
 	input {
-		width: 98%;
+		margin-bottom: 6px;
 	}
 
 	.submit-form-buttons {
+		margin-top: 10px;
 		width: 100%;
 	}
 

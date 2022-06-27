@@ -1,23 +1,4 @@
-<script>
-	import { onMount } from 'svelte'
-	import { page, session } from '$app/stores'
-	import { get } from 'svelte/store'
-	import { createEventDispatcher } from 'svelte'
-
-	import svelte_logo from '$lib/assets/svelte-logo.svg'
-	import github_logo from '$lib/assets/github-mark.svg'
-
-	import UserEntry from '$lib/components/header/UserEntry.svelte'
-	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
-
-	const dispatch = createEventDispatcher()
-
-	const loggedIn = get(session).sessionId !== undefined
-
-	let showForm = false
-	let showSignUp = true
-
-	let showProfileModal = false
+<script context="module">
 
 	export const logOut = async () => {
 		const response = await fetch('/api/auth', {
@@ -33,14 +14,31 @@
 		})
 
 		if (response.status === 200) {
-			dispatch('success')
 			const data = await response.json()
 			console.log(data)
 			location.reload()
 		} else {
-			dispatch('error')
 		}
 	}
+</script>
+
+<script>
+	import { onMount } from 'svelte'
+	import { page, session } from '$app/stores'
+	import { get } from 'svelte/store'
+
+	import svelte_logo from '$lib/assets/svelte-logo.svg'
+	import github_logo from '$lib/assets/github-mark.svg'
+
+	import UserEntry from '$lib/components/header/UserEntry.svelte'
+	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
+
+	const loggedIn = get(session).sessionId !== undefined
+
+	let showForm = false
+	let showSignUp = true
+
+	let showProfileModal = false
 
 	let avatar = ''
 
@@ -92,6 +90,9 @@
 						<img src={avatar} alt="" style="width: 32px; height: 32px;  border-radius:100%; " />
 					</div>
 				</button>
+				{#if showProfileModal}
+					<ProfileModal bind:showProfileModal />
+				{/if}
 			</li>
 			<li style="display: {loggedIn ? 'none' : 'block'}">
 				<button
@@ -126,7 +127,6 @@
 	{#if showForm}
 		<div
 			class="user-entry-overlay"
-			style="display: {showForm ? 'block' : 'none'}"
 			on:click={() => {
 				showForm = false
 				showProfileModal = false
@@ -138,7 +138,13 @@
 	{/if}
 
 	{#if showProfileModal}
-		<ProfileModal />
+		<div
+			class="user-entry-overlay"
+			style="background-color: hsla(0, 0%, 0%, 0%);;"
+			on:click={() => {
+				showForm = false
+				showProfileModal = false
+			}} />
 	{/if}
 </header>
 
@@ -170,7 +176,7 @@
 	nav {
 		display: flex;
 		justify-content: center;
-		--background: lightgray;
+		--background: 	var(--color-grey-13);
 	}
 
 	.user-entry-overlay {
@@ -184,9 +190,8 @@
 
 	.user-entry-form {
 		position: absolute;
-		margin: 15vh 0 0 0;
+		margin: 22vh 0 0 0;
 		width: 500px;
-		top: calc(50% - 250px);
 		left: calc(50% - 250px);
 	}
 

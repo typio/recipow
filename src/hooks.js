@@ -11,7 +11,11 @@ import cookie from 'cookie'
 
 /** @type {import('@sveltejs/kit').GetSession} */
 export const getSession = async ({ request }) => {
-	const { sessionId } = cookie.parse(request.headers.get('cookie') || '')
+	// for some reason cookie.parse does not work in production???
+	// const { sessionId } = cookie.parse(request.headers.get('cookie') || '')
+	const { sessionId } = {
+		sessionId: (request.headers.get('cookie') || '').split('=')[1]
+	}
 
 	return { sessionId }
 }

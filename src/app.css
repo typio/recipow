@@ -5,11 +5,11 @@
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: monospace;
 	--pure-white: #ffffff;
-	--primary-color: #b9c6d2;
-	--secondary-color: #d0dde9;
-	--tertiary-color: #edf0f8;
+	--primary-color: #d0c8c8;
+	--secondary-color: #d0c8c8;
+	--tertiary-color: #eae6e6;
 	--accent-color: #ff3e00;
-	--heading-color: rgba(0, 0, 0, 0.7);
+	--heading-color: #393232;
 	--text-color: #444444;
 	--background-without-opacity: rgba(255, 255, 255, 0.7);
 	--column-width: 42rem;

@@ -98,9 +98,6 @@
 </div>
 
 <style>
-	.content {
-	}
-
 	.row {
 		display: flex;
 		justify-content: left;
