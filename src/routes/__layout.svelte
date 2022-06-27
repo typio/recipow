@@ -1,9 +1,8 @@
-
-
 <script>
 	import Header from '$lib/components/header/Header.svelte'
+	import { page, session } from '$app/stores'
+	import { get } from 'svelte/store';
 	import '../app.css'
-
 </script>
 
 <Header />

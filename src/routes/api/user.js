@@ -1,13 +1,10 @@
 import { mongoClient } from '$lib/db'
 
-export const prerender = true
-
 /** @type {import('../api/__types/user').RequestHandler} */
 export const post = async ({ request }) => {
 	const { type, id } = await request.json()
 
 	if (type == "getUser") {
-
 		const user = await mongoClient.db('recipow').collection('users').findOne({ "id": id }) || undefined
 
 		if (user) {
@@ -63,7 +60,6 @@ export const patch = async ({ request }) => {
 			{ $set: { "name": newName, "avatar": newAvatar } }
 		)
 
-		console.log(res);
 		if (res.matchedCount == 1) {
 			return {
 				status: 200,
