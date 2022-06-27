@@ -33,7 +33,8 @@
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
 
-	const loggedIn = get(session).sessionId !== undefined
+	/** @type {boolean} */
+	let loggedIn
 
 	let showForm = false
 	let showSignUp = true
@@ -43,6 +44,7 @@
 	let avatar = ''
 
 	onMount(async () => {
+		loggedIn = get(session).sessionId !== undefined
 		if (loggedIn) {
 			const res = await fetch('/api/user', {
 				method: 'POST',
