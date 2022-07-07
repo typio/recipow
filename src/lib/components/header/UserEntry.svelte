@@ -3,27 +3,20 @@
 
 	const dispatch = createEventDispatcher()
 
-	export let showForm = false
-	export let showSignUp = true
+	export let formType = 'none'
 
-	/** @type {string} */
-	let logInEmail
-	/** @type {string} */
-	let logInPassword
-	/** @type {string} */
-	let signUpEmail
-	/** @type {string} */
-	let signUpPassword
-	/** @type {string} */
+	let inputEmail = ''
+	let inputPassword = ''
 	let errorMessage = ''
 
+	// could dispatch the credentials for this,
+	// but it wouldn't make any more sense to have login logic in header...
 	export const signUp = async () => {
-		const response = await fetch('/api/auth', {
+		const response = await fetch('/auth/signup', {
 			method: 'POST',
 			body: JSON.stringify({
-				type: 'signup',
-				email: signUpEmail,
-				password: signUpPassword
+				email: inputEmail,
+				password: inputPassword
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -31,21 +24,6 @@
 		})
 
 		if (response.status === 200) {
-			const res = await fetch('/api/user', {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'createUser',
-					id: signUpEmail
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			})
-
-			if (res.status) {
-				console.log('Successfully created user')
-			}
-
 			dispatch('success')
 			const data = await response.json()
 			console.log(data)
@@ -58,12 +36,11 @@
 	}
 
 	const logIn = async () => {
-		const response = await fetch('/api/auth', {
+		const response = await fetch('/auth/login', {
 			method: 'POST',
 			body: JSON.stringify({
-				type: 'login',
-				email: logInEmail,
-				password: logInPassword
+				email: inputEmail,
+				password: inputPassword
 			}),
 			headers: {
 				'Content-Type': 'application/json'
@@ -81,34 +58,60 @@
 			dispatch('error')
 		}
 	}
+
+	// this is safe right?
+	const dispatchCredentials = () => {
+		dispatch('credentials', {
+			text: JSON.stringify({
+				email: inputEmail,
+				password: inputPassword
+			})
+		})
+	}
 </script>
 
 <div class="user-entry-form">
 	<div class="hello">
 		<ul>
-			<li>
-				<button
-					class="signup-login-btns"
-					class:selected={showSignUp === true}
-					on:click={() => {
-						showSignUp = true
-						errorMessage = ''
-					}}>Sign Up</button>
-			</li>
-			<li>
-				<button
-					class="signup-login-btns"
-					class:selected={showSignUp === false}
-					on:click={() => {
-						showSignUp = false
-						errorMessage = ''
-					}}>Log In</button>
-			</li>
+			{#if formType === 'signUp' || formType === 'logIn'}
+				<li>
+					<button
+						class="tab-btns"
+						class:selected={formType === 'signUp'}
+						on:click={() => {
+							if (formType === 'logIn') {
+								inputEmail = ''
+								inputPassword = ''
+							}
+							formType = 'signUp'
+							errorMessage = ''
+						}}>Sign Up</button>
+				</li>
+				<li>
+					<button
+						class="tab-btns"
+						class:selected={formType === 'logIn'}
+						on:click={() => {
+							if (formType === 'signUp') {
+								inputEmail = ''
+								inputPassword = ''
+							}
+							formType = 'logIn'
+							errorMessage = ''
+						}}>Log In</button>
+				</li>
+			{:else if formType === 'deleteAccount'}
+				<li>
+					<button class="tab-btns" class:selected={formType === 'deleteAccount'}
+						>Delete Account</button>
+				</li>
+			{/if}
 		</ul>
+
 		<button
 			class="close-form-btn"
 			on:click={() => {
-				showForm = false
+				formType = 'none'
 			}}>X</button>
 	</div>
 
@@ -116,49 +119,50 @@
 		<div class="error-message"><p>{errorMessage}</p></div>
 	{/if}
 
-	{#if showSignUp}
-		<p style="font-weight: 700; font-size: .94rem; color:#555">
-			Password must have one lowercase, uppercase, number and be 8+ characters.
-		</p>
-		<form on:submit|preventDefault={signUp} method="POST" class="signup-form">
-			<div>
-				<div><label for="signup-email-input">Email:</label></div>
-				<div><input id="signup-email-input" type="email" bind:value={signUpEmail} /></div>
-			</div>
+	<form class="signup-form">
+		{#if formType === 'signUp'}
+			<p style="font-weight: 700; font-size: .94rem; color:#555">
+				Password must have one lowercase, uppercase, number and be 8+ characters.
+			</p>
+		{:else if formType === 'deleteAccount'}
+			<p style="font-weight: 700; font-size: .94rem; color:#555">
+				Please confirm your account credentials.
+			</p>
+		{/if}
+		<div>
+			<div><label for="email-input">Email:</label></div>
+			<div><input id="email-input" type="email" bind:value={inputEmail} /></div>
+		</div>
 
-			<div>
-				<div><label for="signup-password-input">Password:</label></div>
-				<div><input id="signup-password-input" type="password" bind:value={signUpPassword} /></div>
-			</div>
-			<button type="submit" class="submit-form-buttons"> Sign Up </button>
-		</form>
-	{:else}
-		<form on:submit|preventDefault={logIn} method="POST" class="login-form">
-			<div>
-				<div><label for="login-email-input">Email:</label></div>
-				<div><input id="login-email-input" type="email" bind:value={logInEmail} /></div>
-			</div>
+		<div>
+			<div><label for="password-input">Password:</label></div>
+			<div><input id="password-input" type="password" bind:value={inputPassword} /></div>
+		</div>
 
-			<div>
-				<div><label for="login-password-input">Password:</label></div>
-				<div><input id="login-password-input" type="password" bind:value={logInPassword} /></div>
-			</div>
-			<button type="submit" class="submit-form-buttons"> Log In </button>
-		</form>
-	{/if}
+		{#if formType === 'signUp'}
+			<button on:click={signUp} type="button" class="btn submit-form-buttons"> Sign Up </button>
+		{:else if formType === 'logIn'}
+			<button on:click={logIn} type="button" class="btn submit-form-buttons"> Log In </button>
+		{:else if formType === 'deleteAccount'}
+			<button
+				on:click={dispatchCredentials}
+				type="button"
+				class="btn btn-danger  submit-form-buttons ">
+				Delete Account
+			</button>
+		{/if}
+	</form>
 </div>
 
 <style>
 	.user-entry-form {
-		/* positioning and size are in __layout.svelte */
+		position: absolute;
+		margin: 22vh 0 0 0;
+		width: 500px;
+		left: calc(50% - 250px);
 		padding: 20px;
 		background-color: var(--secondary-color);
 		border-radius: 4px;
-		color: var(--text-color);
-		font-weight: 600;
-	}
-
-	button {
 		color: var(--text-color);
 		font-weight: 600;
 	}
@@ -193,7 +197,9 @@
 		justify-content: space-between;
 	}
 
-	.signup-login-btns {
+	.tab-btns {
+		color: var(--text-color);
+		font-weight: 600;
 		background: none;
 		border: none;
 		padding: 0 10px 0 0;

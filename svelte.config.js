@@ -5,8 +5,8 @@ const config = {
   // Consult https://github.com/sveltejs/svelte-preprocess
   // for more information about preprocessors
   preprocess: preprocess(),
-
   kit: {
+    
     // default options are shown
     adapter: vercel({
       // if true, will deploy the app using edge functions
@@ -22,6 +22,7 @@ const config = {
       // instead of creating a single one for the entire app
       split: false
     }),
+    
     prerender: {
       enabled: false
     }

@@ -1,8 +1,8 @@
 <script context="module">
+	// if not logged in redirect to home page
 	/** @type {import('@sveltejs/kit').Load} */
 	export const load = async ({ session }) => {
-		// if not logged in redirect to home page
-		if (session.sessionId === undefined) {
+		if (!session.user) {
 			return {
 				status: 302,
 				redirect: '/'
@@ -16,49 +16,40 @@
 </script>
 
 <script>
-	import { onMount } from 'svelte'
+	import { session } from '$app/stores'
+	import Overlay from '$lib/components/header/Overlay.svelte'
+	import UserEntry from '$lib/components/header/UserEntry.svelte'
 
-	/** @type {import('$lib/types').user} */
-	let user = {
-		id: '',
-		name: '',
-		email: '',
-		avatar: ''
-	}
+	let formType = 'none'
 
 	/** @type {string}*/
-	let name
-	/** @type {string}*/
-	let avatar
-
-	onMount(async () => {
-		const res = await fetch('/api/user', {
-			method: 'POST',
-			body: JSON.stringify({
-				type: 'getUser',
-				id: (await (await fetch('/api/auth')).json()).email
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-		user = await res.json()
-		name = user.name
-		avatar = user.avatar
-	})
+	let name = $session.user.name
+	/** @type {FileList}*/
+	let files
+	/** @type {File}*/
+	let avatarFile
 
 	const updateUser = async () => {
-		const res = await fetch('/api/user', {
-			method: 'PATCH',
+		const dataArray = new FormData()
+		if (files?.item(0) instanceof File) {
+			avatarFile = files.item(0) || new File([''], 'avatar.png')
+			dataArray.append('newAvatarFile', avatarFile)
+		}
+		dataArray.append('newName', name)
+		const res = await fetch('/auth/update', {
+			method: 'POST',
+			body: dataArray
+		})
+		location.reload()
+	}
+
+	const deleteUser = async (/** @type {{ detail: { text: string; }; }} */ event) => {
+		const res = await fetch('/auth/delete', {
+			method: 'POST',
 			body: JSON.stringify({
-				type: 'updateUser',
-				id: (await (await fetch('/api/auth')).json()).email,
-				newName: name,
-				newAvatar: avatar
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
+				email: JSON.parse(event.detail.text).email,
+				password: JSON.parse(event.detail.text).password
+			})
 		})
 		location.reload()
 	}
@@ -72,7 +63,7 @@
 	<h1>Profile</h1>
 
 	<h2>
-		Hello {user.name}!
+		Hello {$session.user.name}!
 	</h2>
 	<div class="row">
 		<p>Name:</p>
@@ -81,22 +72,36 @@
 	<div class="row">
 		<p>Profile Picture:</p>
 		<div class="pfp-input">
-			<img src={user.avatar} alt="" />
-			<input type="text" bind:value={avatar} alt="" />
+			<img src={$session.user.avatar} alt="" />
+			<input type="file" accept="image/*" bind:files alt="" />
 		</div>
 	</div>
 	<div class="row">
-		<p>Email: {user.email}</p>
+		<p>Email: {$session.user.email}</p>
 		<!-- <input type="text" label="Name: " value="{user.email}"> -->
 	</div>
 	<button
+		class="btn"
 		on:click={() => {
 			if (name.length > 0) updateUser()
 		}}>Update Details</button>
 	<br />
 	<br />
-	<button class="button-red">Delete Account</button>
+
+	<button
+		class="btn btn-danger"
+		on:click={() => {
+			formType = 'deleteAccount'
+		}}>Delete Account</button>
 </div>
+
+{#if formType !== 'none'}
+	<Overlay
+		on:clicked={() => {
+			formType = 'none'
+		}} />
+	<UserEntry bind:formType on:credentials={deleteUser} />
+{/if}
 
 <style>
 	.row {
@@ -120,14 +125,5 @@
 	.pfp-input {
 		margin-left: 1em;
 		width: min-content;
-	}
-
-	.button-red {
-		background-color: #eb0400;
-		color: #fff;
-	}
-
-	.button-red:hover {
-		background-color: #d00;
 	}
 </style>

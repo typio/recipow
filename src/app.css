@@ -62,6 +62,12 @@ body::before {
 	flex-direction: column;
 }
 
+hr {
+	border: 0;
+	height: 1px;
+	background-color: var(--color-grey-9);
+}
+
 h1,
 h2,
 p {
@@ -74,18 +80,18 @@ h2 {
 }
 
 p {
-
 	font-weight: 400;
 	line-height: 1.5;
 }
 
 a {
-	color: var(--accent-color);
+	color: var(--heading-color);
+	font-weight: 700;
 	text-decoration: none;
 }
 
 a:hover {
-	text-decoration: underline;
+	color: var(--accent-color);
 }
 
 h1 {
@@ -115,7 +121,7 @@ button {
 	font-family: inherit;
 }
 
-button {
+.btn {
 	background-color: var(--color-grey-15);
 	color: var(--color-grey-1);
 	border: none;
@@ -126,13 +132,66 @@ button {
 	padding: 0.5rem 1rem;
 }
 
-button:hover {
+.btn:hover {
 	background-color: var(--color-grey-14);
 }
 
-button:focus:not(:focus-visible) {
+.btn:focus:not(:focus-visible) {
 	outline: none;
 }
+
+.btn-danger {
+	background-color: #eb0400;
+	color: #fff;
+}
+
+.btn-danger:hover {
+	background-color: #d00;
+}
+
+.a-nav,
+.btn-nav {
+	display: flex;
+	height: 100%;
+	align-items: center;
+	padding: 0 1em;
+	color: var(--heading-color);
+	font-weight: 700;
+	font-size: 0.9rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05rem;
+	text-decoration: none;
+	transition: color 0.2s linear;
+}
+
+.btn-nav {
+	cursor: pointer;
+	background: none;
+	border: none;
+}
+
+.btn-nav:hover {
+	color: var(--accent-color);
+}
+
+.btn-pfp {
+	margin: 0 1em;
+	border: none;
+	background-color: #d0dde9;
+	border-radius: 100%;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	justify-content: center;
+	overflow: hidden;
+}
+
+.btn-pfp img {
+	width: 32px;
+	height: 32px;
+	object-fit: cover;
+}
+
 
 @media (min-width: 720px) {
 	h1 {
