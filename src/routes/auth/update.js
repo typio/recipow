@@ -1,64 +1,80 @@
 import * as cookie from 'cookie'
 import stringHash from 'string-hash'
-import sharp from "sharp"
+import jimp from 'jimp'
 import { Upload } from "@aws-sdk/lib-storage"
 
 import { redis, mongoClient, s3Client } from '$lib/db'
 
 /** @type {import('../auth/__types/update').RequestHandler} */
 export const post = async ({ request }) => {
+    try {
+        const body = await request.formData()
 
-    const body = await request.formData()
-    const newName = body.get('newName')
+        const newName = body.get('newName')
 
-    const email = JSON.parse(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId) || '{}').email
+        const email = JSON.parse(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId) || '{}').email
 
-    const emailHash = stringHash(email)
+        const newAvatarFile = body.get('newAvatarFile')
 
-    const newAvatarFile = body.get('newAvatarFile')
+        if (newAvatarFile !== null) {
+            // not sure how fix FormDataEntryValue type error
+            const image = await jimp.read(await newAvatarFile.arrayBuffer())
 
-    if (newAvatarFile) {
-        const newAvatarBuffer =
-            await sharp(
-                Buffer.from(
-                    (await newAvatarFile.arrayBuffer()), 'binary'))
-                .resize(128, 128, {
-                    fit: 'cover',
-                    position: 'top'
-                })
-                .png()
-                .toBuffer()
-                .then(data => {
-                    return data
-                })
+            image.cover(
+                128,
+                128,
+                jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_TOP
+            )
 
-        const bucketParams = {
-            Bucket: "recipow",
-            Key: "avatars/" + emailHash + '.png',
-            Body: newAvatarBuffer,
-        }
+            const newAvatarBuffer = await image.getBufferAsync(jimp.MIME_PNG)
 
-        try {
-            const data = new Upload({
+            const emailHash = stringHash(email)
+
+            const randomPart = '-' + Math.floor(Math.random() * 1000000)
+
+            const s3Upload = new Upload({
                 client: s3Client,
-                params: bucketParams,
+                params: {
+                    Bucket: "recipow",
+                    Key: "avatars/" + emailHash + randomPart + '.png',
+                    Body: newAvatarBuffer,
+                },
             })
 
-            await data.done()
-        } catch (err) {
+            // uploadData.on("httpUploadProgress", (progress) => {
+            //     console.log(progress);
+            //   });
+
+            const s3Result = await s3Upload.done()
+
+            const newAvatarURL = 'https://recipow.s3.us-west-1.amazonaws.com/avatars/' + emailHash + randomPart + '.png'
+
+            const mongoResult = await mongoClient.db('recipow').collection('users').updateOne(
+                { "id": email },
+                { $set: { "name": newName, "avatar": newAvatarURL } }
+            )
+
+            if (mongoResult.matchedCount == 1 &&
+                s3Result.$metadata.httpStatusCode == 200) {
+                return {
+                    status: 200,
+                    body: {
+                        message: "Success"
+                    }
+                }
+            }
+
             return {
                 status: 500,
                 body: {
-                    message: 'Failed to upload, error: ' + err
+                    message: 'Failed'
                 }
             }
         }
 
-        const newAvatarURL = 'https://recipow.s3.us-west-1.amazonaws.com/avatars/' + emailHash + '.png'
-
         const res = await mongoClient.db('recipow').collection('users').updateOne(
             { "id": email },
-            { $set: { "name": newName, "avatar": newAvatarURL } }
+            { $set: { "name": newName } }
         )
 
         if (res.matchedCount == 1) {
@@ -71,31 +87,19 @@ export const post = async ({ request }) => {
         }
 
         return {
-            status: 400,
+            status: 500,
             body: {
                 message: 'Couldn\'t find user'
             }
         }
-    }
-
-    const res = await mongoClient.db('recipow').collection('users').updateOne(
-        { "id": email },
-        { $set: { "name": newName } }
-    )
-
-    if (res.matchedCount == 1) {
+    } catch (error) {
         return {
-            status: 200,
+            status: 500,
             body: {
-                message: "Matched with user"
+                message: 'Failed to upload, error: ' + error
             }
         }
     }
-
-    return {
-        status: 400,
-        body: {
-            message: 'Couldn\'t find user'
-        }
-    }
 }
+
+

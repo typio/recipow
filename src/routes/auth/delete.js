@@ -42,6 +42,8 @@ export const post = async ({ request }) => {
 			console.log("Failed to delete user from redis, error: ", err)
 		}
 
+		const avatarURL = (await mongoClient.db('recipow').collection('users').findOne({ "id": email }))?.avatar.split('.com/')[1]
+
 		try {
 			const result = await mongoClient.db("recipow").collection('users').deleteOne(
 				{ "id": email })
@@ -54,9 +56,9 @@ export const post = async ({ request }) => {
 			const result = await s3Client.send(new DeleteObjectCommand(
 				{
 					Bucket: "recipow",
-					Key: "avatars/" + stringHash(email) + '.png'
+					Key: avatarURL
 				}
-			))//.then((res) => { return res })
+			))
 			console.log("S3 result: ", result)
 		} catch (err) {
 			console.log("Failed to delete avatar from S3, error: ", err)
