@@ -1,69 +1,32 @@
 <script context="module">
-
 	export const logOut = async () => {
-		const response = await fetch('/api/auth', {
-			method: 'POST',
-			body: JSON.stringify({
-				type: 'logout',
-				email: '',
-				password: ''
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			}
+		const response = await fetch('/auth/logout', {
+			method: 'POST'
 		})
 
-		if (response.status === 200) {
-			const data = await response.json()
-			console.log(data)
-			location.reload()
-		} else {
-		}
+		if (response.status === 200) location.reload()
 	}
 </script>
 
 <script>
-	import { onMount } from 'svelte'
 	import { page, session } from '$app/stores'
-	import { get } from 'svelte/store'
+	import { prefetch } from '$app/navigation'
 
 	import svelte_logo from '$lib/assets/svelte-logo.svg'
 	import github_logo from '$lib/assets/github-mark.svg'
-
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
+	import Overlay from './Overlay.svelte'
 
-	const loggedIn = get(session).sessionId !== undefined
-
-	let showForm = false
-	let showSignUp = true
+	let formType = 'none'
 
 	let showProfileModal = false
-
-	let avatar = ''
-
-	onMount(async () => {
-		if (loggedIn) {
-			const res = await fetch('/api/user', {
-				method: 'POST',
-				body: JSON.stringify({
-					type: 'getUser',
-					id: (await (await fetch('/api/auth')).json()).email
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			})
-
-			avatar = (await res.json()).avatar
-		}
-	})
 </script>
 
 <header>
 	<div class="corner">
 		<a href="https://kit.svelte.dev">
-			<img src={svelte_logo} alt="SvelteKit" />
+			<img src={svelte_logo} alt=" " />
 		</a>
 	</div>
 
@@ -72,46 +35,45 @@
 			<path d="M0,0 L1,2 C1.5,3 1.5,3 2,3 L2,0 Z" />
 		</svg>
 		<ul>
-			<li class:active={$page.url.pathname === '/'}>
+			<li class:active={$page.url.pathname === '/'} class="a-nav">
 				<a sveltekit:prefetch href="/">Home</a>
 			</li>
-			<li class:active={$page.url.pathname === '/about'}>
+			<li class:active={$page.url.pathname === '/about'} class="a-nav">
 				<a sveltekit:prefetch href="/about">About</a>
 			</li>
-			<li
-				class:active={$page.url.pathname === '/profile'}
-				style="display: {loggedIn ? 'block' : 'none'}">
-				<button
-					class="profile-button"
-					on:click={() => {
-						showProfileModal = !showProfileModal
-					}}>
-					<div style="background-color: #d0dde9; width: 32px; height: 32px; border-radius:100%">
-						<img src={avatar} alt="" style="width: 32px; height: 32px;  border-radius:100%; " />
-					</div>
-				</button>
-				{#if showProfileModal}
-					<ProfileModal bind:showProfileModal />
-				{/if}
-			</li>
-			<li style="display: {loggedIn ? 'none' : 'block'}">
-				<button
-					on:click={() => {
-						showForm = true
-						showSignUp = false
-					}}>Log In</button>
-			</li>
-			<li style="display: {loggedIn ? 'none' : 'block'}">
-				<button
-					on:click={() => {
-						showForm = true
-						showSignUp = true
-					}}>Sign Up</button>
-			</li>
-
-			<li style="display: {loggedIn ? 'block' : 'none'}">
-				<button on:click={logOut}>Log Out</button>
-			</li>
+			{#if $session.user}
+				<li class:active={$page.url.pathname === '/profile'}>
+					<button
+						class="btn-nav btn-pfp"
+						on:click={() => {
+							prefetch('/profile')
+							showProfileModal = !showProfileModal
+						}}>
+						<img src={$session.user.avatar} alt=" " />
+					</button>
+					{#if showProfileModal}
+						<ProfileModal bind:showProfileModal />
+					{/if}
+				</li>
+				<li>
+					<button class="btn-nav" on:click={logOut}>Log Out</button>
+				</li>
+			{:else}
+				<li>
+					<button
+						class="btn-nav"
+						on:click={() => {
+							formType = 'logIn'
+						}}>Log In</button>
+				</li>
+				<li>
+					<button
+						class="btn-nav"
+						on:click={() => {
+							formType = 'signUp'
+						}}>Sign Up</button>
+				</li>
+			{/if}
 		</ul>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
 			<path d="M0,0 L0,3 C0.5,3 0.5,3 1,2 L2,0 Z" />
@@ -120,29 +82,21 @@
 
 	<div class="corner">
 		<a href="https://github.com/typio/recipow">
-			<img src={github_logo} alt="Github" />
+			<img src={github_logo} alt=" " />
 		</a>
 	</div>
 
-	{#if showForm}
-		<div
-			class="user-entry-overlay"
-			on:click={() => {
-				showForm = false
-				showProfileModal = false
+	{#if formType != 'none'}
+		<Overlay
+			on:clicked={() => {
+				formType = 'none'
 			}} />
-
-		<div class="user-entry-form">
-			<UserEntry bind:showForm bind:showSignUp />
-		</div>
+		<UserEntry bind:formType />
 	{/if}
 
 	{#if showProfileModal}
-		<div
-			class="user-entry-overlay"
-			style="background-color: hsla(0, 0%, 0%, 0%);;"
-			on:click={() => {
-				showForm = false
+		<Overlay color={"hsla(0, 0%, 0%, 0%)"}
+			on:clicked={() => {
 				showProfileModal = false
 			}} />
 	{/if}
@@ -176,23 +130,7 @@
 	nav {
 		display: flex;
 		justify-content: center;
-		--background: 	var(--color-grey-13);
-	}
-
-	.user-entry-overlay {
-		position: absolute;
-		top: 0;
-
-		width: 100%;
-		height: 100%;
-		background-color: hsla(0, 0%, 0%, 40%);
-	}
-
-	.user-entry-form {
-		position: absolute;
-		margin: 22vh 0 0 0;
-		width: 500px;
-		left: calc(50% - 250px);
+		--background: var(--color-grey-13);
 	}
 
 	svg {
@@ -221,6 +159,8 @@
 	li {
 		position: relative;
 		height: 100%;
+		display: flex;
+		align-items: center;
 	}
 
 	li.active::before {
@@ -233,31 +173,5 @@
 		left: calc(50% - var(--size));
 		border: var(--size) solid transparent;
 		border-top: var(--size) solid var(--accent-color);
-	}
-
-	nav a,
-	nav button {
-		display: flex;
-		height: 100%;
-		align-items: center;
-		padding: 0 1em;
-		color: var(--heading-color);
-		font-weight: 700;
-		font-size: 0.8rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		text-decoration: none;
-		transition: color 0.2s linear;
-	}
-
-	nav button {
-		cursor: pointer;
-		background: none;
-		border: none;
-	}
-
-	a:hover,
-	button:hover {
-		color: var(--accent-color);
 	}
 </style>

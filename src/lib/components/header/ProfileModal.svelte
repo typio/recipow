@@ -69,7 +69,7 @@
 	.profile-modal {
 		position: absolute;
 		right: 0;
-		margin: -5px -8em 0 0;
+		margin: 14.5em -9em 0 0;
 		border-radius: 0.4rem;
 		background-color: var(--color-grey-12);
 		z-index: 100;
@@ -77,7 +77,6 @@
 	}
 
 	.profile-modal button {
-        
 		display: flex;
 		height: 100%;
 		align-items: center;
