@@ -18,6 +18,7 @@
 	--font-weight-normal: 400;
 	--font-weight-semibold: 600;
 	--font-weight-bold: 700;
+	
 
 	--color-grey-1: #100e0e;
 	--color-grey-2: #1b1818;
@@ -34,6 +35,16 @@
 	--color-grey-13: #eae6e6;
 	--color-grey-14: #f1efef;
 	--color-grey-15: #f8f7f7;
+
+	--toastBackground: var(--color-grey-15);
+    --toastColor: var(--text-color);
+	--toastBarBackground: var(--accent-color);
+	--toastMsgPadding: 0.5rem 1rem;
+	--toastBorderRadius: 0.4rem;
+}
+
+._toast_bar {
+	border-radius: 100%;
 }
 
 body {

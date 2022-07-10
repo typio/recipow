@@ -16,6 +16,8 @@
 </script>
 
 <script>
+	import { toast } from '@zerodevx/svelte-toast'
+
 	import { session } from '$app/stores'
 	import Overlay from '$lib/components/header/Overlay.svelte'
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
@@ -26,21 +28,51 @@
 	let name = $session.user.name
 	/** @type {FileList}*/
 	let files
-	/** @type {File}*/
+	/** @type {File | undefined}*/
 	let avatarFile
+
+	// https://stackoverflow.com/a/39906526/6806458
+	const niceBytes = (/** @type {number} */ a) => {
+		let b = 0
+		for (; 1024 <= a && ++b; ) a /= 1024
+		return (
+			a.toFixed(10 > a && 0 < b ? 1 : 0) +
+			' ' +
+			['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][b]
+		)
+	}
 
 	const updateUser = async () => {
 		const dataArray = new FormData()
-		if (files?.item(0) instanceof File) {
-			avatarFile = files.item(0) || new File([''], 'avatar.png')
-			dataArray.append('newAvatarFile', avatarFile)
+		avatarFile = files?.item(0) || undefined
+		// checks can probably be bypassed
+		if (name.length < 2) {
+			toast.push('<h4>Name must be at least 2 characters</h4>')
+			return
+		} else {
+			if (avatarFile == undefined) {
+				toast.push('<h4>Updating User...</h4>')
+			} else if (avatarFile.size < 2000000) {
+				toast.push(
+					'<h4>Updating User...</h4><p>Large photos may take a few seconds to process.</p>'
+				)
+				dataArray.append('newAvatarFile', avatarFile)
+			} else {
+				toast.push(
+					"<h4>Avatar must be smaller than 2 MB. Your image is " + niceBytes(avatarFile.size) + '.</h4>'
+				)
+				return
+			}
+
+			dataArray.append('newName', name)
+			const res = await fetch('/auth/update', {
+				method: 'POST',
+				body: dataArray
+			})
+			const out = await res.json()
+			console.log(out)
+			location.reload()
 		}
-		dataArray.append('newName', name)
-		const res = await fetch('/auth/update', {
-			method: 'POST',
-			body: dataArray
-		})
-		location.reload()
 	}
 
 	const deleteUser = async (/** @type {{ detail: { text: string; }; }} */ event) => {
@@ -83,8 +115,9 @@
 	<button
 		class="btn"
 		on:click={() => {
-			if (name.length > 0) updateUser()
+			updateUser()
 		}}>Update Details</button>
+
 	<br />
 	<br />
 
