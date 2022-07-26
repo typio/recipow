@@ -38,10 +38,11 @@
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.121.0",
 		"@aws-sdk/lib-storage": "^3.121.0",
-		"@typio/typio": "^0.0.11",
+		"@tiptap/core": "^2.0.0-beta.182",
+		"@tiptap/starter-kit": "^2.0.0-beta.191",
 		"cookie": "^0.5.0",
 		"ioredis": "^5.0.6",
-		"jimp": "^0.16.0",
+		"jimp": "^0.3.5",
 		"mongodb": "^4.7.0",
 		"redis": "^4.1.0",
 		"string-hash": "^1.1.3",

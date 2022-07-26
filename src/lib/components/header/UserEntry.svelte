@@ -165,6 +165,7 @@
 		border-radius: 4px;
 		color: var(--text-color);
 		font-weight: 600;
+		z-index: 100;
 	}
 
 	form {

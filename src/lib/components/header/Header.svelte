@@ -38,10 +38,10 @@
 			<li class:active={$page.url.pathname === '/'} class="a-nav">
 				<a sveltekit:prefetch href="/">Home</a>
 			</li>
-			<li class:active={$page.url.pathname === '/about'} class="a-nav">
-				<a sveltekit:prefetch href="/about">About</a>
-			</li>
 			{#if $session.user}
+				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
+					<a sveltekit:prefetch href="new-recipe">Write</a>
+				</li>
 				<li class:active={$page.url.pathname === '/profile'}>
 					<button
 						class="btn-nav btn-pfp"
@@ -51,9 +51,6 @@
 						}}>
 						<img src={$session.user.avatar} alt=" " />
 					</button>
-					{#if showProfileModal}
-						<ProfileModal bind:showProfileModal />
-					{/if}
 				</li>
 				<li>
 					<button class="btn-nav" on:click={logOut}>Log Out</button>
@@ -86,6 +83,10 @@
 		</a>
 	</div>
 
+	{#if showProfileModal}
+		<ProfileModal bind:showProfileModal />
+	{/if}
+
 	{#if formType != 'none'}
 		<Overlay
 			on:clicked={() => {
@@ -95,7 +96,8 @@
 	{/if}
 
 	{#if showProfileModal}
-		<Overlay color={"hsla(0, 0%, 0%, 0%)"}
+		<Overlay
+			color={'hsla(0, 0%, 0%, 0%)'}
 			on:clicked={() => {
 				showProfileModal = false
 			}} />
@@ -130,7 +132,8 @@
 	nav {
 		display: flex;
 		justify-content: center;
-		--background: var(--color-grey-13);
+		--background: #fff;
+		filter: drop-shadow(0 0px 4px rgba(0, 0, 0, 0.6))
 	}
 
 	svg {

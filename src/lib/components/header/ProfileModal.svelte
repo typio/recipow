@@ -16,29 +16,17 @@
 				View Profile
 			</button>
 		</li>
-        <hr>
+		<hr />
 		<li>
-			<button
-				on:click={() => {
-				}}>
-				Does nothing 1
-			</button>
+			<button on:click={() => {}}> Does nothing 1 </button>
 		</li>
 		<li>
-			<button
-				on:click={() => {
-				}}>
-				Does nothing 2
-			</button>
+			<button on:click={() => {}}> Does nothing 2 </button>
 		</li>
 		<li>
-			<button
-				on:click={() => {
-				}}>
-				Does nothing 3
-			</button>
+			<button on:click={() => {}}> Does nothing 3 </button>
 		</li>
-        <hr>
+		<hr />
 		<li>
 			<button
 				on:click={() => {
@@ -59,21 +47,22 @@
 		justify-content: center;
 		align-items: center;
 		list-style: none;
-        width: 11em;
+		width: 11em;
 	}
 
-    li {
-        padding: 5px 0;
-    }
+	li {
+		padding: 5px 0;
+	}
 
 	.profile-modal {
 		position: absolute;
-		right: 0;
-		margin: 14.5em -9em 0 0;
-		border-radius: 0.4rem;
-		background-color: var(--color-grey-12);
 		z-index: 100;
-        box-shadow: 3px 3px 3px var(--color-grey-7);
+		left: 50vw;
+		top: 5vh;
+		border-radius: 0.4rem;
+		background-color: #fff;
+		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+		
 	}
 
 	.profile-modal button {
