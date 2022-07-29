@@ -1,7 +1,7 @@
-<script context="module">
+<script context="module" lang="ts">
+	import type { Load } from '@sveltejs/kit'
 	// if not logged in redirect to home page
-	/** @type {import('@sveltejs/kit').Load} */
-	export const load = async ({ session }) => {
+	export const load: Load = async ({ session }) => {
 		if (!session.user) {
 			return {
 				status: 302,
@@ -15,7 +15,7 @@
 	}
 </script>
 
-<script>
+<script lang="ts">
 	import { toast } from '@zerodevx/svelte-toast'
 
 	import { session } from '$app/stores'
@@ -24,15 +24,12 @@
 
 	let formType = 'none'
 
-	/** @type {string}*/
-	let name = $session.user.name
-	/** @type {FileList}*/
-	let files
-	/** @type {File | undefined}*/
-	let avatarFile
+	let name: string = $session.user.name
+	let files: FileList
+	let avatarFile: File | undefined
 
 	// https://stackoverflow.com/a/39906526/6806458
-	const niceBytes = (/** @type {number} */ a) => {
+	const niceBytes = (a: number) => {
 		let b = 0
 		for (; 1024 <= a && ++b; ) a /= 1024
 		return (
@@ -59,7 +56,9 @@
 				dataArray.append('newAvatarFile', avatarFile)
 			} else {
 				toast.push(
-					"<h4>Avatar must be smaller than 2 MB. Your image is " + niceBytes(avatarFile.size) + '.</h4>'
+					'<h4>Avatar must be smaller than 2 MB. Your image is ' +
+						niceBytes(avatarFile.size) +
+						'.</h4>'
 				)
 				return
 			}
@@ -75,7 +74,7 @@
 		}
 	}
 
-	const deleteUser = async (/** @type {{ detail: { text: string; }; }} */ event) => {
+	const deleteUser = async (event: { detail: { text: string } }) => {
 		const res = await fetch('/auth/delete', {
 			method: 'POST',
 			body: JSON.stringify({

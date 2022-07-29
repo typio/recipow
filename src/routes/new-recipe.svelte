@@ -1,5 +1,41 @@
-<script>
+<script context="module" lang="ts">
+	import type { Load } from '@sveltejs/kit'
+	// if not logged in redirect to home page
+	export const load: Load = async ({ session }) => {
+		if (!session.user) {
+			return {
+				status: 302,
+				redirect: '/'
+			}
+		} else {
+			return {
+				status: 200
+			}
+		}
+	}
+</script>
+
+<script lang="ts">
 	import TipTapEditor from '$lib/components/header/TipTapEditor.svelte'
+
+	import type { Recipe } from '$lib/types'
+
+	let recipe: Recipe
+
+	let recipeCardData = {
+		title: '',
+		description: '',
+		cover_image: '',
+		ingredients: [],
+		steps: [],
+		times: [{ prep: '' }, { cook: '' }, { total: '' }],
+		tags: [],
+		servings: '',
+		yield: '',
+		notes: '',
+		writeUp: '',
+		visibility: 'public'
+	}
 </script>
 
 <div class="content">
@@ -51,7 +87,11 @@
 		<option value="private">Private</option>
 	</select>
 
-	<button class="btn" on:click={() => {}}>Post Recipe</button>
+	<button
+		class="btn"
+		on:click={() => {
+			console.log(recipeCardData)
+		}}>Post Recipe</button>
 </div>
 
 <style>

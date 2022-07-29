@@ -57,8 +57,8 @@
 	.profile-modal {
 		position: absolute;
 		z-index: 100;
-		left: 50vw;
-		top: 5vh;
+		left: 51vw;
+		top: 3.4vh;
 		border-radius: 0.4rem;
 		background-color: #fff;
 		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);

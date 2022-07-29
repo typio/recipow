@@ -70,7 +70,7 @@
 	}
 </script>
 
-<div class="user-entry-form">
+<div class="user-entry">
 	<div class="hello">
 		<ul>
 			{#if formType === 'signUp' || formType === 'logIn'}
@@ -112,23 +112,21 @@
 			class="close-form-btn"
 			on:click={() => {
 				formType = 'none'
-			}}>X</button>
+			}}>&#10006;</button>
 	</div>
 
 	{#if errorMessage}
 		<div class="error-message"><p>{errorMessage}</p></div>
 	{/if}
 
-	<form class="signup-form">
-		{#if formType === 'signUp'}
-			<p style="font-weight: 700; font-size: .94rem; color:#555">
-				Password must have one lowercase, uppercase, number and be 8+ characters.
-			</p>
-		{:else if formType === 'deleteAccount'}
-			<p style="font-weight: 700; font-size: .94rem; color:#555">
-				Please confirm your account credentials.
-			</p>
-		{/if}
+	<form class="entry-form">
+		<div class="prompt-message">
+			{#if formType === 'signUp'}
+				<p>Password must have one lowercase, uppercase, number and be 8+ characters.</p>
+			{:else if formType === 'deleteAccount'}
+				<p>Please confirm your account credentials.</p>
+			{/if}
+		</div>
 		<div>
 			<div><label for="email-input">Email:</label></div>
 			<div><input id="email-input" type="email" bind:value={inputEmail} /></div>
@@ -140,9 +138,9 @@
 		</div>
 
 		{#if formType === 'signUp'}
-			<button on:click={signUp} type="button" class="btn submit-form-buttons"> Sign Up </button>
+			<button on:click={signUp} type="button" class="btn submit-form-buttons">Sign Up</button>
 		{:else if formType === 'logIn'}
-			<button on:click={logIn} type="button" class="btn submit-form-buttons"> Log In </button>
+			<button on:click={logIn} type="button" class="btn submit-form-buttons">Log In</button>
 		{:else if formType === 'deleteAccount'}
 			<button
 				on:click={dispatchCredentials}
@@ -155,32 +153,82 @@
 </div>
 
 <style>
-	.user-entry-form {
+	.user-entry {
 		position: absolute;
 		margin: 22vh 0 0 0;
-		width: 500px;
-		left: calc(50% - 250px);
+		width: 420px;
+		left: calc(50% - 210px);
 		padding: 20px;
-		background-color: var(--secondary-color);
+		background-color: #fff;
 		border-radius: 4px;
 		color: var(--text-color);
 		font-weight: 600;
 		z-index: 100;
 	}
 
-	form {
+	.user-entry p {
+		font-weight: 700;
+		font-size: 0.94rem;
+		color: #555;
+		margin: 0;
+	}
+
+	.entry-form {
 		display: flex;
-		flex-flow: wrap;
+		flex-flow: column;
 		justify-content: center;
+		align-items: center;
+	}
+
+	.entry-form > div {
+		width: 100;
+	}
+
+	.error-message {
+		margin-top: 0.4rem;
+	}
+
+	.error-message p {
+		color: #ff0000;
+	}
+
+	.prompt-message {
+		margin-top: 1rem;
+		color: #555;
 	}
 
 	input {
-		margin-bottom: 6px;
+		margin: 0.5rem 0 1.4rem 0;
+		padding: 0.2rem 0.6rem;
+		outline: none;
+		border: 2px solid var(--color-grey-13);
+		background-color: var(--color-grey-13);
+		border-radius: 0.4rem;
+
+		transition: ease-in 0.1s;
+		width: 100%;
+	}
+
+	input:hover {
+		outline: none;
+		border: 2px solid var(--color-grey-11);
+	}
+
+	input:focus {
+		outline: none;
+		border: 2px solid var(--accent-color);
+		background-color: #fff;
 	}
 
 	.submit-form-buttons {
 		margin-top: 10px;
 		width: 100%;
+		color: #fff;
+		background-color: var(--accent-color);
+	}
+
+	.submit-form-buttons:hover {
+		background-color: var(--accent-color-darker);
 	}
 
 	ul {
@@ -198,20 +246,34 @@
 		justify-content: space-between;
 	}
 
+	.hello ul {
+		margin: 0 0 1rem 0;
+		width:100%
+	}
+
 	.tab-btns {
 		color: var(--text-color);
 		font-weight: 600;
 		background: none;
 		border: none;
-		padding: 0 10px 0 0;
+		padding: 0 0 3px 0;
+		margin: 0 10px 0 0;
 	}
 
 	.selected {
 		color: var(--accent-color);
-		text-decoration: underline;
+		border-bottom: 2px solid var(--accent-color);
 	}
 
 	.close-form-btn {
 		justify-content: flex-end;
+		border: 0;
+		background: none;
+		color: var(--color-grey-7);
+		font-weight: 700;
+		font-size: 1rem;
+		height:1rem;
+		width:1rem;
+		padding: 0;
 	}
 </style>

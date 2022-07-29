@@ -28,7 +28,7 @@ export const post = async ({ request }) => {
         }
     }
 
-    /** @type {import('$lib/types').authUser} */
+    /** @type {import('$lib/types').AuthUser} */
     const user = await (async () => {
         try {
             return JSON.parse((await redis.get(email)) || '{}')
