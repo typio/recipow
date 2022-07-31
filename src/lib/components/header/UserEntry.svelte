@@ -128,12 +128,12 @@
 			{/if}
 		</div>
 		<div>
-			<div><label for="email-input">Email:</label></div>
+			<div><label for="email-input">Email</label></div>
 			<div><input id="email-input" type="email" bind:value={inputEmail} /></div>
 		</div>
 
 		<div>
-			<div><label for="password-input">Password:</label></div>
+			<div><label for="password-input">Password</label></div>
 			<div><input id="password-input" type="password" bind:value={inputPassword} /></div>
 		</div>
 
@@ -181,11 +181,11 @@
 	}
 
 	.entry-form > div {
-		width: 100;
+		width: 80%;
 	}
 
 	.error-message {
-		margin-top: 0.4rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.error-message p {
@@ -193,7 +193,7 @@
 	}
 
 	.prompt-message {
-		margin-top: 1rem;
+		margin-bottom: 1rem;
 		color: #555;
 	}
 
@@ -206,7 +206,7 @@
 		border-radius: 0.4rem;
 
 		transition: ease-in 0.1s;
-		width: 100%;
+		width: calc(100% - 1.2rem - 2px);
 	}
 
 	input:hover {
@@ -269,11 +269,15 @@
 		justify-content: flex-end;
 		border: 0;
 		background: none;
-		color: var(--color-grey-7);
+		color: var(--color-grey-8);
 		font-weight: 700;
 		font-size: 1rem;
 		height:1rem;
 		width:1rem;
 		padding: 0;
+	}
+
+	.close-form-btn:hover {
+		color: var(--color-grey-6);
 	}
 </style>

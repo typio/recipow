@@ -38,10 +38,13 @@
 			<li class:active={$page.url.pathname === '/'} class="a-nav">
 				<a sveltekit:prefetch href="/">Home</a>
 			</li>
+			<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
+				<a sveltekit:prefetch href="new-recipe">Write</a>
+			</li>
 			{#if $session.user}
-				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
+				<!-- <li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
 					<a sveltekit:prefetch href="new-recipe">Write</a>
-				</li>
+				</li> -->
 				<li class:active={$page.url.pathname === '/profile'}>
 					<button
 						class="btn-nav btn-pfp"

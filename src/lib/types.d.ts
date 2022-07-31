@@ -17,20 +17,21 @@ type WriteUp = string
 export type Recipe = {
     title: string,
     description: string,
-    content: (RecipeCardData[] | WriteUp)[],
+    cover_image_url?: string,
+    tags: string[],
+    content: (RecipeCardData | WriteUp)[],
     reviews: { rating: number, reviewCount: number },
     visibility: 'public' | 'private' | 'unlisted',
 }
 
 export type RecipeCardData = {
-    title: string,
-    description: string,
-    cover_image_url: string,
-    ingredients: [{ name: string, quantity: number, unit: string, note: string }],
+    title?: string,
+    description?: string,
+    cover_image_url?: string,
+    ingredients: string[],
     steps: string[],
-    times: [{ amount: number, unit: string }],
-    tags: string[],
-    serves: { min: number, max: number },
+    times: {prep: number, cook: number, total: number},
+    serves?: { min: number, max: number },
     yield: { quantity: number, unit: string },
-    notes: string,
+    notes?: string,
 }

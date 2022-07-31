@@ -3,18 +3,23 @@
 	import { Editor } from '@tiptap/core'
 	import StarterKit from '@tiptap/starter-kit'
 
+	export let content = ''
+
 	let element: HTMLElement | undefined
 	let editor: Editor
 
 	onMount(() => {
 		editor = new Editor({
-			element: element,
+			element,
 			extensions: [StarterKit],
-			content: '',
+			content,
 			onTransaction: () => {
 				// force re-render so `editor.isActive` works as expected
 				editor = editor
 			}
+		})
+		editor.on('update', ({ editor }) => {
+			content = editor.getHTML()
 		})
 	})
 
