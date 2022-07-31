@@ -12,7 +12,7 @@
 		editor = new Editor({
 			element,
 			extensions: [StarterKit],
-			content,
+			content:'',
 			onTransaction: () => {
 				// force re-render so `editor.isActive` works as expected
 				editor = editor
@@ -20,6 +20,8 @@
 		})
 		editor.on('update', ({ editor }) => {
 			content = editor.getHTML()
+			console.log(content);
+			
 		})
 	})
 

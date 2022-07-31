@@ -23,7 +23,7 @@
 	let recipe: Recipe = {
 		title: '',
 		description: '',
-		content: ['', {times:{}} as unknown as RecipeCardData],
+		content: ['hey', { times: {} } as unknown as RecipeCardData],
 		tags: [],
 		reviews: {
 			rating: 0,
@@ -117,8 +117,7 @@
 			{#if typeof content === 'string'}
 				<div class="write-up">
 					<h3>Write Up:</h3>
-					<TipTapEditor {content} />
-					<p>{content}</p>
+					<TipTapEditor bind:content />
 				</div>
 			{:else if typeof content === 'object'}
 				<div class="recipe-card-input">
@@ -166,7 +165,7 @@
 						<ol>
 							{#each content.steps ?? [] as step, sI}
 								<li>
-									<div class="ingredient">
+									<div class="instruction">
 										<input type="text" bind:value={step} />
 										<button
 											on:click={() => {
@@ -192,23 +191,23 @@
 						<h3>Times:</h3>
 						<div class="time-input">
 							<p>Prep Time</p>
-							<input type="text" bind:value={content.times.prep}/>
+							<input type="text" bind:value={content.times.prep} />
 						</div>
 						<div class="time-input">
 							<p>Cook Time</p>
-							<input type="text" bind:value={content.times.cook}/>
+							<input type="text" bind:value={content.times.cook} />
 						</div>
 						<div class="time-input">
 							<p>Total Time</p>
-							<input type="text" bind:value={content.times.total}/>
+							<input type="text" bind:value={content.times.total} />
 						</div>
 					</div>
 				</div>
 
 				<div>
-					<input type="text" placeholder="Servings" bind:value={content.serves}/>
-					<input type="text" placeholder="Makes: 12in pizza pie" bind:value={content.yield}/>
-					<input type="text" placeholder="Notes" bind:value={content.notes}/>
+					<input type="text" placeholder="Servings" bind:value={content.serves} />
+					<input type="text" placeholder="Makes: 12in pizza pie" bind:value={content.yield} />
+					<input type="text" placeholder="Notes" bind:value={content.notes} />
 				</div>
 			{/if}
 		</div>
@@ -318,6 +317,13 @@
 	}
 	.ingredient input {
 		width: auto;
+	}
+
+	.instruction {
+		display: flex;
+		flex-direction: row;
+		margin-bottom: 1rem;
+		list-style: none;
 	}
 
 	.time-input {
