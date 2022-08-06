@@ -1,10 +1,11 @@
-<script>
+<script lang="ts">
 	import { createEventDispatcher } from 'svelte'
 
 	const dispatch = createEventDispatcher()
 
 	export let formType = 'none'
 
+	let inputName = ''
 	let inputEmail = ''
 	let inputPassword = ''
 	let errorMessage = ''
@@ -15,6 +16,7 @@
 		const response = await fetch('/auth/signup', {
 			method: 'POST',
 			body: JSON.stringify({
+				name: inputName,
 				email: inputEmail,
 				password: inputPassword
 			}),
@@ -121,15 +123,27 @@
 
 	<form class="entry-form">
 		<div class="prompt-message">
-			{#if formType === 'signUp'}
-				<p>Password must have one lowercase, uppercase, number and be 8+ characters.</p>
-			{:else if formType === 'deleteAccount'}
+			{#if formType === 'deleteAccount'}
 				<p>Please confirm your account credentials.</p>
 			{/if}
 		</div>
+
+		{#if formType === 'signUp'}
+			<div>
+				<div><label for="name-input">Name</label></div>
+				<div><input id="name-input" type="text" bind:value={inputName} /></div>
+			</div>
+		{/if}
+
 		<div>
 			<div><label for="email-input">Email</label></div>
 			<div><input id="email-input" type="email" bind:value={inputEmail} /></div>
+		</div>
+		
+		<div class="prompt-message">
+			{#if formType === 'signUp'}
+				<p>Password must have one lowercase, uppercase, number and be 8+ characters.</p>
+			{/if}
 		</div>
 
 		<div>
@@ -178,6 +192,7 @@
 		flex-flow: column;
 		justify-content: center;
 		align-items: center;
+		margin-top:.8rem;
 	}
 
 	.entry-form > div {
@@ -192,8 +207,9 @@
 		color: #ff0000;
 	}
 
-	.prompt-message {
-		margin-bottom: 1rem;
+	.prompt-message p  {
+		margin-top:1rem;
+		margin-bottom: .8rem;
 		color: #555;
 	}
 
@@ -248,7 +264,7 @@
 
 	.hello ul {
 		margin: 0 0 1rem 0;
-		width:100%
+		width: 100%;
 	}
 
 	.tab-btns {
@@ -272,8 +288,8 @@
 		color: var(--color-grey-8);
 		font-weight: 700;
 		font-size: 1rem;
-		height:1rem;
-		width:1rem;
+		height: 1rem;
+		width: 1rem;
 		padding: 0;
 	}
 

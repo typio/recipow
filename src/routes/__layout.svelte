@@ -1,5 +1,8 @@
-<script>
+<script lang="ts">
 	import { SvelteToast } from '@zerodevx/svelte-toast'
+	import { onMount } from 'svelte'
+	import { Svroller, Svrollbar } from 'svrollbar'
+
 	import Header from '$lib/components/header/Header.svelte'
 	import '../app.css'
 </script>
@@ -12,13 +15,15 @@
 	<slot />
 </main>
 
+<Svrollbar />
+
 <footer>
 	<ul>
-		<li><a sveltekit:prefetch href="/about">Help</a></li>
+		<li><a sveltekit:prefetch href="/help">Help</a></li>
 		<li><a sveltekit:prefetch href="/about">About</a></li>
-		<li><a sveltekit:prefetch href="/about">Privacy</a></li>
-		<li><a sveltekit:prefetch href="/about">Terms</a></li>
-		<li><a sveltekit:prefetch href="/about">Contact</a></li>
+		<li><a sveltekit:prefetch href="/privacy">Privacy</a></li>
+		<li><a sveltekit:prefetch href="/terms">Terms</a></li>
+		<li><a sveltekit:prefetch href="/contact">Contact</a></li>
 	</ul>
 </footer>
 
@@ -63,7 +68,7 @@
 		display: flex;
 		align-items: center;
 		padding-right: 1rem;
-		font-size: .9rem;
+		font-size: 0.9rem;
 		line-height: 2rem;
 	}
 

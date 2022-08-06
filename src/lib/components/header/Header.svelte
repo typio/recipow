@@ -1,4 +1,4 @@
-<script context="module">
+<script context="module" lang="ts">
 	export const logOut = async () => {
 		const response = await fetch('/auth/logout', {
 			method: 'POST'
@@ -8,7 +8,7 @@
 	}
 </script>
 
-<script>
+<script lang="ts">
 	import { page, session } from '$app/stores'
 	import { prefetch } from '$app/navigation'
 
@@ -38,18 +38,17 @@
 			<li class:active={$page.url.pathname === '/'} class="a-nav">
 				<a sveltekit:prefetch href="/">Home</a>
 			</li>
-			<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
-				<a sveltekit:prefetch href="new-recipe">Write</a>
-			</li>
+
 			{#if $session.user}
-				<!-- <li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
-					<a sveltekit:prefetch href="new-recipe">Write</a>
-				</li> -->
-				<li class:active={$page.url.pathname === '/profile'}>
+				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
+					<a sveltekit:prefetch href="/new-recipe">Write</a>
+				</li>
+				<li class:active={$page.url.pathname[1] === '@' || $page.url.pathname === '/settings'}>
 					<button
 						class="btn-nav btn-pfp"
 						on:click={() => {
 							prefetch('/profile')
+							prefetch('/settings')
 							showProfileModal = !showProfileModal
 						}}>
 						<img src={$session.user.avatar} alt=" " />
@@ -136,7 +135,7 @@
 		display: flex;
 		justify-content: center;
 		--background: #fff;
-		filter: drop-shadow(0 0px 4px rgba(0, 0, 0, 0.6))
+		filter: drop-shadow(0 0px 4px rgba(0, 0, 0, 0.6));
 	}
 
 	svg {

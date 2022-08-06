@@ -1,4 +1,4 @@
-<script context="module">
+<script context="module" lang="ts">
 </script>
 
 <svelte:head>
@@ -18,6 +18,7 @@
 <style>
 	.content {
 		width: 100%;
+		width: fit-content;
 		max-width: var(--column-width);
 		margin: var(--column-margin-top) auto 0 auto;
 	}
