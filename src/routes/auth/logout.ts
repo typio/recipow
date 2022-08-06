@@ -4,8 +4,7 @@ import { redis } from '$lib/db'
 
 import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/auth/__types/logout'
 
-
-export const post:RequestHandler = async ({ request }) => {
+export const post: RequestHandler = async ({ request }) => {
 	const previousSID = cookie.parse(request.headers.get('cookie') || '').sessionId
 
 	await redis.del(previousSID)

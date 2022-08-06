@@ -139,7 +139,7 @@
 			<div><label for="email-input">Email</label></div>
 			<div><input id="email-input" type="email" bind:value={inputEmail} /></div>
 		</div>
-		
+
 		<div class="prompt-message">
 			{#if formType === 'signUp'}
 				<p>Password must have one lowercase, uppercase, number and be 8+ characters.</p>
@@ -192,7 +192,7 @@
 		flex-flow: column;
 		justify-content: center;
 		align-items: center;
-		margin-top:.8rem;
+		margin-top: 0.8rem;
 	}
 
 	.entry-form > div {
@@ -207,9 +207,9 @@
 		color: #ff0000;
 	}
 
-	.prompt-message p  {
-		margin-top:1rem;
-		margin-bottom: .8rem;
+	.prompt-message p {
+		margin-top: 1rem;
+		margin-bottom: 0.8rem;
 		color: #555;
 	}
 

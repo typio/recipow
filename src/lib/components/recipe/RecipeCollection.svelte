@@ -5,7 +5,6 @@
 </script>
 
 <script lang="ts">
-
 	import RecipePreview from './RecipePreview.svelte'
 
 	export let urlParams: URLSearchParams
@@ -15,7 +14,6 @@
 
 		const recipesAndLinks = await res.json()
 
-		
 		return recipesAndLinks
 	}
 </script>

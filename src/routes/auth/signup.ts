@@ -64,24 +64,20 @@ export const post: RequestHandler = async ({ request }) => {
 
 	let username = email.split('@')[0]
 
-	if ((await mongoClient
-		.db('recipow')
-		.collection('users')
-		.find({ username })
-		.toArray()).length > 0) {
+	if (
+		(await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0
+	) {
 		username += Math.floor(Math.random() * 1000)
 	}
 
 	// dont want while in case this can be exploited somehow
-	if ((await mongoClient
-		.db('recipow')
-		.collection('users')
-		.find({ username })
-		.toArray()).length > 0) {
+	if (
+		(await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0
+	) {
 		return {
 			status: 400,
 			body: {
-				message: 'Couldn\'t generate unique username, please try again.'
+				message: "Couldn't generate unique username, please try again."
 			}
 		}
 	}

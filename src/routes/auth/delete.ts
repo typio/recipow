@@ -5,8 +5,9 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { redis, mongoClient, s3Client } from '$lib/db'
 import { validateEmail, validatePassword } from './helper'
 
-/** @type {import('../auth/__types/delete').RequestHandler} */
-export const post = async ({ request }) => {
+import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/recipe/__types/index'
+
+export const post: RequestHandler = async ({ request }) => {
 	const { email, password } = await request.json()
 
 	const previousSID = cookie.parse(request.headers.get('cookie') || '').sessionId

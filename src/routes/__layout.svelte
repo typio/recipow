@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { SvelteToast } from '@zerodevx/svelte-toast'
-	import { onMount } from 'svelte'
-	import { Svroller, Svrollbar } from 'svrollbar'
+	import { Svrollbar } from 'svrollbar'
 
 	import Header from '$lib/components/header/Header.svelte'
 	import '../app.css'
