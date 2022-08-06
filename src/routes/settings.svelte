@@ -1,7 +1,7 @@
-<script context="module">
+<script context="module" lang="ts">
+	import type { Load } from '@sveltejs/kit'
 	// if not logged in redirect to home page
-	/** @type {import('@sveltejs/kit').Load} */
-	export const load = async ({ session }) => {
+	export const load: Load = async ({ session }) => {
 		if (!session.user) {
 			return {
 				status: 302,
@@ -15,7 +15,11 @@
 	}
 </script>
 
-<script>
+<script lang="ts">
+	import tippy from 'sveltejs-tippy'
+	import 'tippy.js/animations/perspective.css'
+	import 'tippy.js/animations/scale.css'
+	import 'tippy.js/dist/border.css'
 	import { toast } from '@zerodevx/svelte-toast'
 
 	import { session } from '$app/stores'
@@ -24,15 +28,13 @@
 
 	let formType = 'none'
 
-	/** @type {string}*/
-	let name = $session.user.name
-	/** @type {FileList}*/
-	let files
-	/** @type {File | undefined}*/
-	let avatarFile
+	let name: string = $session.user.name
+	let username: string = $session.user.username
+	let files: FileList
+	let avatarFile: File | undefined
 
 	// https://stackoverflow.com/a/39906526/6806458
-	const niceBytes = (/** @type {number} */ a) => {
+	const niceBytes = (a: number) => {
 		let b = 0
 		for (; 1024 <= a && ++b; ) a /= 1024
 		return (
@@ -45,37 +47,38 @@
 	const updateUser = async () => {
 		const dataArray = new FormData()
 		avatarFile = files?.item(0) || undefined
-		// checks can probably be bypassed
-		if (name.length < 2) {
-			toast.push('<h4>Name must be at least 2 characters</h4>')
-			return
+		// check can probably be bypassed
+		if (avatarFile == undefined) {
+			toast.push('<h4>Updating User...</h4>')
+		} else if (avatarFile.size < 2000000) {
+			toast.push('<h4>Updating User...</h4><p>Large photos may take a few seconds to process.</p>')
+			dataArray.append('newAvatarFile', avatarFile)
 		} else {
-			if (avatarFile == undefined) {
-				toast.push('<h4>Updating User...</h4>')
-			} else if (avatarFile.size < 2000000) {
-				toast.push(
-					'<h4>Updating User...</h4><p>Large photos may take a few seconds to process.</p>'
-				)
-				dataArray.append('newAvatarFile', avatarFile)
-			} else {
-				toast.push(
-					"<h4>Avatar must be smaller than 2 MB. Your image is " + niceBytes(avatarFile.size) + '.</h4>'
-				)
-				return
-			}
+			toast.push(
+				'<h4>Avatar must be smaller than 2 MB. Your image is ' +
+					niceBytes(avatarFile.size) +
+					'.</h4>'
+			)
+			return
+		}
 
-			dataArray.append('newName', name)
-			const res = await fetch('/auth/update', {
-				method: 'POST',
-				body: dataArray
-			})
-			const out = await res.json()
-			console.log(out)
+		dataArray.append('newName', name)
+		dataArray.append('newUsername', username)
+		const res = await fetch('/auth/update', {
+			method: 'POST',
+			body: dataArray
+		})
+
+		if (res.status === 200) {
 			location.reload()
+		} else {
+			toast.pop()
+			const out = await res.json()
+			toast.push(`<h4>${out.message}</h4>`)
 		}
 	}
 
-	const deleteUser = async (/** @type {{ detail: { text: string; }; }} */ event) => {
+	const deleteUser = async (event: { detail: { text: string } }) => {
 		const res = await fetch('/auth/delete', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -85,19 +88,27 @@
 		})
 		location.reload()
 	}
+	const nameHelpTippy = {
+		content: 'This is your display name, <br/>It will be shown on your recipes.',
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: false
+	}
 </script>
 
 <svelte:head>
-	<title>Profile</title>
+	<title>Settings</title>
 </svelte:head>
 
 <div class="content">
-	<h1>Profile</h1>
+	<h1>Settings</h1>
 
 	<h2>
 		Hello {$session.user.name}!
 	</h2>
-	<div class="row">
+	<div use:tippy={nameHelpTippy} class="row">
 		<p>Name:</p>
 		<input class="text-input" type="text" label="Name: " bind:value={name} />
 	</div>
@@ -111,6 +122,15 @@
 	<div class="row">
 		<p>Email: {$session.user.email}</p>
 		<!-- <input type="text" label="Name: " value="{user.email}"> -->
+	</div>
+	<div class="row">
+		<p>Username:</p>
+		<input class="text-input" type="text" label="Name: " bind:value={username} />
+		<div class="break" />
+		<p>
+			Your URL is <a href={'/' + '@' + $session.user.username}>
+				https://recipow.com/{'@' + username.replaceAll(' ', '')}</a>
+		</p>
 	</div>
 	<button
 		class="btn"
@@ -140,6 +160,10 @@
 	.row {
 		display: flex;
 		justify-content: left;
+		flex-wrap: wrap;
+	}
+	.break {
+		width: 100%;
 	}
 
 	.row input[type='text'] {
