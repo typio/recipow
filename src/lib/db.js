@@ -11,12 +11,12 @@ let {
 	VITE_MONGO_USERNAME,
 	VITE_MONGO_CLUSTER,
 	VITE_AWS_ACCESS_KEY_ID,
-	VITE_AWS_SECRET_ACCESS_KEY,
+	VITE_AWS_SECRET_ACCESS_KEY
 } = process.env
 
 // used in local .env dev build
 if (!VITE_REDIS_PORT) {
-	({
+	;({
 		VITE_REDIS_PORT,
 		VITE_REDIS_HOST,
 		VITE_REDIS_PASSWORD,
@@ -24,7 +24,7 @@ if (!VITE_REDIS_PORT) {
 		VITE_MONGO_USERNAME,
 		VITE_MONGO_CLUSTER,
 		VITE_AWS_ACCESS_KEY_ID,
-		VITE_AWS_SECRET_ACCESS_KEY,
+		VITE_AWS_SECRET_ACCESS_KEY
 	} = import.meta.env)
 }
 
@@ -39,7 +39,7 @@ const uri = `mongodb+srv://${VITE_MONGO_USERNAME}:${VITE_MONGO_PASSWORD}@${VITE_
 export const mongoClient = new MongoClient(uri)
 
 export const s3Client = new S3Client({
-	region: "us-west-1",
+	region: 'us-west-1',
 	credentials: {
 		accessKeyId: VITE_AWS_ACCESS_KEY_ID ?? '',
 		secretAccessKey: VITE_AWS_SECRET_ACCESS_KEY ?? ''
@@ -54,7 +54,7 @@ export const s3Client = new S3Client({
 // 		"count": "25",
 // 		"spell": "true",
 // 	};
-  
+
 // 	$.ajax({
 // 		url: "https://nutrition-api.esha.com/foods?" + $.param(params),
 // 		beforeSend: function(xhrObj){
