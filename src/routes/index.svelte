@@ -1,7 +1,12 @@
-<script context="module">
+<script context="module" lang="ts">
 </script>
 
-<script>
+<script lang="ts">
+	import RecipeCollection from '$lib/components/recipe/RecipeCollection.svelte'
+
+	let urlParams = new URLSearchParams()
+	urlParams.set('hi', 'hello')
+	
 </script>
 
 <svelte:head>
@@ -11,6 +16,9 @@
 <section>
 	<h1>Welcome</h1>
 </section>
+
+<h2>Trending Recipes</h2>
+<RecipeCollection urlParams={urlParams} />
 
 <style>
 	section {
