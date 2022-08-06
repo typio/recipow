@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { session } from '$app/stores'
-	import type Recipe from '$lib/components/recipe/recipe.svelte'
 	import RecipePreview from '$lib/components/recipe/RecipePreview.svelte'
 
-	import type { User } from '$lib/types'
+	import type { Recipe, User } from '$lib/types'
 
 	export let user: User
 	export let recipes: Recipe[]

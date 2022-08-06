@@ -4,7 +4,7 @@ import jimp from 'jimp'
 import { Upload } from '@aws-sdk/lib-storage'
 
 import { redis, mongoClient, s3Client } from '$lib/db'
-import { validateEmail, validateUsername, validateName } from './helper'
+import { validateUsername, validateName } from './helper'
 
 import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/auth/__types/update'
 
@@ -19,11 +19,9 @@ export const post: RequestHandler = async ({ request }) => {
 			(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}'
 		).email
 
-		const oldUsername = (await mongoClient
-			.db('recipow')
-			.collection('users')
-			.find({ email })
-			.toArray())[0].username
+		const oldUsername = (
+			await mongoClient.db('recipow').collection('users').find({ email }).toArray()
+		)[0].username
 
 		const newAvatarFile = body.get('newAvatarFile')
 
@@ -70,10 +68,6 @@ export const post: RequestHandler = async ({ request }) => {
 				}
 			})
 
-			// uploadData.on("httpUploadProgress", (progress) => {
-			//     console.log(progress);
-			//   });
-
 			const s3Result = await s3Upload.done()
 
 			const newAvatarURL =
@@ -82,7 +76,10 @@ export const post: RequestHandler = async ({ request }) => {
 			const mongoResult = await mongoClient
 				.db('recipow')
 				.collection('users')
-				.updateOne({ email }, { $set: { name: newName, username: newUsername, avatar: newAvatarURL } })
+				.updateOne(
+					{ email },
+					{ $set: { name: newName, username: newUsername, avatar: newAvatarURL } }
+				)
 
 			if (mongoResult.matchedCount == 1 && s3Result.$metadata.httpStatusCode == 200) {
 				return {

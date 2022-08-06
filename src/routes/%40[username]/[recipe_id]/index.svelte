@@ -44,7 +44,7 @@
 	{#if $session.user?.username === username}
 		<button class="btn btn-danger" on:click={deleteRecipe}>Delete Recipe</button>
 	{:else}
-		Written by <a href="/@{username}" >{'@' + username}</a>
+		Written by <a href="/@{username}">{'@' + username}</a>
 	{/if}
 
 	{#each recipe.content as content, rI}
@@ -166,27 +166,8 @@
 		display: grid;
 	}
 
-	.ingredient-list {
-	}
-
 	.ingredient {
 		display: flex;
-	}
-
-	.ingredient ul {
-		display: flex;
-		flex-direction: row;
-		margin-bottom: 1rem;
-		list-style: none;
-	}
-
-	.ingredient li {
-		width: fit-content;
-		margin: 0 1rem 0 0;
-	}
-
-	.ingredient input {
-		width: auto;
 	}
 
 	.instruction {
@@ -196,8 +177,5 @@
 	.time {
 		display: flex;
 		flex-wrap: row;
-	}
-
-	.time {
 	}
 </style>

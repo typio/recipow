@@ -356,9 +356,6 @@
 		grid-row: 1 / 3;
 	}
 
-	.remove-btn {
-	}
-
 	input[type='file'] {
 		background-color: #eee;
 	}
@@ -380,26 +377,8 @@
 		align-items: space-around;
 	}
 
-	.input-field > button {
-	}
-
-	.ingredient-list {
-	}
-
 	.ingredient {
 		display: flex;
-	}
-
-	.ingredient ul {
-		display: flex;
-		flex-direction: row;
-		margin-bottom: 1rem;
-		list-style: none;
-	}
-
-	.ingredient li {
-		width: fit-content;
-		margin: 0 1rem 0 0;
 	}
 
 	.ingredient input {
@@ -413,9 +392,6 @@
 	.time-input {
 		display: flex;
 		flex-wrap: row;
-	}
-
-	.time-input {
 	}
 
 	.insert-content-toolbar {
