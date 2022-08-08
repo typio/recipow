@@ -35,23 +35,10 @@ export const post: RequestHandler = async ({ request }) => {
 	if (JSON.parse((await redis.get(email)) || '{}').passwordHash == hash) {
 		await redis.del(previousSID)
 
-		try {
-			const result = await redis.del(email)
-			console.log('Redis result: ', result)
-		} catch (err) {
-			console.log('Failed to delete user from redis, error: ', err)
-		}
-
+		// delete avatar
 		const avatarURL = (
 			await mongoClient.db('recipow').collection('users').findOne({ email })
 		)?.avatar.split('.com/')[1]
-
-		try {
-			const result = await mongoClient.db('recipow').collection('users').deleteOne({ email })
-			console.log('MongoDB result: ', result)
-		} catch (err) {
-			console.log('Failed to delete user from MongoDB, error: ', err)
-		}
 
 		try {
 			const result = await s3Client.send(
@@ -63,6 +50,22 @@ export const post: RequestHandler = async ({ request }) => {
 			console.log('S3 result: ', result)
 		} catch (err) {
 			console.log('Failed to delete avatar from S3, error: ', err)
+		}
+
+		// delete redis user
+		try {
+			const result = await redis.del(email)
+			console.log('Redis result: ', result)
+		} catch (err) {
+			console.log('Failed to delete user from redis, error: ', err)
+		}
+
+		// delete mongo user
+		try {
+			const result = await mongoClient.db('recipow').collection('users').deleteOne({ email })
+			console.log('MongoDB result: ', result)
+		} catch (err) {
+			console.log('Failed to delete user from MongoDB, error: ', err)
 		}
 
 		return {

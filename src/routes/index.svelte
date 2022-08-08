@@ -13,7 +13,7 @@
 	<h1>Welcome</h1>
 </section>
 
-<h2>Trending Recipes</h2>
+<h2>All Recipes</h2>
 <RecipeCollection {urlParams} />
 
 <style>

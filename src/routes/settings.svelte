@@ -79,6 +79,32 @@
 	}
 
 	const deleteUser = async (event: { detail: { text: string } }) => {
+		// delete their recipes
+		const recipesResult = await fetch('/@' + $session.user.username + '/', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				Accept: 'application/json'
+			}
+		})
+		const { recipes } = await recipesResult.json()
+		console.log(recipes)
+		recipes.forEach(async recipe => {
+			const res = await fetch(`/recipe`, {
+				method: 'DELETE',
+				body: JSON.stringify({
+					recipeId: recipe.id
+				}),
+				headers: {
+					'content-type': 'application/json',
+					accept: 'application/json'
+				}
+			})
+			const data = await res.json()
+			console.log(data)
+		})
+
+		// delete their account
 		const res = await fetch('/auth/delete', {
 			method: 'POST',
 			body: JSON.stringify({
