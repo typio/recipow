@@ -22,7 +22,7 @@ export type Recipe = {
 	id: string
 	title: string
 	description: string
-	cover_image_url?: string
+	cover_image?: string
 	tags: Tags
 	content: (RecipeCardData | WriteUp)[]
 	reviews: { rating: number; reviewCount: number }
@@ -38,7 +38,7 @@ type Time = {
 export type RecipeCardData = {
 	title?: string
 	description?: string
-	cover_image_url?: string
+	cover_image?: string
 	ingredients: string[]
 	steps: string[]
 	times: { prep: Time; cook: Time }

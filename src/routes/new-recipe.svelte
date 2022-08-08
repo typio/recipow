@@ -18,6 +18,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { toast } from '@zerodevx/svelte-toast'
+	import { browser } from '$app/env'
 
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
@@ -33,7 +34,7 @@
 		yield: ''
 	} as RecipeCardData
 
-	let recipe: Recipe = {
+	let recipeTemplate: Recipe = {
 		id: '',
 		title: '',
 		description: '',
@@ -44,6 +45,16 @@
 			reviewCount: 0
 		},
 		visibility: 'public'
+	}
+
+	let recipe: Recipe
+
+	recipe = recipeTemplate
+
+	if (browser) {
+		if (localStorage.getItem('recipe') !== '' && localStorage.getItem('recipe') !== null) {
+			recipe = JSON.parse(localStorage.getItem('recipe') || '')
+		}
 	}
 
 	let newIngredients: string[] = []
@@ -62,6 +73,8 @@
 			newSteps[rI] = ''
 		}
 	}
+
+	const encodeImageToBase64 = () => {}
 
 	const postRecipe = async () => {
 		toast.push(`<h4>Uploading Recipe...</h4>`)
@@ -91,6 +104,13 @@
 	<title>New Recipe</title>
 </svelte:head>
 
+<svelte:window
+	on:keydown={() => {
+		console.log(recipe)
+
+		localStorage.setItem('recipe', JSON.stringify(recipe))
+	}} />
+
 <div class="content">
 	<div class="recipe-header-input">
 		<input class="recipe-title" type="text" placeholder="Recipe Title" bind:value={recipe.title} />
@@ -104,35 +124,61 @@
 			type="file"
 			name=""
 			id=""
-			bind:value={recipe.cover_image_url} />
+			on:change={async e => {
+				const reader = new FileReader()
+				reader.readAsDataURL(e.target?.files[0])
+				reader.onload = async e => {
+					recipe.cover_image = e.target.result
+
+					const res = await fetch('/api/uploadImage', {
+						method: 'POST',
+						body: JSON.stringify({
+							bucketName: 'recipe_imgs',
+							imageBase64: recipe.cover_image,
+							isTemp: true
+						})
+					})
+
+					const data = await res.json()
+					recipe.cover_image = data.imageUrl
+				}
+			}} />
 	</div>
 
 	<div class="insert-content-toolbar">
 		<button
 			class="btn"
 			on:click={() => {
-				recipe.content = ['', ...recipe.content]
+				if (recipe.content.length < 6) {
+					recipe.content = ['', ...recipe.content]
+				} else {
+					toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
+				}
 			}}>Add Another WriteUp</button>
 		<div class="toolbar-divider" />
 		<button
 			class="btn"
 			on:click={() => {
-				recipe.content = [Object.assign({}, recipeCardTemplate), ...recipe.content]
+				if (recipe.content.length < 6) {
+					recipe.content = [Object.assign({}, recipeCardTemplate), ...recipe.content]
+				} else {
+					toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
+				}
 			}}>Add Another Recipe Card</button>
 	</div>
 
 	{#each recipe.content as content, rI}
-		<div class="content-card ">
-			{#if [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)].find(e => typeof e === 'object') !== undefined}
-				<button
-					class="btn btn-danger remove-btn"
-					on:click={() => {
-						recipe.content = [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)]
-					}}>Remove</button>
-			{/if}
+		<div class="content-card" id={rI.toString()}>
 			{#if typeof content === 'string'}
 				<div class="write-up">
-					<h3>Write Up:</h3>
+					<div class="write-up-header">
+						<h3>Write Up:</h3>
+						<button
+							class="btn btn-danger remove-btn"
+							on:click={() => {
+								recipe.content = [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)]
+							}}>Remove</button>
+					</div>
 					<hr />
 					<TipTapEditor bind:content mode="writeup" placeholder="Write something..." />
 				</div>
@@ -155,7 +201,35 @@
 								type="file"
 								name=""
 								id=""
-								bind:value={content.cover_image_url} />
+								on:change={async e => {
+									const reader = new FileReader()
+									reader.readAsDataURL(e.target?.files[0])
+									reader.onload = async e => {
+										content.cover_image = e.target.result
+					
+										const res = await fetch('/api/uploadImage', {
+											method: 'POST',
+											body: JSON.stringify({
+												bucketName: 'recipe_imgs',
+												imageBase64: content.cover_image,
+												isTemp: true
+											})
+										})
+					
+										const data = await res.json()
+										content.cover_image = data.imageUrl
+									}
+								}} />
+							{#if [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)].find(e => typeof e === 'object') !== undefined}
+								<button
+									class="btn btn-danger remove-btn"
+									on:click={() => {
+										recipe.content = [
+											...recipe.content.slice(0, rI),
+											...recipe.content.slice(rI + 1)
+										]
+									}}>Remove</button>
+							{/if}
 						{/if}
 					</div>
 
@@ -194,7 +268,7 @@
 						</div>
 					</div>
 
-					<div>
+					<div class="instructions">
 						<h3>Instructions:</h3>
 						<ol>
 							{#each content.steps ?? [] as step, sI}
@@ -214,10 +288,12 @@
 							{/each}
 						</ol>
 						<div class="input-field">
-							<TipTapEditor
-								bind:content={newSteps[rI]}
-								mode="generic"
-								placeholder="Write a step..." />
+							<span style="width:80%;">
+								<TipTapEditor
+									bind:content={newSteps[rI]}
+									mode="generic"
+									placeholder="Write a step..." />
+							</span>
 							<button
 								class="btn"
 								on:click={() => {
@@ -226,37 +302,39 @@
 						</div>
 					</div>
 
-					<div>
-						<h3>Times:</h3>
+					<h3>Times:</h3>
+					<div class="times">
 						<div class="time-input">
 							<h4>Prep Time</h4>
 							<input type="number" bind:value={content.times.prep.minutes} min="0" max="59" />
-							<p>mins</p>
+							<p class="time-unit">mins</p>
 							<input type="number" bind:value={content.times.prep.hours} min="0" max="23" />
-							<p>hours</p>
-							<input type="number" bind:value={content.times.prep.days} min="0" />
-							<p>days</p>
+							<p class="time-unit">hours</p>
+							<input type="number" bind:value={content.times.prep.days} min="0" max="999" />
+							<p class="time-unit">days</p>
 						</div>
 						<div class="time-input">
 							<h4>Cook Time</h4>
 							<input type="number" bind:value={content.times.cook.minutes} min="0" max="59" />
-							<p>mins</p>
+							<p class="time-unit">mins</p>
 							<input type="number" bind:value={content.times.cook.hours} min="0" max="23" />
-							<p>hours</p>
-							<input type="number" bind:value={content.times.cook.days} min="0" />
-							<p>days</p>
+							<p class="time-unit">hours</p>
+							<input type="number" bind:value={content.times.cook.days} min="0" max="999" />
+							<p class="time-unit">days</p>
 						</div>
 						<div class="time-input">
 							<h4>Total Time</h4>
-							<p>{(content.times.prep.minutes + content.times.cook.minutes) % 60}</p>
-							<p>mins</p>
-							<p>
+							<p class="time-total-number">
+								{(content.times.prep.minutes + content.times.cook.minutes) % 60}
+							</p>
+							<p class="time-unit">mins</p>
+							<p class="time-total-number">
 								{(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) +
 									(content.times.prep.hours + content.times.cook.hours)) %
 									24}
 							</p>
-							<p>hours</p>
-							<p>
+							<p class="time-unit">hours</p>
+							<p class="time-total-number">
 								{Math.floor(
 									(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) +
 										(content.times.prep.hours + content.times.cook.hours)) /
@@ -264,15 +342,19 @@
 								) +
 									(content.times.prep.days + content.times.cook.days)}
 							</p>
-							<p>days</p>
+							<p class="time-unit">days</p>
 						</div>
 					</div>
 					<div>
-						<h3>Servings</h3>
-						<input type="text" placeholder="ex. 3-4" bind:value={content.serves} />
-						<h3>Yield</h3>
-						<input type="text" placeholder="ex. one 18in pizza pie" bind:value={content.yield} />
-						<h3>Notes</h3>
+						<div class="row">
+							<h3>Servings</h3>
+							<input type="text" placeholder="ex. 3-4" bind:value={content.serves} />
+						</div>
+						<div class="row">
+							<h3>Yield</h3>
+							<input type="text" placeholder="ex. one 18in pizza pie" bind:value={content.yield} />
+						</div>
+						<h3>Notes:</h3>
 						<TipTapEditor
 							bind:content={content.notes}
 							mode="generic"
@@ -286,17 +368,37 @@
 			<button
 				class="btn"
 				on:click={() => {
-					recipe.content = [...recipe.content.slice(0, rI + 1), '', ...recipe.content.slice(rI + 1)]
+					if (recipe.content.length < 6) {
+						document
+							.getElementById((rI + 1)?.toString())
+							?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+						recipe.content = [
+							...recipe.content.slice(0, rI + 1),
+							'',
+							...recipe.content.slice(rI + 1)
+						]
+					} else {
+						toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
+					}
 				}}>Add Another WriteUp</button>
 			<div class="toolbar-divider" />
 			<button
 				class="btn"
 				on:click={() => {
-					recipe.content = [
-						...recipe.content.slice(0, rI + 1),
-						Object.assign({}, recipeCardTemplate),
-						...recipe.content.slice(rI + 1)
-					]
+					if (recipe.content.length < 6) {
+						document
+							.getElementById((rI + 1)?.toString())
+							?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+						recipe.content = [
+							...recipe.content.slice(0, rI + 1),
+							Object.assign({}, recipeCardTemplate),
+							...recipe.content.slice(rI + 1)
+						]
+					} else {
+						toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
+					}
 				}}>Add Another Recipe Card</button>
 		</div>
 	{/each}
@@ -310,24 +412,43 @@
 	<button
 		class="btn"
 		on:click={() => {
+			localStorage.removeItem('recipe')
 			postRecipe()
-
 			console.log(recipe)
 		}}>Post Recipe</button>
 </div>
 
 <style>
+	.row {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		align-content: center;
+	}
+
+	.row h3 {
+		margin: 1rem 1rem 1rem 0;
+	}
+
 	.content {
 		position: relative;
 	}
 
 	.content-card {
-		border: #eee solid 3px;
+		border: 3px solid #eee;
 		border-radius: 0.4rem;
 	}
 
+	.write-up-header {
+		padding: 1rem 4rem 0 2rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
 	.write-up hr {
-		margin-bottom: 0;
+		margin: 0;
 	}
 
 	.recipe-card-input {
@@ -336,7 +457,14 @@
 
 	.recipe-header-input {
 		display: grid;
-		grid-template-columns: 3fr 2fr;
+		grid-template-columns: 2fr 3fr;
+		grid-template-rows: 1fr 1fr;
+		gap: 1rem 4rem;
+	}
+
+	.recipe-card-input > .recipe-header-input {
+		display: grid;
+		grid-template-columns: 2fr 3fr 1fr;
 		grid-template-rows: 1fr 1fr;
 		gap: 1rem 4rem;
 	}
@@ -354,6 +482,24 @@
 	.recipe-cover-photo {
 		grid-column: 2;
 		grid-row: 1 / 3;
+	}
+
+	.recipe-header-input button {
+		grid-column: 3;
+		grid-row: 1/3;
+		margin: auto;
+	}
+
+	.instructions {
+		margin: 2rem 0;
+	}
+
+	.instruction {
+		display: flex;
+	}
+
+	.instruction:nth-child(1) {
+		color: red;
 	}
 
 	input[type='file'] {
@@ -374,24 +520,49 @@
 
 	.input-field {
 		display: flex;
-		align-items: space-around;
+		justify-content: space-around;
+		align-items: center;
+	}
+
+	.input-field input {
+		width: 80%;
+		padding: 1rem 0;
 	}
 
 	.ingredient {
 		display: flex;
+		width: 60%;
+		justify-content: space-around;
+		align-items: center;
 	}
 
 	.ingredient input {
-		width: auto;
+		width: 80%;
 	}
 
-	.instruction {
-		display: flex;
+	.times {
+		width: 100%;
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr 1fr 1fr;
+		gap: 1rem 4rem;
+		margin: 1rem 0;
 	}
 
 	.time-input {
-		display: flex;
-		flex-wrap: row;
+		display: grid;
+		grid-template-columns: 1fr 2fr 1fr 2fr 1fr 2fr 1fr;
+		grid-template-rows: 1fr;
+		/* gap: 1rem 4rem; */
+	}
+
+	.time-input > input,
+	.time-input > .time-total-number {
+		text-align: right;
+	}
+
+	.time-input > .time-unit {
+		padding: 0 2rem 0 1rem;
 	}
 
 	.insert-content-toolbar {
