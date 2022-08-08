@@ -38,9 +38,7 @@
 					.catch(err => {
 						resolve(err)
 						reject(err)
-						
 					})
-				
 			}
 		})
 	}
@@ -94,7 +92,7 @@
 			editor = createEditor({
 				extensions: [
 					StarterKit,
-					
+
 					Youtube,
 					Heading.configure({
 						levels: [2, 3]
@@ -103,7 +101,7 @@
 					Placeholder.configure({
 						placeholder
 					}),
-					createImageExtension(uploadImage),
+					createImageExtension(uploadImage)
 				],
 				content
 			})
@@ -114,7 +112,7 @@
 					Placeholder.configure({
 						placeholder
 					}),
-					Link,
+					Link
 				],
 				content
 			})

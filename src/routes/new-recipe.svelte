@@ -206,7 +206,7 @@
 									reader.readAsDataURL(e.target?.files[0])
 									reader.onload = async e => {
 										content.cover_image = e.target.result
-					
+
 										const res = await fetch('/api/uploadImage', {
 											method: 'POST',
 											body: JSON.stringify({
@@ -215,7 +215,7 @@
 												isTemp: true
 											})
 										})
-					
+
 										const data = await res.json()
 										content.cover_image = data.imageUrl
 									}

@@ -196,7 +196,7 @@
 		width: 100%;
 	}
 
-	 .cover_image {
+	.cover_image {
 		width: 100%;
 		height: auto;
 		max-height: 300px;

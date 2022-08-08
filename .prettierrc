@@ -6,5 +6,6 @@
 	"trailingComma": "none",
 	"printWidth": 100,
 	"bracketSameLine": true,
-	"plugins": ["prettier-plugin-svelte"]
+	"plugins": ["prettier-plugin-svelte"],
+	"endOfLine": "lf"
 }

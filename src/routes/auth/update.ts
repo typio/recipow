@@ -70,7 +70,7 @@ export const post: RequestHandler = async ({ request }) => {
 					const result = await s3Client.send(
 						new DeleteObjectCommand({
 							Bucket: 'recipow',
-							Key: avatarURL,
+							Key: avatarURL
 						})
 					)
 					console.log('S3 result: ', result)
