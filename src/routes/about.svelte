@@ -6,12 +6,17 @@
 </svelte:head>
 
 <div class="content">
-	<h1>About this app</h1>
+	<h1>About Recipow</h1>
 
 	<p>
 		This is a recipe website made for bodyguards by bodyguards! Please share your yummy recipies
 		whether they be generational treasures or your own concoction, and try cooking something out of
 		our abundant catalouge!
+	</p>
+
+	<p>
+		Website is in development and any data you upload should be considered unsafe/ unstable. It also
+		may be running a faulty development version.
 	</p>
 </div>
 

@@ -3,7 +3,8 @@
 	import type { Readable } from 'svelte/store'
 	import StarterKit from '@tiptap/starter-kit'
 	import Heading from '@tiptap/extension-heading'
-	import Image from '@tiptap/extension-image'
+	import { createImageExtension } from '$lib/TipTapExtensions/image'
+	import type { UploadFn } from '$lib/TipTapExtensions/dropImage'
 	import Youtube from '@tiptap/extension-youtube'
 	import Link from '@tiptap/extension-link'
 	import Placeholder from '@tiptap/extension-placeholder'
@@ -11,43 +12,36 @@
 	import { Editor, EditorContent, FloatingMenu, BubbleMenu, createEditor } from 'svelte-tiptap'
 
 	let editor: Readable<Editor>
+
 	export let content = ''
 	export let mode = 'generic'
 	export let placeholder = ''
 
-	onMount(() => {
-		if (mode === 'writeup') {
-			editor = createEditor({
-				extensions: [
-					StarterKit,
-					Image,
-					Youtube,
-					Heading.configure({
-						levels: [2, 3]
-					}),
-					Link,
-					Placeholder.configure({
-						placeholder
+	const uploadImage: UploadFn = async (file): Promise<string> => {
+		return new Promise((resolve, reject) => {
+			const reader = new FileReader()
+			reader.readAsDataURL(file)
+			reader.onload = async () => {
+				await fetch('/api/uploadImage', {
+					method: 'POST',
+					body: JSON.stringify({
+						bucketName: 'recipe_imgs',
+						imageBase64: reader.result as string,
+						isTemp: true
 					})
-				],
-				content
-			})
-		} else {
-			editor = createEditor({
-				extensions: [
-					StarterKit,
-					Placeholder.configure({
-						placeholder
+				})
+					.then(res => res.json())
+					.then(data => {
+						console.log(data)
+						resolve(data.imageUrl)
 					})
-				],
-				content
-			})
-		}
-
-		editor.subscribe(a => {
-			content = a.getHTML()
+					.catch(err => {
+						resolve(err)
+						reject(err)
+					})
+			}
 		})
-	})
+	}
 
 	const toggleHeading = (level: any) => {
 		return () => {
@@ -69,8 +63,8 @@
 		$editor.chain().focus().toggleItalic().run()
 	}
 
-	const setImage = (src: string, alt?: string, title?: string) =>
-		$editor.chain().focus().setImage({ src, alt, title }).run()
+	// const setImage = (src: string, alt?: string, title?: string) =>
+	// 	$editor.chain().focus().setImage({ src, alt, title }).run()
 
 	const setYoutubeVideo = (src: string, width?: number, height?: number) =>
 		$editor.chain().focus().setYoutubeVideo({ src, width, height }).run()
@@ -93,6 +87,42 @@
 		}
 	}
 
+	onMount(() => {
+		if (mode === 'writeup') {
+			editor = createEditor({
+				extensions: [
+					StarterKit,
+
+					Youtube,
+					Heading.configure({
+						levels: [2, 3]
+					}),
+					Link,
+					Placeholder.configure({
+						placeholder
+					}),
+					createImageExtension(uploadImage)
+				],
+				content
+			})
+		} else {
+			editor = createEditor({
+				extensions: [
+					StarterKit,
+					Placeholder.configure({
+						placeholder
+					}),
+					Link
+				],
+				content
+			})
+		}
+
+		editor.subscribe(a => {
+			content = a.getHTML()
+		})
+	})
+
 	$: isActive = (name: string, attrs = {}) => $editor.isActive(name, attrs)
 </script>
 
@@ -103,13 +133,13 @@
 				<button on:click={toggleHeading(2)}>h2</button>
 				<button on:click={toggleHeading(3)}>h3</button>
 				<button on:click={setParagraph()}>p</button>
-				<button
+				<!-- <button
 					on:click={() => {
 						let src = window.prompt('Enter image URL:')
 						if (src) {
 							setImage(src)
 						}
-					}}>img</button>
+					}}>img</button> -->
 				<button
 					on:click={() => {
 						let src = window.prompt('Enter youtube video URL:')

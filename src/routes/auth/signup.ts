@@ -6,7 +6,7 @@ import { redis, mongoClient } from '$lib/db'
 import { validateEmail, validatePassword, validateName, TOKEN_EXPIRE_TIME } from './helper'
 
 import type { AuthUser } from '$lib/types'
-import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/auth/__types/signup'
+import type { RequestHandler } from '.svelte-kit/types/src/routes/auth/__types/signup'
 
 export const post: RequestHandler = async ({ request }) => {
 	const { email, name, password } = await request.json()

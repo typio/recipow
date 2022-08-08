@@ -7,6 +7,7 @@ import { redis, mongoClient, s3Client } from '$lib/db'
 import { validateUsername, validateName } from './helper'
 
 import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/auth/__types/update'
+import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 export const post: RequestHandler = async ({ request }) => {
 	try {
@@ -59,6 +60,26 @@ export const post: RequestHandler = async ({ request }) => {
 
 			const randomPart = '-' + Math.floor(Math.random() * 1000000)
 
+			// remove old avatar
+			const avatarURL = (
+				await mongoClient.db('recipow').collection('users').findOne({ email })
+			)?.avatar.split('.com/')[1]
+
+			if (avatarURL.startsWith('avatars/')) {
+				try {
+					const result = await s3Client.send(
+						new DeleteObjectCommand({
+							Bucket: 'recipow',
+							Key: avatarURL
+						})
+					)
+					console.log('S3 result: ', result)
+				} catch (err) {
+					console.log('Failed to delete avatar from S3, error: ', err)
+				}
+			}
+
+			// upload new avatar
 			const s3Upload = new Upload({
 				client: s3Client,
 				params: {

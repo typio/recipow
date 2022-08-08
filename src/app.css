@@ -57,8 +57,10 @@
 }
 
 * {
-	-ms-overflow-style: none; /* IE and Edge */
-	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none;
+	/* IE and Edge */
+	scrollbar-width: none;
+	/* Firefox */
 }
 
 ._toast_bar {
@@ -284,7 +286,8 @@ button {
 .ProseMirror h3 {
 }
 
-.ProseMirror a {
+.ProseMirror a,
+.rendered-tiptap a {
 	color: var(--accent-color);
 	text-decoration: none;
 	border-bottom: 2px solid var(--accent-color);
