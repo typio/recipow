@@ -7,6 +7,7 @@
 
 <svelte:head>
 	<title>Home</title>
+	<meta name="description" content="Protein focused recipe website." />
 </svelte:head>
 
 <section>

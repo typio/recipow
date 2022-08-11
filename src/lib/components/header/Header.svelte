@@ -25,9 +25,9 @@
 
 <header>
 	<div class="corner">
-		<a href="https://kit.svelte.dev">
+		<!-- <a href="https://kit.svelte.dev">
 			<img src={svelte_logo} alt=" " />
-		</a>
+		</a> -->
 	</div>
 
 	<nav>
@@ -43,7 +43,9 @@
 				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
 					<a sveltekit:prefetch href="/new-recipe">Write</a>
 				</li>
-				<li class:active={$page.url.pathname[1] === '@' || $page.url.pathname === '/settings'}>
+				<li
+					class:active={$page.url.pathname === '/@' + $session.user.username ||
+						$page.url.pathname === '/settings'}>
 					<button
 						class="btn-nav btn-pfp"
 						on:click={() => {
@@ -80,9 +82,9 @@
 	</nav>
 
 	<div class="corner">
-		<a href="https://github.com/typio/recipow">
+		<!-- <a href="https://github.com/typio/recipow">
 			<img src={github_logo} alt=" " />
-		</a>
+		</a> -->
 	</div>
 
 	{#if showProfileModal}

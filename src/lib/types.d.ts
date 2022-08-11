@@ -35,11 +35,18 @@ type Time = {
 	days: number
 }
 
+type Ingredient = {
+	name: string
+	amount: number
+	unit?: typeof units[number]
+	preperation?: string
+}
+
 export type RecipeCardData = {
 	title?: string
 	description?: string
 	cover_image?: string
-	ingredients: string[]
+	ingredients: Ingredient[]
 	steps: string[]
 	times: { prep: Time; cook: Time }
 	serves?: { min: number; max: number }

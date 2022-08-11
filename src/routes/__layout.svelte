@@ -33,9 +33,11 @@
 		flex-direction: column;
 		padding: 1rem;
 		width: 100%;
-		max-width: 1024px;
+		max-width: 960px;
+		/* overflow: hidden; */
 		margin: 0 auto;
 		box-sizing: border-box;
+		
 	}
 
 	footer {
@@ -66,7 +68,7 @@
 		height: 100%;
 		display: flex;
 		align-items: center;
-		padding-right: 1rem;
+		padding: 0rem .5rem;
 		font-size: 0.9rem;
 		line-height: 2rem;
 	}

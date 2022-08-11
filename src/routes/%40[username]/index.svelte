@@ -25,9 +25,8 @@
 				<img src={user.avatar} alt="" />
 			</div>
 		</div>
-		<div class="row">
-			<p>{user.name}</p>
-		</div>
+		<h3>{user.name}</h3>
+		<h4>{'@' + user.username}</h4>
 
 		<h2>Here are your recipies</h2>
 		{#if recipes}
@@ -47,7 +46,7 @@
 		</div>
 		<div>
 			<h3>{user.name}</h3>
-			<h4>{user.username}</h4>
+			<h4>{'@' + user.username}</h4>
 		</div>
 
 		<h2>Their recipes:</h2>
