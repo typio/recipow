@@ -14,10 +14,10 @@ This is a website for bodyguards to share their fighting themed recipes. :fire:
 Even if you aren't a bodyguard, please sign up and create a recipe. :100:
 
 I'm creating this website to gain experience in fullstack web dev, 
- <br>
+<br>
 and to make the best recipe website online!!! :hash::one:
 
 ## Future Goals
-Frontend redesign
-Recipe search
-Recommendation system
+- Frontend redesign
+- Recipe search
+- Recommendation system
