@@ -25,9 +25,9 @@
 
 <header>
 	<div class="corner">
-		<!-- <a href="https://kit.svelte.dev">
+		<a href="https://kit.svelte.dev">
 			<img src={svelte_logo} alt=" " />
-		</a> -->
+		</a>
 	</div>
 
 	<nav>
@@ -82,9 +82,9 @@
 	</nav>
 
 	<div class="corner">
-		<!-- <a href="https://github.com/typio/recipow">
+		<a href="https://github.com/typio/recipow">
 			<img src={github_logo} alt=" " />
-		</a> -->
+		</a>
 	</div>
 
 	{#if showProfileModal}

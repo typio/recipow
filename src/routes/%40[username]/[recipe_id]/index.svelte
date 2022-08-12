@@ -47,7 +47,7 @@
 		<div class="header-total-time">
 			Total Time: {getTotalTime()}
 		</div>
-		<ul class="header-nutrition">
+		<!-- <ul class="header-nutrition">
 			<li>
 				<div class="nutrition-amount">{0}</div>
 				<div class="nutrition-label">Calories</div>
@@ -60,7 +60,7 @@
 				<div class="nutrition-amount">{0}</div>
 				<div class="nutrition-label">Carbs</div>
 			</li>
-		</ul>
+		</ul> -->
 		<img class="cover_image" src={recipe.cover_image} alt="" />
 	</div>
 
