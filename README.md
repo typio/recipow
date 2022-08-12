@@ -11,11 +11,13 @@ Visit at [recipow.com](https://recipow.com)<sup>\*\*</sup>
 ## About
 This is a website for bodyguards to share their fighting themed recipes. :fire:
 
-Even if you aren't a bodyguard, please feel free to sign up and create a recipe. :100:
+Even if you aren't a bodyguard, please sign up and create a recipe. :100:
 
-I'm creating this website to gain experience in fullstack web dev, and to make the best recipe website online!!!:hash::one:
+I'm creating this website to gain experience in fullstack web dev, 
+<br>
+and to make the best recipe website online!!! :hash::one:
 
 ## Future Goals
-Frontend redesign
-Recipe search
-Recommendation system
+- Frontend redesign
+- Recipe search
+- Recommendation system
