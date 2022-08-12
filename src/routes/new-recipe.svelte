@@ -22,7 +22,9 @@
 
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
-	import type { RecipeCardData, Recipe } from '$lib/types'
+	import type { RecipeCardData, Recipe, Ingredient } from '$lib/types'
+	import { units } from '$lib/unitData'
+	import { assign } from 'svelte/internal'
 
 	let recipeCardTemplate = {
 		ingredients: [],
@@ -47,6 +49,13 @@
 		visibility: 'public'
 	}
 
+	let ingredientTemplate: Ingredient = {
+		name: '',
+		amount: 0,
+		unit: units[0],
+		preperation: ''
+	}
+
 	let recipe: Recipe
 
 	recipe = recipeTemplate
@@ -57,13 +66,22 @@
 		}
 	}
 
-	let newIngredients: string[] = []
-	let newSteps: string[] = []
+	let newIngredients: Ingredient[] = [
+		{} as Ingredient,
+		{
+			name: '',
+			amount: 0,
+			unit: units[0],
+			preperation: ''
+		}
+	]
+
+	let newSteps: string[] = ['', '']
 
 	const addIngredient = (rI: number) => {
 		if (typeof recipe.content[rI] === 'object') {
 			recipe.content[rI].ingredients = [...recipe.content[rI].ingredients, newIngredients[rI]]
-			newIngredients[rI] = ''
+			newIngredients[rI] = {} as Ingredient
 		}
 	}
 
@@ -73,8 +91,6 @@
 			newSteps[rI] = ''
 		}
 	}
-
-	const encodeImageToBase64 = () => {}
 
 	const postRecipe = async () => {
 		toast.push(`<h4>Uploading Recipe...</h4>`)
@@ -119,14 +135,16 @@
 			type="text"
 			placeholder="Description"
 			bind:value={recipe.description} />
+		<img class="recipe-cover-preview" src={recipe.cover_image} alt="" />
 		<input
-			class="recipe-cover-photo"
+			class="recipe-cover-input"
 			type="file"
 			name=""
 			id=""
 			on:change={async e => {
 				const reader = new FileReader()
-				reader.readAsDataURL(e.target?.files[0])
+
+				reader.readAsDataURL(e.target.files[0])
 				reader.onload = async e => {
 					recipe.cover_image = e.target.result
 
@@ -151,6 +169,8 @@
 			on:click={() => {
 				if (recipe.content.length < 6) {
 					recipe.content = ['', ...recipe.content]
+					newSteps = ['', ...newSteps]
+					newIngredients = [Object.assign({}, ingredientTemplate), ...newIngredients]
 				} else {
 					toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
 				}
@@ -161,6 +181,8 @@
 			on:click={() => {
 				if (recipe.content.length < 6) {
 					recipe.content = [Object.assign({}, recipeCardTemplate), ...recipe.content]
+					newSteps = ['', ...newSteps]
+					newIngredients = [Object.assign({}, ingredientTemplate), ...newIngredients]
 				} else {
 					toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
 				}
@@ -176,6 +198,8 @@
 						<button
 							class="btn btn-danger remove-btn"
 							on:click={() => {
+								newIngredients = [...newIngredients.slice(0, rI), ...newIngredients.slice(rI + 1)]
+								newSteps = [...newSteps.slice(0, rI), ...newSteps.slice(rI + 1)]
 								recipe.content = [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)]
 							}}>Remove</button>
 					</div>
@@ -196,8 +220,9 @@
 								type="text"
 								placeholder="Description"
 								bind:value={content.description} />
+							<img class="recipe-cover-preview" src={content.cover_image} alt="" />
 							<input
-								class="recipe-cover-photo"
+								class="recipe-cover-input"
 								type="file"
 								name=""
 								id=""
@@ -228,6 +253,13 @@
 											...recipe.content.slice(0, rI),
 											...recipe.content.slice(rI + 1)
 										]
+
+										newIngredients = [
+											...newIngredients.slice(0, rI),
+											...newIngredients.slice(rI + 1)
+										]
+
+										newSteps = [...newSteps.slice(0, rI), ...newSteps.slice(rI + 1)]
 									}}>Remove</button>
 							{/if}
 						{/if}
@@ -240,10 +272,30 @@
 								{#each content.ingredients ?? [] as ingredient, iI}
 									<li>
 										<div class="ingredient">
-											<input type="text" bind:value={ingredient} />
+											<input
+												class="ingredient-name"
+												type="text"
+												placeholder="ex. Salted Butter"
+												bind:value={ingredient.name} />
+
+											<input
+												class="ingredient-amount"
+												type="number"
+												placeholder=""
+												bind:value={ingredient.amount} />
+											<select class="ingredient-unit" name="" id="" bind:value={ingredient.unit}>
+												{#each units as unit, i}
+													<option value={unit}>{unit.name[0]}</option>
+												{/each}
+											</select>
+											<input
+												class="ingredient-preperation"
+												type="text"
+												placeholder="ex. Softened"
+												bind:value={ingredient.preperation} />
 
 											<button
-												class="btn"
+												class="ingredient-btn btn"
 												on:click={() => {
 													content.ingredients = [
 														...content.ingredients.slice(0, iI),
@@ -255,13 +307,30 @@
 								{/each}
 							</ul>
 						</div>
-						<div class="input-field">
+						<div class="input-field ingredient">
 							<input
+								class="ingredient-name"
 								type="text"
-								placeholder="ex. 30 grams of Whey Protein"
-								bind:value={newIngredients[rI]} />
+								placeholder="ex. Salted Butter"
+								bind:value={newIngredients[rI].name} />
+
+							<input
+								class="ingredient-amount"
+								type="number"
+								placeholder=""
+								bind:value={newIngredients[rI].amount} />
+							<select class="ingredient-unit" name="" id="" bind:value={newIngredients[rI].unit}>
+								{#each units as unit, i}
+									<option value={unit}>{unit.name[0]}</option>
+								{/each}
+							</select>
+							<input
+								class="ingredient-preperation"
+								type="text"
+								placeholder="ex. Softened"
+								bind:value={newIngredients[rI].preperation} />
 							<button
-								class="btn"
+								class="ingredient-btn btn"
 								on:click={() => {
 									addIngredient(rI)
 								}}>+</button>
@@ -378,6 +447,8 @@
 							'',
 							...recipe.content.slice(rI + 1)
 						]
+						newSteps = ['', ...newSteps]
+						newIngredients = [Object.assign({}, ingredientTemplate), ...newIngredients]
 					} else {
 						toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
 					}
@@ -396,6 +467,9 @@
 							Object.assign({}, recipeCardTemplate),
 							...recipe.content.slice(rI + 1)
 						]
+
+						newSteps = ['', ...newSteps]
+						newIngredients = [Object.assign({}, ingredientTemplate), ...newIngredients]
 					} else {
 						toast.push(`<h4>You can\'t have more than 6 cards sorry.</h4>`)
 					}
@@ -459,7 +533,7 @@
 		display: grid;
 		grid-template-columns: 2fr 3fr;
 		grid-template-rows: 1fr 1fr;
-		gap: 1rem 4rem;
+		gap: 1rem 1rem;
 	}
 
 	.recipe-card-input > .recipe-header-input {
@@ -479,9 +553,16 @@
 		grid-row: 2;
 	}
 
-	.recipe-cover-photo {
+	.recipe-cover-input {
 		grid-column: 2;
-		grid-row: 1 / 3;
+		grid-row: 1/2;
+	}
+
+	.recipe-cover-preview {
+		grid-column: 2;
+		grid-row: 1/2;
+		max-height: 18rem;
+		margin-bottom: 3rem;
 	}
 
 	.recipe-header-input button {
@@ -503,14 +584,14 @@
 	}
 
 	input[type='file'] {
-		background-color: #eee;
+		margin-top: auto;
+		height:2rem;
 	}
 
 	input[type='text'] {
 		border: none;
 		border-bottom: 1px solid #ccc;
-		padding: 10px;
-		width: 100%;
+		width: max-content;
 	}
 
 	input[type='text']:focus {
@@ -525,19 +606,49 @@
 	}
 
 	.input-field input {
-		width: 80%;
-		padding: 1rem 0;
+	}
+
+	.ingredient-list ul {
+		list-style: none;
+		padding: 0;
 	}
 
 	.ingredient {
-		display: flex;
-		width: 60%;
-		justify-content: space-around;
-		align-items: center;
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr 1fr 1fr;
+		grid-template-rows: 1fr 1fr;
 	}
 
-	.ingredient input {
-		width: 80%;
+	.ingredient-name {
+		grid-column: 1;
+		grid-row: 1;
+		font-size: 1.25rem;
+	}
+
+	.ingredient-preperation {
+		grid-column: 1;
+		grid-row: 2;
+		font-size: 0.875rem;
+	}
+
+	.ingredient-preperation {
+		padding: 0;
+	}
+
+	.ingredient-amount {
+		grid-column: 2;
+		grid-row: 1/3;
+	}
+
+	.ingredient-unit {
+		grid-column: 3;
+		grid-row: 1/3;
+	}
+
+	.ingredient-btn {
+		grid-column: 4;
+		grid-row: 1/3;
 	}
 
 	.times {
@@ -575,7 +686,7 @@
 
 	.insert-content-toolbar button {
 		opacity: 0;
-		width: 14%;
+		width: 18%;
 		transition: opacity 0.1s ease-in-out;
 	}
 
@@ -596,8 +707,8 @@
 	}
 
 	.insert-content-toolbar:hover .toolbar-divider {
-		margin-left: 15%;
-		width: 70%;
+		margin-left: 19%;
+		width: 62%;
 
 		transition: width 0.1s ease-in-out, margin-left 0.1s ease-in-out;
 	}

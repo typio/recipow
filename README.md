@@ -9,9 +9,13 @@ Visit at [recipow.com](https://recipow.com)<sup>\*\*</sup>
 ###### <sup>\*\*</sup>Website is in development and any data you upload should be considered unsafe/ unstable. It also may be running a faulty dev build.
 
 ## About
+This is a website for bodyguards to share their fighting themed recipes. :fire:
 
-I'm creating this website to gain experience in fullstack web dev, and to make the best recipe website online!!! :100: :fire: :hash::one:
+Even if you aren't a bodyguard, please feel free to sign up and create a recipe. :100:
+
+I'm creating this website to gain experience in fullstack web dev, and to make the best recipe website online!!!:hash::one:
 
 ## Future Goals
-
+Frontend redesign
+Recipe search
 Recommendation system

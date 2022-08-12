@@ -16,11 +16,21 @@ export const post: RequestHandler = async ({ request }) => {
 
 	const image = await jimp.read(Buffer.from(imageBase64.split(',')[1], 'base64'))
 
-	image.contain(
-		Math.min(image.getWidth(), 800),
-		Math.min(image.getHeight(), 1000),
-		jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_MIDDLE
-	)
+	if (image.getWidth() > 1000) {
+		image.contain(
+			1000,
+			jimp.AUTO,
+			jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_MIDDLE
+		)
+	}
+
+	if (image.getHeight() > 800) {
+		image.contain(
+			jimp.AUTO,
+			800,
+			jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_MIDDLE
+		)
+	}
 
 	const newImageBuffer = await image.getBufferAsync(jimp.MIME_PNG)
 

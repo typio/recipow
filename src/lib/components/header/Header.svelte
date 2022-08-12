@@ -43,7 +43,9 @@
 				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
 					<a sveltekit:prefetch href="/new-recipe">Write</a>
 				</li>
-				<li class:active={$page.url.pathname[1] === '@' || $page.url.pathname === '/settings'}>
+				<li
+					class:active={$page.url.pathname === '/@' + $session.user.username ||
+						$page.url.pathname === '/settings'}>
 					<button
 						class="btn-nav btn-pfp"
 						on:click={() => {

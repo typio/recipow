@@ -109,7 +109,7 @@ export const post: RequestHandler = async ({ request }) => {
 	}
 }
 
-export const get = async ({ url: { searchParams }, locals }) => {
+export const get = async ({ url: { searchParams } }) => {
 	const type = searchParams.get('type') || 'feed'
 	const page = parseInt(searchParams.get('page') || '1')
 	const limit = parseInt(searchParams.get('limit') || '10')
