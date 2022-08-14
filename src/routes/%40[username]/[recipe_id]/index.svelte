@@ -6,6 +6,9 @@
 	import type { Recipe } from '$lib/types'
 	import { units } from '$lib/unitData'
 
+	import recipow_fist from '$lib/assets/recipow-fist.svg'
+	import recipow_fist_filled from '$lib/assets/recipow-fist-filled.svg'
+
 	export let recipe: Recipe
 	export let username: string
 
@@ -21,16 +24,60 @@
 		goto('/')
 	}
 
-	const getTotalTime = () => {
+	const getTime = (rI?: number, type?: 'prep' | 'cook' | 'total'): string => {
 		let totalTime = [0, 0, 0]
-		recipe.content.forEach(c => {
+		if (rI === undefined) {
+			recipe.content.forEach(c => {
+				if (typeof c === 'object') {
+					if (type === 'total' || type === undefined) {
+						totalTime[0] += (c.times.cook.minutes + c.times.prep.minutes) % 60
+
+						totalTime[1] +=
+							(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
+								(c.times.prep.hours + c.times.cook.hours)) %
+							24
+						totalTime[2] +=
+							Math.floor(
+								(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
+									(c.times.prep.hours + c.times.cook.hours)) /
+									24
+							) +
+							(c.times.prep.days + c.times.cook.days)
+					} else {
+						totalTime[0] += c.times[type].minutes
+						totalTime[1] += c.times[type].hours
+						totalTime[2] += c.times[type].days
+					}
+				}
+			})
+		} else {
+			let c = recipe.content[rI]
 			if (typeof c === 'object') {
-				totalTime[0] += c.times.cook.minutes + c.times.prep.minutes
-				totalTime[1] += c.times.cook.hours + c.times.prep.hours
-				totalTime[2] += c.times.cook.days + c.times.prep.days
+				if (type === 'total' || type === undefined) {
+					totalTime[0] += (c.times.cook.minutes + c.times.prep.minutes) % 60
+					totalTime[1] +=
+						(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
+							(c.times.prep.hours + c.times.cook.hours)) %
+						24
+					totalTime[2] +=
+						Math.floor(
+							(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
+								(c.times.prep.hours + c.times.cook.hours)) /
+								24
+						) +
+						(c.times.prep.days + c.times.cook.days)
+				} else {
+					totalTime[0] += c.times[type].minutes
+					totalTime[1] += c.times[type].hours
+					totalTime[2] += c.times[type].days
+				}
 			}
-		})
-		return `${totalTime[2]}d ${totalTime[1]}h ${totalTime[0]}m`
+		}
+		return (
+			(totalTime[2] > 0 ? totalTime[2] + 'd' : '') +
+				(totalTime[1] > 0 ? totalTime[1] + 'h' : '') +
+				(totalTime[0] > 0 ? totalTime[0] + 'm' : '') || '-'
+		)
 	}
 </script>
 
@@ -45,22 +92,18 @@
 		<h1 class="title">{recipe.title}</h1>
 		<h2 class="description">{recipe.description}</h2>
 		<div class="header-total-time">
-			Total Time: {getTotalTime()}
+			<p>Total Time</p>
+			<p class="header-time-value">{getTime(undefined, 'total')}</p>
+			<p>Prep</p>
+			<p class="header-time-value">{getTime(undefined, 'prep')}</p>
+			<p>Cook</p>
+			<p class="header-time-value">{getTime(undefined, 'cook')}</p>
 		</div>
-		<!-- <ul class="header-nutrition">
-			<li>
-				<div class="nutrition-amount">{0}</div>
-				<div class="nutrition-label">Calories</div>
-			</li>
-			<li>
-				<div class="nutrition-amount">{0}</div>
-				<div class="nutrition-label">Protein</div>
-			</li>
-			<li>
-				<div class="nutrition-amount">{0}</div>
-				<div class="nutrition-label">Carbs</div>
-			</li>
-		</ul> -->
+		<div class="ratings">
+			<!-- <img src={recipow_fist} alt="" />
+			<img src={recipow_fist_filled} alt="" />
+			<svg>{@html recipow_fist}</svg> -->
+		</div>
 		<img class="cover_image" src={recipe.cover_image} alt="" />
 	</div>
 
@@ -115,6 +158,45 @@
 						</div>
 					</div>
 
+					<div class="nutrition">
+						{#if content.nutrition?.calories}
+							<li>
+								<p class="nutrition-amount">{content.nutrition.calories}</p>
+								<div class="nutrition-label">Calories</div>
+							</li>
+						{/if}
+						{#if content.nutrition?.protein}
+							<li>
+								<p class="nutrition-amount">{content.nutrition.protein}</p>
+								<div class="nutrition-label">Protein</div>
+							</li>
+						{/if}
+						{#if content.nutrition?.fat}
+							<li>
+								<p class="nutrition-amount">{content.nutrition.fat}</p>
+								<div class="nutrition-label">Fat</div>
+							</li>
+						{/if}
+						{#if content.nutrition?.carbs}
+							<li>
+								<p class="nutrition-amount">{content.nutrition.carbs}</p>
+								<div class="nutrition-label">Carbs</div>
+							</li>
+						{/if}
+						{#if content.nutrition?.fiber}
+							<li>
+								<p class="nutrition-amount">{content.nutrition.fiber}</p>
+								<div class="nutrition-label">Fiber</div>
+							</li>
+						{/if}
+						{#if content.nutrition?.sugar}
+							<li>
+								<p class="nutrition-amount">{content.nutrition.sugar}</p>
+								<div class="nutrition-label">Sugar</div>
+							</li>
+						{/if}
+					</div>
+
 					<div>
 						<h3>Instructions:</h3>
 
@@ -130,45 +212,17 @@
 
 					<h3>Times:</h3>
 					<div class="times">
-						<div class="time-input">
-							<h4>Prep Time</h4>
-							<p>{content.times.prep.minutes}</p>
-							<p class="time-unit">mins</p>
-							<p>{content.times.prep.hours}</p>
-							<p class="time-unit">hours</p>
-							<p>{content.times.prep.days}</p>
-							<p class="time-unit">days</p>
+						<div class="row">
+							<h4>Total</h4>
+							<p>{getTime(rI, 'total')}</p>
 						</div>
-						<div class="time-input">
-							<h4>Cook Time</h4>
-							<p>{content.times.cook.minutes}</p>
-							<p class="time-unit">mins</p>
-							<p>{content.times.cook.hours}</p>
-							<p class="time-unit">hours</p>
-							<p>{content.times.cook.days}</p>
-							<p class="time-unit">days</p>
+						<div class="row">
+							<h4>Prep</h4>
+							<p>{getTime(rI, 'prep')}</p>
 						</div>
-						<div class="time-input">
-							<h4>Total Time</h4>
-							<p class="time-total-number">
-								{(content.times.prep.minutes + content.times.cook.minutes) % 60}
-							</p>
-							<p class="time-unit">mins</p>
-							<p class="time-total-number">
-								{(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) +
-									(content.times.prep.hours + content.times.cook.hours)) %
-									24}
-							</p>
-							<p class="time-unit">hours</p>
-							<p class="time-total-number">
-								{Math.floor(
-									(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) +
-										(content.times.prep.hours + content.times.cook.hours)) /
-										24
-								) +
-									(content.times.prep.days + content.times.cook.days)}
-							</p>
-							<p class="time-unit">days</p>
+						<div class="row">
+							<h4>Cook</h4>
+							<p>{getTime(rI, 'cook')}</p>
 						</div>
 					</div>
 					<div>
@@ -176,14 +230,18 @@
 							<h3>Servings</h3>
 							{content.serves}
 						</div>
-						<div class="row">
-							<h3>Yield</h3>
-							{content.yield}
-						</div>
-						<h3>Notes</h3>
-						<div class="rendered-tiptap">
-							{@html content.notes}
-						</div>
+						{#if content.yield !== ''}
+							<div class="row">
+								<h3>Yield</h3>
+								{content.yield}
+							</div>
+						{/if}
+						{#if content.notes !== '<p></p>'}
+							<h3>Notes</h3>
+							<div class="rendered-tiptap">
+								{@html content.notes}
+							</div>
+						{/if}
 					</div>
 				</div>
 			{/if}
@@ -231,7 +289,31 @@
 	}
 
 	.header-total-time {
-		grid-column: 2/6;
+		grid-column: 2/8;
+		display: flex;
+	}
+
+	.header-total-time p {
+		font-size: 1.2rem;
+		line-height: 110%;
+		margin-right: 0.3rem;
+	}
+
+	.header-total-time .header-time-value {
+		font-weight: 600;
+		margin-right: 2rem;
+	}
+
+	.ratings {
+		grid-column: 1/6;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		align-content: center;
+	}
+
+	.ratings img {
+		width: 3rem;
 	}
 
 	.header-nutrition {
@@ -241,6 +323,25 @@
 	}
 
 	.header-nutrition li {
+		background-color: dodgerblue;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-top: 1rem;
+		margin: 0.5rem;
+		border-radius: 2.5rem;
+		width: 5rem;
+		height: 6.5rem;
+	}
+
+	.nutrition {
+		margin-top: 1rem;
+		grid-column: 1/6;
+		list-style: none;
+		display: flex;
+	}
+
+	.nutrition li {
 		background-color: dodgerblue;
 		display: flex;
 		flex-direction: column;
@@ -262,11 +363,11 @@
 		width: 3rem;
 		height: 3rem;
 		line-height: 3rem;
+		margin: 0;
 	}
 
 	.nutrition-label {
 		color: #fff;
-
 		margin-top: 0.5rem;
 	}
 
@@ -360,30 +461,15 @@
 		margin: auto 1rem auto 2rem;
 	}
 
-	
-
 	.times {
-		width: 55%;
-		display: grid;
-		grid-template-columns: 1fr;
-		grid-template-rows: 1fr 1fr 1fr;
-		gap: 1rem 4rem;
-		margin: 1rem 0;
+		display: flex;
+		margin: -1rem 0 0 2rem;
 	}
 
-	.time-input {
-		display: grid;
-		grid-template-columns: 6fr 2fr 1fr 2fr 1fr 2fr 1fr;
-		grid-template-rows: 1fr;
-		/* gap: 1rem 4rem; */
+	.times h4 {
+		margin-right: 0.5rem;
 	}
-
-	.time-input > p,
-	.time-input > .time-total-number {
-		text-align: right;
-	}
-
-	.time-input > .time-unit {
-		padding: 0 2rem 0 1rem;
+	.times p {
+		margin-right: 2rem;
 	}
 </style>

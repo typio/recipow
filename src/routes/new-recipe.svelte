@@ -19,12 +19,15 @@
 	import { goto } from '$app/navigation'
 	import { toast } from '@zerodevx/svelte-toast'
 	import { browser } from '$app/env'
+	import tippy from 'sveltejs-tippy'
+	import 'tippy.js/animations/perspective.css'
+	import 'tippy.js/animations/scale.css'
+	import 'tippy.js/dist/border.css'
 
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
 	import type { RecipeCardData, Recipe, Ingredient } from '$lib/types'
 	import { units } from '$lib/unitData'
-	import { assign } from 'svelte/internal'
 
 	let recipeCardTemplate = {
 		ingredients: [],
@@ -33,7 +36,8 @@
 			prep: { minutes: 0, hours: 0, days: 0 },
 			cook: { minutes: 0, hours: 0, days: 0 }
 		},
-		yield: ''
+		yield: '',
+		nutrition: {}
 	} as RecipeCardData
 
 	let recipeTemplate: Recipe = {
@@ -114,6 +118,35 @@
 			toast.push(`<h4>${out.message}</h4>`)
 		}
 	}
+
+	const writeUpHelpTippy = {
+		content:
+			'This is an optional section<br/> where you can tell the readers<br/> more about your recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.',
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
+
+	const nutritionHelpTippy = {
+		content: "Leave these empty and they <br/>won't appear on the recipe.",
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
+
+	const notesHelpTippy = {
+		content:
+			"Leave this empty and it <br/>won't appear on the recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.",
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
 </script>
 
 <svelte:head>
@@ -192,7 +225,7 @@
 	{#each recipe.content as content, rI}
 		<div class="content-card" id={rI.toString()}>
 			{#if typeof content === 'string'}
-				<div class="write-up">
+				<div class="write-up" use:tippy={writeUpHelpTippy}>
 					<div class="write-up-header">
 						<h3>Write Up:</h3>
 						<button
@@ -337,6 +370,68 @@
 						</div>
 					</div>
 
+					<div class="nutrition" use:tippy={nutritionHelpTippy}>
+						<li>
+							<input
+								class="nutrition-amount"
+								on:change={() => {
+									content.nutrition.calories = content.nutrition.calories?.replace(/[^0-9.]/g, '')
+								}}
+								bind:value={content.nutrition.calories} />
+							<div class="nutrition-label">Calories</div>
+						</li>
+						<li>
+							<input
+								class="nutrition-amount"
+								on:change={() => {
+									content.nutrition.protein = content.nutrition.protein?.replace(/[^0-9.]/g, '')
+									content.nutrition.protein ? (content.nutrition.protein += 'g') : null
+								}}
+								bind:value={content.nutrition.protein} />
+							<div class="nutrition-label">Protein</div>
+						</li>
+						<li>
+							<input
+								class="nutrition-amount"
+								on:change={() => {
+									content.nutrition.fat = content.nutrition.fat?.replace(/[^0-9.]/g, '')
+									content.nutrition.fat ? (content.nutrition.fat += 'g') : null
+								}}
+								bind:value={content.nutrition.fat} />
+							<div class="nutrition-label">Fat</div>
+						</li>
+						<li>
+							<input
+								class="nutrition-amount"
+								on:change={() => {
+									content.nutrition.carbs = content.nutrition.carbs?.replace(/[^0-9.]/g, '')
+									content.nutrition.carbs ? (content.nutrition.carbs += 'g') : null
+								}}
+								bind:value={content.nutrition.carbs} />
+							<div class="nutrition-label">Carbs</div>
+						</li>
+						<li>
+							<input
+								class="nutrition-amount"
+								on:change={() => {
+									content.nutrition.fiber = content.nutrition.fiber?.replace(/[^0-9.]/g, '')
+									content.nutrition.fiber ? (content.nutrition.fiber += 'g') : null
+								}}
+								bind:value={content.nutrition.fiber} />
+							<div class="nutrition-label">Fiber</div>
+						</li>
+						<li>
+							<input
+								class="nutrition-amount"
+								on:change={() => {
+									content.nutrition.sugar = content.nutrition.sugar?.replace(/[^0-9.]/g, '')
+									content.nutrition.sugar ? (content.nutrition.sugar += 'g') : null
+								}}
+								bind:value={content.nutrition.sugar} />
+							<div class="nutrition-label">Sugar</div>
+						</li>
+					</div>
+
 					<div class="instructions">
 						<h3>Instructions:</h3>
 						<ol>
@@ -417,17 +512,19 @@
 					<div>
 						<div class="row">
 							<h3>Servings</h3>
-							<input type="text" placeholder="ex. 3-4" bind:value={content.serves} />
+							<input type="text" placeholder="ex. 1" bind:value={content.serves} />
 						</div>
 						<div class="row">
 							<h3>Yield</h3>
 							<input type="text" placeholder="ex. one 18in pizza pie" bind:value={content.yield} />
 						</div>
-						<h3>Notes:</h3>
-						<TipTapEditor
-							bind:content={content.notes}
-							mode="generic"
-							placeholder="Write any notes..." />
+						<div use:tippy={notesHelpTippy}>
+							<h3>Notes:</h3>
+							<TipTapEditor
+								bind:content={content.notes}
+								mode="generic"
+								placeholder="Write any notes..." />
+						</div>
 					</div>
 				</div>
 			{/if}
@@ -571,6 +668,47 @@
 		margin: auto;
 	}
 
+	.nutrition {
+		margin-top: 1rem;
+		grid-column: 1/6;
+		list-style: none;
+		display: flex;
+	}
+
+	.nutrition li {
+		background-color: dodgerblue;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-top: 1rem;
+		margin: 0.5rem;
+		border-radius: 2.5rem;
+		width: 5rem;
+		height: 6.5rem;
+	}
+
+	.nutrition-amount {
+		display: flex;
+		text-align: center;
+		justify-content: center;
+		background-color: navy;
+		color: white;
+		border-radius: 50%;
+		width: 3rem;
+		height: 3rem;
+		line-height: 3rem;
+		border: none;
+	}
+
+	.nutrition-amount:focus {
+		outline: 3px solid lightskyblue;
+	}
+
+	.nutrition-label {
+		color: #fff;
+		margin-top: 0.5rem;
+	}
+
 	.instructions {
 		margin: 2rem 0;
 	}
@@ -585,7 +723,7 @@
 
 	input[type='file'] {
 		margin-top: auto;
-		height:2rem;
+		height: 2rem;
 	}
 
 	input[type='text'] {
