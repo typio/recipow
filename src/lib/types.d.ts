@@ -49,9 +49,17 @@ export type RecipeCardData = {
 	ingredients: Ingredient[]
 	steps: string[]
 	times: { prep: Time; cook: Time }
-	serves?: { min: number; max: number }
+	serves?: string
 	yield: string
 	notes?: string
+	nutrition: {
+		calories?: string
+		protein?: string
+		fat?: string
+		carbs?: string
+		sugar?: string
+		fiber?: string
+	}
 }
 
 // type for recipe get url params

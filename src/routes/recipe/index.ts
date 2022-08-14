@@ -27,7 +27,7 @@ export const post: RequestHandler = async ({ request }) => {
 
 	recipe.reviews = { rating: 0, reviewCount: 0 }
 
-	if (recipe.title.length < 4) {
+	if (recipe.title.replace(/\W/g, '').length < 4) {
 		return {
 			status: 400,
 			body: {
@@ -36,11 +36,54 @@ export const post: RequestHandler = async ({ request }) => {
 		}
 	}
 
+	let error = ''
+
+	recipe.content.forEach((c: string | RecipeCardData) => {
+		if (typeof c === 'object') {
+			// check time values
+			if (c.times.cook.hours > 23 || c.times.prep.hours > 23) {
+				error = 'Time cannot be more than 23 hours.'
+			}
+			if (c.times.cook.minutes > 59 || c.times.prep.minutes > 59) {
+				error = 'Time cannot be more than 59 minutes.'
+			}
+			if (c.times.cook.days < 0 || c.times.prep.days < 0 || c.times.cook.hours < 0 || c.times.prep.hours < 0 || c.times.cook.minutes < 0 || c.times.prep.minutes < 0) {
+				error = 'Time cannot be negative.'
+			}
+			// check if servings is a number
+			c.serves = c.serves?.replace(/[^0-9.]/g, '')
+			if (c.serves === undefined || c.serves === '') {
+				error = 'Servings must be a number.'
+			}
+			// check if yield is a number
+			c.yield = c.yield?.replace(/[^0-9.]/g, '')
+
+			// check if there are instructions
+			if (c.steps.length === 0) {
+				error = 'Instructions must be provided.'
+			}
+
+			// check if there are ingredients
+			if (c.ingredients.length === 0) {
+				error = 'Ingredients must be provided.'
+			}
+		}
+	})
+
+	if (error !== '') {
+		return {
+			status: 400,
+			body: {
+				message: error
+			}
+		}
+	}
+
 	recipe.id = recipe.title
+		.replace(/\s/g, '-')
 		.replace(/\s+/g, ' ')
 		.trim()
 		.replace(/\W/g, '')
-		.replace(/\s/g, '-')
 		.toLowerCase()
 
 	// replace tag on each image
