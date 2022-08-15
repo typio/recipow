@@ -18,6 +18,13 @@ type WriteUp = string
 
 export type Tags = ('smoothie' | 'pizza' | 'meat')[]
 
+type Review = {
+	rating: number
+	comment: string
+	date: string
+	author: string
+}
+
 export type Recipe = {
 	id: string
 	title: string
@@ -25,7 +32,7 @@ export type Recipe = {
 	cover_image?: string
 	tags: Tags
 	content: (RecipeCardData | WriteUp)[]
-	reviews: { rating: number; reviewCount: number }
+	reviews?: Review[]
 	visibility: 'public' | 'private' | 'unlisted'
 }
 

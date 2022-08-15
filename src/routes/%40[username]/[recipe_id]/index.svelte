@@ -8,6 +8,7 @@
 
 	import recipow_fist from '$lib/assets/recipow-fist.svg'
 	import recipow_fist_filled from '$lib/assets/recipow-fist-filled.svg'
+	import RatingsBar from '$lib/components/recipe/RatingsBar.svelte'
 
 	export let recipe: Recipe
 	export let username: string
@@ -100,9 +101,7 @@
 			<p class="header-time-value">{getTime(undefined, 'cook')}</p>
 		</div>
 		<div class="ratings">
-			<!-- <img src={recipow_fist} alt="" />
-			<img src={recipow_fist_filled} alt="" />
-			<svg>{@html recipow_fist}</svg> -->
+			<RatingsBar />
 		</div>
 		<img class="cover_image" src={recipe.cover_image} alt="" />
 	</div>
@@ -305,15 +304,11 @@
 	}
 
 	.ratings {
-		grid-column: 1/6;
+		grid-column: 1/5;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
 		align-content: center;
-	}
-
-	.ratings img {
-		width: 3rem;
 	}
 
 	.header-nutrition {

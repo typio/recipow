@@ -46,10 +46,6 @@
 		description: '',
 		content: ['', Object.assign({}, recipeCardTemplate)],
 		tags: [],
-		reviews: {
-			rating: 0,
-			reviewCount: 0
-		},
 		visibility: 'public'
 	}
 
