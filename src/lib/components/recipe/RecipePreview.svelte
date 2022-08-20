@@ -24,13 +24,14 @@
 		display: flex;
 		flex-direction: column;
 		/* justify-content: end; */
+		max-width: 300px;
 	}
 
 	h1 {
 		font-size: 2rem;
-		height: 20%;
-		margin: .5rem 0 0 0;
-
+		height: 15%;
+		margin: 5%;
+		
 	}
 
 	h1:hover {
@@ -40,11 +41,15 @@
 	h3 {
 		font-size: 1.2rem;
 		text-align: center;
-		margin: .2rem 0 0 0;
+		margin: 0;
+		height: 15%;
 	}
 
 	img {
+		height: 60%;
+		object-fit: cover;
 		width: 100%;
+		object-position: 0 0;
 		margin-top: auto;
 	}
 </style>

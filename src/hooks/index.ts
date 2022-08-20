@@ -2,6 +2,7 @@ import * as cookie from 'cookie'
 import { redis, mongoClient } from '$lib/db'
 
 import type { Handle, GetSession } from '@sveltejs/kit'
+import ipLocation from 'iplocation'
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// this results in a lot of queries
@@ -24,7 +25,17 @@ export const handle: Handle = async ({ event, resolve }) => {
 	return await resolve(event)
 }
 
-export const getSession: GetSession = async ({ locals }) => {
+export const getSession: GetSession = async ({ locals, clientAddress }) => {
+	if ((await mongoClient
+		.db('recipow')
+		.collection('ips')
+		.find({ ip: clientAddress }).toArray()).length === 0) {
+		await mongoClient.db('recipow').collection('ips').insertOne({ ip: clientAddress, location: await ipLocation(clientAddress), createdAt: new Date().toISOString() })
+	} else {
+		await mongoClient.db('recipow').collection('ips').updateOne(
+			{ ip: clientAddress }, { $set: { lastSeen: new Date().toISOString() } }
+		)
+	}
 	return {
 		user: locals.user
 	}

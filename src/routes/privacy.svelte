@@ -5,7 +5,10 @@
 <div class="content">
 	<h1>Privacy</h1>
 
-	<p>I may collect any of your information and sell it. Don't use this site in California.</p>
+	<p>
+		I may collect any of your information and I may sell it. Don't use this site in California, I
+		don't understand the privacy laws there.
+	</p>
 </div>
 
 <style>

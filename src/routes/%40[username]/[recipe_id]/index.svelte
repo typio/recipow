@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation'
+	import { goto, invalidate } from '$app/navigation'
 
 	import { session } from '$app/stores'
 
@@ -9,9 +9,21 @@
 	import recipow_fist from '$lib/assets/recipow-fist.svg'
 	import recipow_fist_filled from '$lib/assets/recipow-fist-filled.svg'
 	import RatingsBar from '$lib/components/recipe/RatingsBar.svelte'
+	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
+
+	import tippy from 'sveltejs-tippy'
+	import 'tippy.js/animations/perspective.css'
+	import 'tippy.js/animations/scale.css'
+	import 'tippy.js/dist/border.css'
 
 	export let recipe: Recipe
 	export let username: string
+
+	// TODO: check if this user left a review, then show that
+	$: rating = recipe.rating || 0
+
+	let commentFormRating = 0
+	let commentFormText = ''
 
 	const deleteRecipe = async () => {
 		const res = await fetch(`/recipe`, {
@@ -21,7 +33,6 @@
 			})
 		})
 		const data = await res.json()
-		console.log(data)
 		goto('/')
 	}
 
@@ -80,6 +91,103 @@
 				(totalTime[0] > 0 ? totalTime[0] + 'm' : '') || '-'
 		)
 	}
+
+	const leaveReview = async (event?: { detail: { text: string } }) => {
+		// review from top bar
+		if (event) {
+			const inputRating = JSON.parse(event.detail.text).rating
+
+			const res = await fetch(`/recipe/review`, {
+				method: 'POST',
+				body: JSON.stringify({
+					recipe: `@${username}/${recipe.id}`,
+					rating: inputRating,
+					comment: ''
+				})
+			})
+
+			await invalidate(`/@${username}/${recipe.id}`)
+			refreshReviews()
+		} else {
+			// review from comment form
+
+			const res = await fetch(`/recipe/review`, {
+				method: 'POST',
+				body: JSON.stringify({
+					recipe: `@${username}/${recipe.id}`,
+					rating: commentFormRating,
+					comment: commentFormText
+				})
+			})
+
+			await invalidate(`/@${username}/${recipe.id}`)
+			refreshReviews()
+		}
+	}
+
+	const getReviews = async (page?: number, offset?: number) => {
+		const res = await fetch(
+			`/recipe/review/?recipe=${`@${username}/${recipe.id}`}&page=${page}&offset=${offset}&userEmail=${
+				$session.user?.email
+			}`,
+			{ method: 'GET' }
+		)
+		const data = await res.json()
+
+		return data
+	}
+
+	const deleteReview = async () => {
+		const res = await fetch(
+			`/recipe/review?recipe=${`@${username}/${recipe.id}`}&userEmail=${$session.user?.email}`,
+			{ method: 'DELETE' }
+		)
+		await invalidate(`/@${username}/${recipe.id}`)
+		refreshReviews()
+	}
+
+	let doGetReviews = getReviews()
+
+	const refreshReviews = async () => {
+		doGetReviews = getReviews()
+	}
+
+	const intensityHelpTippy = {
+		content:
+			'Intensity of this recipe<br/>1 - Stick of Butter Coated in Sugar<br/>5 - Boiled Chicken Breast',
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
+
+	const reviewCommentHelpTippy = {
+		content: 'Formatting options will show<br/> if you highlight your text.',
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
+
+	const encourage5FistsTippy = {
+		content: "The president votes for himself<br/> Why shouldn't you?",
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
+
+	const userLeftReviewHelpTippy = {
+		content: 'To replace this review, write a new one.',
+		allowHTML: true,
+		placement: 'left',
+		theme: 'dark',
+		animation: 'scale',
+		hideOnClick: true
+	}
 </script>
 
 <svelte:head>
@@ -92,6 +200,7 @@
 	<div class="header">
 		<h1 class="title">{recipe.title}</h1>
 		<h2 class="description">{recipe.description}</h2>
+		<h2 class="intensity" use:tippy={intensityHelpTippy}>Intensity - {recipe?.intensity}</h2>
 		<div class="header-total-time">
 			<p>Total Time</p>
 			<p class="header-time-value">{getTime(undefined, 'total')}</p>
@@ -101,7 +210,15 @@
 			<p class="header-time-value">{getTime(undefined, 'cook')}</p>
 		</div>
 		<div class="ratings">
-			<RatingsBar />
+			<RatingsBar {rating} on:rating={leaveReview} />
+			<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
+			<p>
+				{recipe.ratingCount
+					? recipe.ratingCount === 1
+						? '1 review'
+						: recipe.ratingCount + ' reviews'
+					: 'no reviews'}
+			</p>
 		</div>
 		<img class="cover_image" src={recipe.cover_image} alt="" />
 	</div>
@@ -248,10 +365,87 @@
 	{/each}
 </div>
 
+<div class="review-entry">
+	<h2>Leave a Review</h2>
+	<div class="ratings-bar-holder">
+		<RatingsBar bind:rating={commentFormRating} />
+		<p>{commentFormRating.toFixed(2)}</p>
+	</div>
+	<div use:tippy={reviewCommentHelpTippy}>
+		<TipTapEditor placeholder={'Man this is so yummy!'} bind:content={commentFormText} />
+	</div>
+	<button
+		class="btn post-review-btn"
+		on:click={() => {
+			leaveReview()
+			refreshReviews()
+		}}>Post</button>
+</div>
+
+<div class="reviews">
+	{#await doGetReviews}
+		<p>Loading reviews...</p>
+	{:then reviews}
+		{#if reviews.length > 0}
+			<h2>Reviews</h2>
+		{/if}
+		{#each reviews.reviews as review}
+			{#if review.leftByUser === true}
+				<div class="review user-left-review" use:tippy={userLeftReviewHelpTippy}>
+					<img src={review.authorAvatar} alt="" />
+					<h3>{@html review.author}</h3>
+					<p class="review-date">
+						{new Intl.DateTimeFormat('en', {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric'
+						}).format(new Date(review.date))}
+					</p>
+
+					<button
+						class="btn btn-danger"
+						on:click={() => {
+							deleteReview()
+						}}>Delete</button>
+
+					<p class="rating">{review.rating} Fists</p>
+
+					<div class="comment">
+						{@html review.comment}
+					</div>
+				</div>
+			{:else}
+				<div class="review">
+					<img src={review.authorAvatar} alt="" />
+					<h3>{@html review.author}</h3>
+					<p class="review-date">
+						{new Intl.DateTimeFormat('en', {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric'
+						}).format(new Date(review.date))}
+					</p>
+					<p class="rating">{review.rating} Fists</p>
+
+					<div class="comment">
+						{@html review.comment}
+					</div>
+				</div>
+			{/if}
+		{/each}
+	{:catch error}
+		<p>Error loading reviews: {error}</p>
+	{/await}
+</div>
+
 <style>
 	.content {
 		display: grid;
 		position: relative;
+	}
+
+	h1 {
+		font-weight: 500;
 	}
 
 	.row {
@@ -277,7 +471,7 @@
 		grid-column: 1/7;
 		font-weight: 600;
 		font-size: 3rem;
-		line-height: 110%;
+		height: fit-content;
 	}
 
 	.header .description {
@@ -288,14 +482,16 @@
 	}
 
 	.header-total-time {
-		grid-column: 2/8;
+		grid-column: 1/8;
 		display: flex;
+
+		align-items: center;
 	}
 
 	.header-total-time p {
 		font-size: 1.2rem;
 		line-height: 110%;
-		margin-right: 0.3rem;
+		margin: 0 0.3rem 0 0.2rem;
 	}
 
 	.header-total-time .header-time-value {
@@ -303,12 +499,28 @@
 		margin-right: 2rem;
 	}
 
+	.intensity {
+		grid-column: 1/6;
+		display: flex;
+		justify-content: center;
+		margin: auto;
+		height: fit-content;
+		text-align: center;
+		width: fit-content;
+	}
+
 	.ratings {
-		grid-column: 1/5;
+		grid-column: 2/6;
 		display: flex;
 		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
 		align-items: center;
-		align-content: center;
+		width: 14rem;
+	}
+
+	.ratings p {
+		margin: 0 0.5rem;
 	}
 
 	.header-nutrition {
@@ -334,12 +546,14 @@
 		grid-column: 1/6;
 		list-style: none;
 		display: flex;
+		flex-wrap: wrap;
 	}
 
 	.nutrition li {
 		background-color: dodgerblue;
 		display: flex;
 		flex-direction: column;
+
 		align-items: center;
 		padding-top: 1rem;
 		margin: 0.5rem;
@@ -372,6 +586,7 @@
 
 		text-align: right;
 		max-width: 500px;
+		width: 50%;
 		position: absolute;
 		top: 4rem;
 		right: -3rem;
@@ -466,5 +681,81 @@
 	}
 	.times p {
 		margin-right: 2rem;
+	}
+
+	.review-entry {
+	}
+
+	.post-review-btn {
+		margin-top: 1rem;
+		width: 12%;
+		margin-left: 83%;
+		min-width: fit-content;
+		margin-right: 5%;
+	}
+
+	.ratings-bar-holder {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		margin-bottom: 1rem;
+		width: 100%;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.reviews {
+		margin: 1rem 1rem 1rem 0;
+	}
+
+	.review {
+		display: grid;
+		grid-template-columns: auto auto 1fr;
+		grid-template-rows: 2fr 1fr 4fr;
+		margin-bottom: 3rem;
+		border: 3px solid #eee;
+		border-radius: 0.4rem;
+		padding: 2rem;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.user-left-review {
+		background-color: palegoldenrod;
+	}
+
+	.review h3 {
+		margin: 0 1rem;
+	}
+
+	.review img {
+		width: 64px;
+		height: 64px;
+		object-fit: cover;
+		grid-column: 1;
+		grid-row: 1/3;
+		border-radius: 100%;
+	}
+
+	.review .review-date {
+		text-align: center;
+		margin: 0;
+		margin-right: 0.4rem;
+		grid-row: 1/3;
+	}
+
+	.review .rating {
+		grid-column: 2/3;
+		grid-row: 2;
+		padding-left: 1rem;
+		text-align: left;
+		margin: 0;
+	}
+
+	.review .comment {
+		grid-column: 1/5;
+		grid-row: 3;
+		font-size: 1.25rem;
+		margin: 0;
 	}
 </style>

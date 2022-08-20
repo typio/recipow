@@ -8,7 +8,7 @@ import { validateEmail, validatePassword, validateName, TOKEN_EXPIRE_TIME } from
 import type { AuthUser } from '$lib/types'
 import type { RequestHandler } from '.svelte-kit/types/src/routes/auth/__types/signup'
 
-export const post: RequestHandler = async ({ request }) => {
+export const post: RequestHandler = async ({ request, clientAddress }) => {
 	const { email, name, password } = await request.json()
 
 	let validEmail = validateEmail(email)
@@ -103,6 +103,7 @@ export const post: RequestHandler = async ({ request }) => {
 
 	// add user in mongo
 	let newMongoUser = {
+		ip: clientAddress,
 		email,
 		name,
 		username,

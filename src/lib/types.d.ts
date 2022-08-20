@@ -6,6 +6,7 @@ export type AuthUser = {
 
 // user in MondoDB
 export type User = {
+	ip: string
 	email: string
 	name: string
 	username: string
@@ -23,6 +24,8 @@ type Review = {
 	comment: string
 	date: string
 	author: string
+	authorAvatar?: string
+	leftByUser?: boolean
 }
 
 export type Recipe = {
@@ -32,7 +35,11 @@ export type Recipe = {
 	cover_image?: string
 	tags: Tags
 	content: (RecipeCardData | WriteUp)[]
+	rating: number
+	ratingCount: number
 	reviews?: Review[]
+	createdAt: string
+	intensity: (1 | 2 | 3 | 4 | 5)
 	visibility: 'public' | 'private' | 'unlisted'
 }
 

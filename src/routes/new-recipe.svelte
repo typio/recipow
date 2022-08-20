@@ -46,6 +46,10 @@
 		description: '',
 		content: ['', Object.assign({}, recipeCardTemplate)],
 		tags: [],
+		rating: 0,
+		ratingCount: 0,
+		intensity: 1,
+		createdAt: '',
 		visibility: 'public'
 	}
 
@@ -115,12 +119,21 @@
 		}
 	}
 
+	const intensityHelpTippy = {
+		content: 'Rank the recipe 1-5 intensity: <br/>1 - All Butter and Sugar<br/>5 - Pure Protein',
+		allowHTML: true,
+		placement: 'left',
+		theme: 'poptart',
+		animation: 'scale',
+		hideOnClick: true
+	}
+
 	const writeUpHelpTippy = {
 		content:
 			'This is an optional section<br/> where you can tell the readers<br/> more about your recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.',
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
@@ -129,7 +142,7 @@
 		content: "Leave these empty and they <br/>won't appear on the recipe.",
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
@@ -139,7 +152,7 @@
 			"Leave this empty and it <br/>won't appear on the recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.",
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
@@ -190,6 +203,10 @@
 					recipe.cover_image = data.imageUrl
 				}
 			}} />
+		<div use:tippy={intensityHelpTippy}>
+			<p>Intensity:</p>
+			<input type="number" bind:value={recipe.intensity} min="1" max="5" />
+		</div>
 	</div>
 
 	<div class="insert-content-toolbar">

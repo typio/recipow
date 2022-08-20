@@ -6,7 +6,7 @@
 	<h1>Help</h1>
 
 	<p>
-		My email is <a href="mailto:me@tohuber.com">me@tohuber.com</a>.
+		For help please email me at <a href="mailto:me@tohuber.com">me@tohuber.com</a>.
 	</p>
 </div>
 

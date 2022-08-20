@@ -5,17 +5,30 @@
 	import recipow_fist_empty from '$lib/assets/recipow-fist-empty.svg'
 	import { followCursor } from 'tippy.js'
 
-	export let rating = 4.67
+	import { createEventDispatcher } from 'svelte'
+
+	const dispatch = createEventDispatcher()
+
+	export let rating = 0
 	let tempRating = rating
-	let inputRating = 0
 
 	let firstFist: Element
 	let secondFist: Element
 
+	let randomPart = Math.floor(Math.random() * 1000000)
+
 	onMount(async () => {
-		firstFist = document.getElementsByClassName('rating-1')[0]
-		secondFist = document.getElementsByClassName('rating-2')[0]
+		firstFist = document.getElementsByClassName('rating-1-' + randomPart)[0]
+		secondFist = document.getElementsByClassName('rating-2-' + randomPart)[0]
 	})
+
+	const dispatchRating = () => {
+		dispatch('rating', {
+			text: JSON.stringify({
+				rating: parseFloat(rating.toFixed(2))
+			})
+		})
+	}
 </script>
 
 <div
@@ -47,10 +60,11 @@
 	}}
 	on:mousedown={() => {
 		rating = tempRating
+		dispatchRating()
 	}}>
 	{#each [1, 2, 3, 4, 5] as ratingLevel, i}
 		<img
-			class="rating-{ratingLevel}"
+			class="rating-{ratingLevel}-{randomPart}"
 			style="margin-left: {i * 3}rem"
 			src={recipow_fist_empty}
 			alt="Rating Fist" />
@@ -70,8 +84,8 @@
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		width: 100%;
-		height: 100%;
+		width: 15rem;
+		height: 3rem;
 	}
 
 	.ratings-bar img {

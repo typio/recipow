@@ -24,11 +24,7 @@
 </script>
 
 <header>
-	<div class="corner">
-		<a href="https://kit.svelte.dev">
-			<img src={svelte_logo} alt=" " />
-		</a>
-	</div>
+	<div class="corner" />
 
 	<nav>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
@@ -81,11 +77,7 @@
 		</svg>
 	</nav>
 
-	<div class="corner">
-		<a href="https://github.com/typio/recipow">
-			<img src={github_logo} alt=" " />
-		</a>
-	</div>
+	<div class="corner" />
 
 	{#if showProfileModal}
 		<ProfileModal bind:showProfileModal />
@@ -135,6 +127,7 @@
 
 	nav {
 		display: flex;
+		width: 100%;
 		justify-content: center;
 		--background: #fff;
 		filter: drop-shadow(0 0px 4px rgba(0, 0, 0, 0.6));

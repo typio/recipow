@@ -2,13 +2,13 @@ import * as cookie from 'cookie'
 import { v4 as uuidv4 } from 'uuid'
 import stringHash from 'string-hash'
 
-import { redis } from '$lib/db'
+import { mongoClient, redis } from '$lib/db'
 import { validateEmail, validatePassword, TOKEN_EXPIRE_TIME } from './helper'
 
 import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/auth/__types/update'
 import type { AuthUser } from '$lib/types'
 
-export const post: RequestHandler = async ({ request }) => {
+export const post: RequestHandler = async ({ request, clientAddress }) => {
 	const { email, password } = await request.json()
 
 	const previousSID = cookie.parse(request.headers.get('cookie') || '').sessionId
@@ -89,6 +89,14 @@ export const post: RequestHandler = async ({ request }) => {
 		'EX',
 		TOKEN_EXPIRE_TIME
 	)
+
+	const mongoResult = await mongoClient
+		.db('recipow')
+		.collection('users')
+		.updateOne(
+			{ email },
+			{ $set: { ip: clientAddress } }
+		)
 
 	return {
 		status: 200,

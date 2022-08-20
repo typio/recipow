@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { session } from '$app/stores'
-	import RecipePreview from '$lib/components/recipe/RecipePreview.svelte'
+	import RecipeCollection from '$lib/components/recipe/RecipeCollection.svelte'
 
-	import type { Recipe, User } from '$lib/types'
+	import type { User } from '$lib/types'
 
 	export let user: User
-	export let recipes: Recipe[]
 </script>
 
 <svelte:head>
@@ -29,11 +28,7 @@
 		<h4>{'@' + user.username}</h4>
 
 		<h2>Here are your recipies</h2>
-		{#if recipes}
-			{#each recipes as recipe}
-				<RecipePreview {recipe} link={'/@' + user.username + '/' + recipe.id} />
-			{/each}
-		{/if}
+		<RecipeCollection type={'user'} username={user.username} />
 	{:else}
 		<h2>
 			{user.name}'s Profile
@@ -50,11 +45,7 @@
 		</div>
 
 		<h2>Their recipes:</h2>
-		{#if recipes}
-			{#each recipes as recipe}
-				<RecipePreview {recipe} link={'/@' + user.username + '/' + recipe.id} />
-			{/each}
-		{/if}
+		<RecipeCollection type={'user'} username={user.username} />
 	{/if}
 </div>
 

@@ -2,10 +2,13 @@ import * as cookie from 'cookie'
 import jimp from 'jimp'
 import { Upload } from '@aws-sdk/lib-storage'
 import { PutObjectTaggingCommand, Tag } from '@aws-sdk/client-s3'
+import Filter from 'bad-words'
 
 import { redis, mongoClient, s3Client } from '$lib/db'
 import type { RequestHandler } from '.svelte-kit/types/src/routes/recipe/__types/index'
 import type { Recipe, RecipeCardData } from '$lib/types'
+
+
 
 export const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
 	try {
@@ -23,9 +26,11 @@ export const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
 }
 
 export const post: RequestHandler = async ({ request }) => {
-	let { recipe } = await request.json()
+	let recipe: Recipe = (await request.json()).recipe
 
-	recipe.reviews = { rating: 0, reviewCount: 0 }
+	recipe.reviews = []
+	recipe.rating = 0
+	recipe.createdAt = new Date().toISOString()
 
 	if (recipe.title.replace(/\W/g, '').length < 4) {
 		return {
@@ -37,6 +42,15 @@ export const post: RequestHandler = async ({ request }) => {
 	}
 
 	let error = ''
+	const filter = new Filter()
+
+	if (filter.isProfane(recipe.title)) {
+		error = 'Title contains profanity.'
+	}
+	recipe.description = filter.clean(recipe.description)
+
+	recipe.intensity = recipe.intensity > 5 ? 5 : recipe.intensity
+	recipe.intensity = recipe.intensity < 1 ? 1 : recipe.intensity
 
 	recipe.content.forEach((c: string | RecipeCardData) => {
 		if (typeof c === 'object') {
@@ -61,11 +75,27 @@ export const post: RequestHandler = async ({ request }) => {
 			// check if there are instructions
 			if (c.steps.length === 0) {
 				error = 'Instructions must be provided.'
+			} else {
+				for (let step of c.steps) {
+					step = filter.clean(step)
+				}
 			}
 
 			// check if there are ingredients
 			if (c.ingredients.length === 0) {
 				error = 'Ingredients must be provided.'
+			} else {
+				for (let ingredient of c.ingredients) {
+					ingredient.name = filter.clean(ingredient.name)
+					ingredient.preperation = ingredient.preperation ? filter.clean(ingredient.preperation) : undefined
+				}
+			}
+
+		} else {
+			if (['<p></p>', '', undefined, null].includes(c.replace(/\s+/g, '').replace(/(<([^>]+)>)/ig, ''))) {
+				error = 'Write Up must have content if provided.'
+			} else {
+				c = filter.clean(c)
 			}
 		}
 	})
@@ -153,38 +183,90 @@ export const post: RequestHandler = async ({ request }) => {
 }
 
 export const get = async ({ url: { searchParams } }) => {
-	const type = searchParams.get('type') || 'feed'
-	const page = parseInt(searchParams.get('page') || '1')
-	const limit = parseInt(searchParams.get('limit') || '10')
+	const type = searchParams.get('type') || 'recent'
+	const page = parseInt(searchParams.get('page') || '') || 1
+	const limit = parseInt(searchParams.get('limit') || '') || 10
 
 	type RecipeAndLink = {
-		recipe: Recipe
+		recipe: {
+			id: string,
+			title: string,
+			description: string,
+			cover_image: string,
+			intensity: number,
+			createdAt: string,
+			rating: number,
+		}
 		link: string
 	}
 
 	let recipesAndLinks: RecipeAndLink[] = []
 
-	{
-		;[
-			...(await mongoClient
-				.db('recipow')
-				.collection('users')
-				.aggregate([
-					{
-						$match: {
-							$expr: {
-								$getField: 'recipes'
-							}
-						}
+	const usersWithRecipes = (await mongoClient
+		.db('recipow')
+		.collection('users')
+		.aggregate([
+			{
+				$match: {
+					$expr: {
+						$getField: 'recipes'
 					}
-				])
-				.toArray())
-		].forEach(x => {
-			;[...x.recipes].forEach(y => {
-				recipesAndLinks.push({ recipe: y, link: `/@${x.username}/${y.id}` })
+				}
+			}
+		])
+		.toArray())
+
+	for (const user of usersWithRecipes) {
+		for (const recipe of user.recipes) {
+			recipesAndLinks.push({
+				recipe: {
+					id: recipe.id,
+					title: recipe.title,
+					description: recipe.description,
+					cover_image: recipe.cover_image,
+					intensity: recipe.intensity,
+					createdAt: recipe.createdAt,
+					rating: recipe.rating,
+				}, link: `/@${user.username}/${recipe.id}`
 			})
-		})
+		}
 	}
+
+	if (type === 'trending') {
+		recipesAndLinks = recipesAndLinks.sort((a, b) => {
+			let aScore = a.recipe.rating / new Date(a.recipe.createdAt).getTime()
+			let bScore = b.recipe.rating / new Date(b.recipe.createdAt).getTime()
+			return bScore - aScore
+		}).slice((page - 1) * limit, page * limit)
+	} else if (type === 'search') {
+		const search = searchParams.get('search') || ''
+		recipesAndLinks = recipesAndLinks.filter(({ recipe }) => {
+			return recipe.title.toLowerCase().includes(search.toLowerCase())
+		}).slice((page - 1) * limit, page * limit)
+	} else if (type === 'user') {
+		const username = searchParams.get('username') || ''
+		const user = await mongoClient
+			.db('recipow')
+			.collection('users')
+			.findOne({ username })
+
+		if (user) {
+			recipesAndLinks = user.recipes.map(recipe => ({ recipe, link: `/@${username}/${recipe.id}` })).slice((page - 1) * limit, page * limit)
+		}
+	} else if (type === 'tag') {
+		const tag = searchParams.get('tag') || ''
+		recipesAndLinks = recipesAndLinks.filter((recipe) => {
+			return recipe.tags.includes(tag)
+		}).slice(0, limit)
+	} else {
+		// recent
+		recipesAndLinks = recipesAndLinks.sort((a, b) => {
+			let aScore = new Date(a.recipe.createdAt).getTime()
+			let bScore = new Date(b.recipe.createdAt).getTime()
+			return bScore - aScore
+		}).slice((page - 1) * limit, page * limit)
+	}
+
 
 	return {
 		status: 200,

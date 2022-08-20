@@ -5,10 +5,15 @@
 <div class="content">
 	<h1>Terms</h1>
 
-	<p>
-		By using this site you agree to these terms. You must be at least 13 years old. Any content you
-		submit is all mine and anything bad you do is your own responsibility.
-	</p>
+	<p>By using this site you agree to the following terms:</p>
+
+	<ol>
+		<p>
+			<li>You must be at least 13 years old.</li>
+			<li>Any content you submit will become property of this website and its owner(s).</li>
+			<li>Anything bad/ illegal you do is your own responsibility.</li>
+		</p>
+	</ol>
 </div>
 
 <style>
