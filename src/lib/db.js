@@ -45,31 +45,3 @@ export const s3Client = new S3Client({
 		secretAccessKey: VITE_AWS_SECRET_ACCESS_KEY ?? ''
 	}
 })
-
-// $(function() {
-// 	var params = {
-// 		// Request parameters
-// 		"query": "{string}",
-// 		"start": "0",
-// 		"count": "25",
-// 		"spell": "true",
-// 	};
-
-// 	$.ajax({
-// 		url: "https://nutrition-api.esha.com/foods?" + $.param(params),
-// 		beforeSend: function(xhrObj){
-// 			// Request headers
-// 			xhrObj.setRequestHeader("Accept","application/json");
-// 			xhrObj.setRequestHeader("Ocp-Apim-Subscription-Key","{subscription key}");
-// 		},
-// 		type: "GET",
-// 		// Request body
-// 		data: "{body}",
-// 	})
-// 	.done(function(data) {
-// 		alert("success");
-// 	})
-// 	.fail(function() {
-// 		alert("error");
-// 	});
-// });

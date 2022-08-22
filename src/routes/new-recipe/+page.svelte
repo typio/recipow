@@ -1,20 +1,3 @@
-<script context="module" lang="ts">
-	import type { Load } from '@sveltejs/kit'
-	// if not logged in redirect to home page
-	export const load: Load = async ({ session }) => {
-		if (!session.user) {
-			return {
-				status: 302,
-				redirect: '/'
-			}
-		} else {
-			return {
-				status: 200
-			}
-		}
-	}
-</script>
-
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { toast } from '@zerodevx/svelte-toast'

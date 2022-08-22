@@ -5,10 +5,8 @@ import { PutObjectTaggingCommand, Tag } from '@aws-sdk/client-s3'
 import Filter from 'bad-words'
 
 import { redis, mongoClient, s3Client } from '$lib/db'
-import type { RequestHandler } from '.svelte-kit/types/src/routes/recipe/__types/index'
+import type { RequestHandler } from './$types'
 import type { Recipe, RecipeCardData } from '$lib/types'
-
-
 
 export const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
 	try {
@@ -25,7 +23,7 @@ export const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
 	}
 }
 
-export const post: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request }) => {
 	let recipe: Recipe = (await request.json()).recipe
 
 	recipe.reviews = []
@@ -33,12 +31,10 @@ export const post: RequestHandler = async ({ request }) => {
 	recipe.createdAt = new Date().toISOString()
 
 	if (recipe.title.replace(/\W/g, '').length < 4) {
-		return {
-			status: 400,
-			body: {
-				message: 'Title must be at least 4 characters.'
-			}
-		}
+		return new Response(JSON.stringify({
+			message: 'Title must be at least 4 characters.'
+		}), { status: 400 })
+
 	}
 
 	let error = ''
@@ -47,7 +43,7 @@ export const post: RequestHandler = async ({ request }) => {
 	if (filter.isProfane(recipe.title)) {
 		error = 'Title contains profanity.'
 	}
-	recipe.description = filter.clean(recipe.description)
+	recipe.description = recipe.description ? filter.clean(recipe.description) : ''
 
 	recipe.intensity = recipe.intensity > 5 ? 5 : recipe.intensity
 	recipe.intensity = recipe.intensity < 1 ? 1 : recipe.intensity
@@ -92,7 +88,7 @@ export const post: RequestHandler = async ({ request }) => {
 			}
 
 		} else {
-			if (['<p></p>', '', undefined, null].includes(c.replace(/\s+/g, '').replace(/(<([^>]+)>)/ig, ''))) {
+			if (['<p></p>', '', undefined, null].includes(c.replace(/\s+/g, ''))) {
 				error = 'Write Up must have content if provided.'
 			} else {
 				c = filter.clean(c)
@@ -101,12 +97,7 @@ export const post: RequestHandler = async ({ request }) => {
 	})
 
 	if (error !== '') {
-		return {
-			status: 400,
-			body: {
-				message: error
-			}
-		}
+		return new Response(JSON.stringify({ message: error }), { status: 400 })
 	}
 
 	recipe.id = recipe.title
@@ -150,13 +141,9 @@ export const post: RequestHandler = async ({ request }) => {
 				.toArray()
 		).length > 0
 	) {
-		return {
-			status: 400,
-			body: {
-				message: 'You already have a recipe with this title.'
-			}
-		}
+		return new Response(JSON.stringify({ message: 'You already have a recipe with this title.' }), { status: 400 })
 	}
+
 
 	const email = JSON.parse(
 		(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}'
@@ -174,16 +161,45 @@ export const post: RequestHandler = async ({ request }) => {
 			}
 		)
 
-	return {
-		status: 200,
-		body: {
-			url: `/@${username}/${recipe.id}`
-		}
-	}
+	return new Response(JSON.stringify({
+		url: `/@${username}/${recipe.id}`
+	}), { status: 200 })
+
 }
 
-export const get = async ({ url: { searchParams } }) => {
+export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 	const type = searchParams.get('type') || 'recent'
+
+	// getting one full recipe
+	if (type === 'one') {
+		const username = searchParams.get('username') || ''
+		const id = searchParams.get('id') || ''
+		const user = await mongoClient
+			.db('recipow')
+			.collection('users')
+			.findOne({ username })
+
+		if (user) {
+			const recipe = user.recipes.find((recipe: Recipe) => recipe.id === id)
+			if (recipe) {
+				return new Response(
+					JSON.stringify({ recipe }),
+					{
+						status: 200,
+					}
+				)
+			}
+		}
+
+		return new Response(
+			JSON.stringify({ message: 'Recipe not found.' }),
+			{
+				status: 404,
+			}
+		)
+	}
+
+	// getting a list of recipe previews with their links
 	const page = parseInt(searchParams.get('page') || '') || 1
 	const limit = parseInt(searchParams.get('limit') || '') || 10
 
@@ -250,8 +266,10 @@ export const get = async ({ url: { searchParams } }) => {
 			.collection('users')
 			.findOne({ username })
 
-		if (user) {
-			recipesAndLinks = user.recipes.map(recipe => ({ recipe, link: `/@${username}/${recipe.id}` })).slice((page - 1) * limit, page * limit)
+		if (user?.recipes?.length > 0) {
+			recipesAndLinks = user.recipes?.map(recipe => ({ recipe, link: `/@${username}/${recipe.id}` }))?.slice((page - 1) * limit, page * limit)
+		} else {
+			recipesAndLinks = []
 		}
 	} else if (type === 'tag') {
 		const tag = searchParams.get('tag') || ''
@@ -267,16 +285,10 @@ export const get = async ({ url: { searchParams } }) => {
 		}).slice((page - 1) * limit, page * limit)
 	}
 
-
-	return {
-		status: 200,
-		body: {
-			recipesAndLinks
-		}
-	}
+	return new Response(JSON.stringify({ recipesAndLinks }), { status: 200 })
 }
 
-export const del = async ({ request }) => {
+export const DELETE = async ({ request }) => {
 	const { recipeId } = await request.json()
 
 	const email = JSON.parse(
@@ -324,10 +336,7 @@ export const del = async ({ request }) => {
 			}
 		)
 
-	return {
-		status: 200,
-		body: {
-			message: 'Recipe deleted.'
-		}
-	}
+	return new Response(JSON.stringify({
+		message: 'Recipe deleted.'
+	}), { status: 200 })
 }

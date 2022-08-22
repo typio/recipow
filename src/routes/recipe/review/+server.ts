@@ -1,16 +1,13 @@
 import * as cookie from 'cookie'
-import jimp from 'jimp'
-import { Upload } from '@aws-sdk/lib-storage'
-import { PutObjectTaggingCommand, Tag } from '@aws-sdk/client-s3'
 import Filter from 'bad-words'
 
-import { redis, mongoClient, s3Client } from '$lib/db'
-import type { RequestHandler } from '.svelte-kit/types/src/routes/recipe/__types/review'
-import type { Recipe, RecipeCardData, Review } from '$lib/types'
+import { redis, mongoClient } from '$lib/db'
+import type { RequestHandler } from './$types'
+import type { Recipe, Review } from '$lib/types'
 
 const filter = new Filter()
 
-export const post: RequestHandler = async ({ request, clientAddress }) => {
+export const POST: RequestHandler = async ({ request, clientAddress }) => {
     const res = await request.json()
     const { recipe, rating, comment } = res
 
@@ -134,12 +131,10 @@ export const post: RequestHandler = async ({ request, clientAddress }) => {
 
 
 
-    return {
-        status: 200
-    }
+    return new Response(null, { status: 200 })
 }
 
-export const get: RequestHandler = async ({ url: { searchParams }, clientAddress }) => {
+export const GET: RequestHandler = async ({ url: { searchParams }, clientAddress }) => {
     const recipe = searchParams.get('recipe') || ''
     const page = parseInt(searchParams.get('page') || '') || 1
     const limit = parseInt(searchParams.get('limit') || '') || 10
@@ -188,16 +183,17 @@ export const get: RequestHandler = async ({ url: { searchParams }, clientAddress
         review.authorAvatar = avatar
     }
 
-    return {
-        status: 200,
-        body: {
-            reviews
-        }
-    }
+    reviews.sort((a: Review, b: Review) => {
+        return new Date(b.date).getTime() - new Date(a.date).getTime()
+    })
+
+    return new Response(JSON.stringify({ reviews }), {
+        status: 200
+    })
 }
 
 
-export const del: RequestHandler = async ({ url: { searchParams }, clientAddress }) => {
+export const DELETE: RequestHandler = async ({ url: { searchParams }, clientAddress }) => {
     const recipe = searchParams.get('recipe') || ''
     const userEmailOrIP = (searchParams.get('userEmail') !== 'undefined' ? searchParams.get('userEmail') : ('ip/' + clientAddress))
 
@@ -247,19 +243,5 @@ export const del: RequestHandler = async ({ url: { searchParams }, clientAddress
             },
         )
 
-    // if (res) {
-    //     return {
-    //         status: 400,
-    //         body: {
-    //             error: 'Could not find your review'
-    //         }
-    //     }
-    // }
-
-    return {
-        status: 200,
-        body: {
-            message: 'Review deleted'
-        }
-    }
+    return new Response(JSON.stringify({ message: 'Review deleted' }), { status: 200 })
 }

@@ -72,9 +72,6 @@
 		line-height: 2rem;
 	}
 
-	footer li a {
-	}
-
 	@media (min-width: 480px) {
 		footer {
 			padding: 40px 0;

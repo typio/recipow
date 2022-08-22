@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { goto, prefetch } from '$app/navigation'
-	import { logOut } from '$lib/components/header/Header.svelte'
-	import { session } from '$app/stores'
+	import { page } from '$app/stores'
+	import { createEventDispatcher } from 'svelte'
 
 	export let showProfileModal = true
+	const dispatch = createEventDispatcher()
 </script>
 
 <div class="profile-modal">
@@ -16,12 +17,12 @@
 					goto('/profile')
 					showProfileModal = false
 				}}>
-				<img src={$session.user.avatar} alt=" " />
+				<img src={$page.data.user.avatar} alt=" " />
 			</button>
 
 			<div class="name-display">
-				<p class="name">{$session.user.name}</p>
-				<p class="username">{`@${$session.user.username}`}</p>
+				<p class="name">{$page.data.user.name}</p>
+				<p class="username">{`@${$page.data.user.username}`}</p>
 			</div>
 		</li>
 		<hr />
@@ -29,7 +30,7 @@
 			<button
 				on:click={() => {
 					showProfileModal = false
-					goto('/@' + $session.user.username)
+					goto('/@' + $page.data.user.username)
 				}}>
 				View Profile
 			</button>
@@ -48,7 +49,7 @@
 			<button
 				on:click={() => {
 					showProfileModal = false
-					logOut()
+					dispatch('logOut')
 				}}>
 				Logout
 			</button>

@@ -3,7 +3,6 @@
 
 	import recipow_fist_filled from '$lib/assets/recipow-fist-filled.svg'
 	import recipow_fist_empty from '$lib/assets/recipow-fist-empty.svg'
-	import { followCursor } from 'tippy.js'
 
 	import { createEventDispatcher } from 'svelte'
 

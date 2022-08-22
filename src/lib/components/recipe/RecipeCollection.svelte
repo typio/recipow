@@ -14,6 +14,9 @@
 		)
 
 		const recipesAndLinks = await res.json()
+		if (recipesAndLinks.length === 0) {
+			return []
+		}
 
 		return recipesAndLinks
 	}
@@ -30,32 +33,38 @@
 		<p>loading recipes...</p>
 	{:then { recipesAndLinks }}
 		<div class="recipes">
-			{#each recipesAndLinks as recipeAndLink}
-				<div class="recipe-preview">
-					<RecipePreview recipe={recipeAndLink.recipe} link={recipeAndLink.link} />
-				</div>
-			{/each}
-		</div>
-		<div class="nav-toolbar">
-			{#if page > 1}
-				<button
-					on:click={() => {
-						page--
-						refreshReviews()
-					}}>Last Page</button>
+			{#if recipesAndLinks.length === 0}
+				<p>No recipes found :(</p>
+			{:else}
+				{#each recipesAndLinks as recipeAndLink}
+					<div class="recipe-preview">
+						<RecipePreview recipe={recipeAndLink.recipe} link={recipeAndLink.link} />
+					</div>
+				{/each}
 			{/if}
-			<p>{page}</p>
-			<button
-				on:click={() => {
-					page++
-					refreshReviews()
-				}}>Next Page</button>
 		</div>
 
 		<!-- <input type="number" name="" id="" bind:value={limit} /> -->
 	{:catch error}
 		<p style="color: red">{error.message}</p>
 	{/await}
+	<div class="nav-toolbar">
+		<button
+			class="btn"
+			style="opacity:{page > 1 ? 1 : 0.5}"
+			on:click={() => {
+				page--
+				refreshReviews()
+			}}
+			disabled={page <= 1}>Last Page</button>
+		<p>{page}</p>
+		<button
+			class="btn"
+			on:click={() => {
+				page++
+				refreshReviews()
+			}}>Next Page</button>
+	</div>
 </div>
 
 <style>
@@ -85,6 +94,8 @@
 
 	.nav-toolbar p {
 		margin: 1rem 1rem;
+		width: 2rem;
+		text-align: center;
 	}
 
 	.recipe-preview {

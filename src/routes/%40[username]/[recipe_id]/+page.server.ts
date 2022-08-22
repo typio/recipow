@@ -1,27 +1,30 @@
 import { mongoClient } from '$lib/db'
 
-export const get = async ({ params }) => {
-	const { recipes } = await mongoClient
-		.db('recipow')
-		.collection('users')
-		.findOne({ username: params.username })
+import type { Recipe } from '$lib/types'
+import type { PageServerLoad } from './$types'
 
-	const recipe = recipes.find(recipe => recipe.id === params.recipe_id)
+export const load: PageServerLoad = async ({ params, parent, url }) => {
+	const { username, recipe_id } = params
+	const { user } = await parent()
+
+	const res = await fetch(
+		`${url.origin}/recipe?type=one&username=${username}&id=${recipe_id}`,
+		{ method: 'GET' }
+	)
+
+	const { recipe }: Recipe = await res.json()
 
 	if (recipe) {
+
 		return {
-			status: 200,
-			body: {
-				recipe,
-				username: params.username
-			}
+			username,
+			recipe
+		}
+	} else {
+		return {
+			message: 'Recipe not found.',
+			status: 404
 		}
 	}
 
-	return {
-		status: 404,
-		body: {
-			message: 'Recipe not found'
-		}
-	}
 }

@@ -7,16 +7,13 @@
 	<meta name="description" content="The first fighting themed recipe website!" />
 </svelte:head>
 
-<section>
-	
-</section>
+<section />
 
 <h2>🔥 HOT Recipes 🔥</h2>
 <RecipeCollection type={'trending'} />
 
 <h2>All Recipes</h2>
 <RecipeCollection type={'all'} />
-
 <style>
 	section {
 		display: flex;

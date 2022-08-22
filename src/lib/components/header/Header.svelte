@@ -1,19 +1,7 @@
-<script context="module" lang="ts">
-	export const logOut = async () => {
-		const response = await fetch('/auth/logout', {
-			method: 'POST'
-		})
-
-		if (response.status === 200) location.reload()
-	}
-</script>
-
 <script lang="ts">
-	import { page, session } from '$app/stores'
+	import { page } from '$app/stores'
 	import { prefetch } from '$app/navigation'
 
-	import svelte_logo from '$lib/assets/svelte-logo.svg'
-	import github_logo from '$lib/assets/github-mark.svg'
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
 	import Overlay from './Overlay.svelte'
@@ -21,6 +9,16 @@
 	let formType = 'none'
 
 	let showProfileModal = false
+
+	let user = $page.data.user
+
+	const logOut = async () => {
+		const response = await fetch('/auth/logout', {
+			method: 'POST'
+		})
+
+		if (response.status === 200) location.reload()
+	}
 </script>
 
 <header>
@@ -35,25 +33,29 @@
 				<a sveltekit:prefetch href="/">Home</a>
 			</li>
 
-			{#if $session.user}
+			{#if user}
 				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
 					<a sveltekit:prefetch href="/new-recipe">Write</a>
 				</li>
 				<li
-					class:active={$page.url.pathname === '/@' + $session.user.username ||
+					class:active={$page.url.pathname === '/@' + user.username ||
 						$page.url.pathname === '/settings'}>
 					<button
 						class="btn-nav btn-pfp"
 						on:click={() => {
-							prefetch('/profile')
+							prefetch('/@' + user.username)
 							prefetch('/settings')
 							showProfileModal = !showProfileModal
 						}}>
-						<img src={$session.user.avatar} alt=" " />
+						<img src={user.avatar} alt=" " />
 					</button>
 				</li>
 				<li>
-					<button class="btn-nav" on:click={logOut}>Log Out</button>
+					<button
+						class="btn-nav"
+						on:click={() => {
+							logOut()
+						}}>Log Out</button>
 				</li>
 			{:else}
 				<li>
@@ -80,7 +82,7 @@
 	<div class="corner" />
 
 	{#if showProfileModal}
-		<ProfileModal bind:showProfileModal />
+		<ProfileModal bind:showProfileModal on:logOut={logOut} />
 	{/if}
 
 	{#if formType != 'none'}
@@ -109,20 +111,6 @@
 	.corner {
 		width: 3em;
 		height: 3em;
-	}
-
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
-		object-fit: contain;
 	}
 
 	nav {

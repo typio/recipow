@@ -1,13 +1,9 @@
 <script lang="ts">
+	import type { PageData } from './$types'
+
 	import { goto, invalidate } from '$app/navigation'
+	import { page } from '$app/stores'
 
-	import { session } from '$app/stores'
-
-	import type { Recipe } from '$lib/types'
-	import { units } from '$lib/unitData'
-
-	import recipow_fist from '$lib/assets/recipow-fist.svg'
-	import recipow_fist_filled from '$lib/assets/recipow-fist-filled.svg'
 	import RatingsBar from '$lib/components/recipe/RatingsBar.svelte'
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
@@ -16,14 +12,16 @@
 	import 'tippy.js/animations/scale.css'
 	import 'tippy.js/dist/border.css'
 
-	export let recipe: Recipe
-	export let username: string
-
 	// TODO: check if this user left a review, then show that
 	$: rating = recipe.rating || 0
 
 	let commentFormRating = 0
 	let commentFormText = ''
+
+	export let data: PageData
+	
+	const { recipe, username } = data
+	let user = $page.data.user
 
 	const deleteRecipe = async () => {
 		const res = await fetch(`/recipe`, {
@@ -39,7 +37,7 @@
 	const getTime = (rI?: number, type?: 'prep' | 'cook' | 'total'): string => {
 		let totalTime = [0, 0, 0]
 		if (rI === undefined) {
-			recipe.content.forEach(c => {
+			recipe.content?.forEach(c => {
 				if (typeof c === 'object') {
 					if (type === 'total' || type === undefined) {
 						totalTime[0] += (c.times.cook.minutes + c.times.prep.minutes) % 60
@@ -86,8 +84,8 @@
 			}
 		}
 		return (
-			(totalTime[2] > 0 ? totalTime[2] + 'd' : '') +
-				(totalTime[1] > 0 ? totalTime[1] + 'h' : '') +
+			(totalTime[2] > 0 ? totalTime[2] + 'd ' : '') +
+				(totalTime[1] > 0 ? totalTime[1] + 'h ' : '') +
 				(totalTime[0] > 0 ? totalTime[0] + 'm' : '') || '-'
 		)
 	}
@@ -127,8 +125,8 @@
 
 	const getReviews = async (page?: number, offset?: number) => {
 		const res = await fetch(
-			`/recipe/review/?recipe=${`@${username}/${recipe.id}`}&page=${page}&offset=${offset}&userEmail=${
-				$session.user?.email
+			`/recipe/review/?recipe=${`@${username}/${recipe?.id}`}&page=${page}&offset=${offset}&userEmail=${
+				user?.email
 			}`,
 			{ method: 'GET' }
 		)
@@ -139,7 +137,7 @@
 
 	const deleteReview = async () => {
 		const res = await fetch(
-			`/recipe/review?recipe=${`@${username}/${recipe.id}`}&userEmail=${$session.user?.email}`,
+			`/recipe/review?recipe=${`@${username}/${recipe.id}`}&userEmail=${user?.email}`,
 			{ method: 'DELETE' }
 		)
 		await invalidate(`/@${username}/${recipe.id}`)
@@ -196,247 +194,247 @@
 	<meta name="author" content={'@' + username} />
 </svelte:head>
 
-<div class="content">
-	<div class="header">
-		<h1 class="title">{recipe.title}</h1>
-		<h2 class="description">{recipe.description}</h2>
-		<h2 class="intensity" use:tippy={intensityHelpTippy}>Intensity - {recipe?.intensity}</h2>
-		<div class="header-total-time">
-			<p>Total Time</p>
-			<p class="header-time-value">{getTime(undefined, 'total')}</p>
-			<p>Prep</p>
-			<p class="header-time-value">{getTime(undefined, 'prep')}</p>
-			<p>Cook</p>
-			<p class="header-time-value">{getTime(undefined, 'cook')}</p>
+	<div class="content">
+		<div class="header">
+			<h1 class="title">{recipe.title}</h1>
+			<h2 class="description">{recipe.description}</h2>
+			<h2 class="intensity" use:tippy={intensityHelpTippy}>Intensity - {recipe?.intensity}</h2>
+			<div class="header-total-time">
+				<p>Total Time</p>
+				<p class="header-time-value">{getTime(undefined, 'total')}</p>
+				<p>Prep</p>
+				<p class="header-time-value">{getTime(undefined, 'prep')}</p>
+				<p>Cook</p>
+				<p class="header-time-value">{getTime(undefined, 'cook')}</p>
+			</div>
+			<div class="ratings">
+				<RatingsBar {rating} on:rating={leaveReview} />
+				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
+				<p>
+					{recipe.ratingCount
+						? recipe.ratingCount === 1
+							? '1 review'
+							: recipe.ratingCount + ' reviews'
+						: 'no reviews'}
+				</p>
+			</div>
+			<img class="cover_image" src={recipe.cover_image} alt="" />
 		</div>
-		<div class="ratings">
-			<RatingsBar {rating} on:rating={leaveReview} />
-			<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
-			<p>
-				{recipe.ratingCount
-					? recipe.ratingCount === 1
-						? '1 review'
-						: recipe.ratingCount + ' reviews'
-					: 'no reviews'}
-			</p>
-		</div>
-		<img class="cover_image" src={recipe.cover_image} alt="" />
-	</div>
 
-	<div class="details">
-		{#if $session.user?.username === username}
-			<button class="btn btn-danger" on:click={deleteRecipe}>Delete Recipe</button>
-		{:else}
-			Written by <a href="/@{username}">{'@' + username}</a>
-		{/if}
-	</div>
-
-	{#each recipe.content as content, rI}
-		<div class="content-card ">
-			{#if typeof content === 'string'}
-				<div class="write-up rendered-tiptap">
-					{@html content}
-				</div>
-			{:else if typeof content === 'object'}
-				<div class="recipe-card">
-					<div class="recipe-header">
-						{#if recipe.content.filter(el => typeof el === 'object').length > 1}
-							<div class="recipe-card-header">
-								<h1 class="title">{content.title}</h1>
-								<h2 class="description">{content.description}</h2>
-
-								<img class="cover_image" src={content.cover_image} alt="" />
-							</div>
-						{/if}
-					</div>
-
-					<div>
-						<h3>Ingredients:</h3>
-						<div class="ingredient-list">
-							<ul>
-								{#each content.ingredients ?? [] as ingredient, iI}
-									<li>
-										<div class="ingredient">
-											<h4 class="ingredient-name">
-												{ingredient?.name}
-											</h4>
-											<h5 class="ingredient-preperation">
-												{ingredient?.preperation}
-											</h5>
-
-											<h4 class="ingredient-amount">
-												{ingredient?.amount + '' + ingredient?.unit?.abbr[0]}
-											</h4>
-										</div>
-									</li>
-								{/each}
-							</ul>
-						</div>
-					</div>
-
-					<div class="nutrition">
-						{#if content.nutrition?.calories}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.calories}</p>
-								<div class="nutrition-label">Calories</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.protein}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.protein}</p>
-								<div class="nutrition-label">Protein</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.fat}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.fat}</p>
-								<div class="nutrition-label">Fat</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.carbs}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.carbs}</p>
-								<div class="nutrition-label">Carbs</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.fiber}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.fiber}</p>
-								<div class="nutrition-label">Fiber</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.sugar}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.sugar}</p>
-								<div class="nutrition-label">Sugar</div>
-							</li>
-						{/if}
-					</div>
-
-					<div>
-						<h3>Instructions:</h3>
-
-						<div class="instruction-list">
-							{#each content.steps ?? [] as step, sI}
-								<div class="instruction-number">{sI + 1}</div>
-								<div class="instruction rendered-tiptap">
-									{@html step}
-								</div>
-							{/each}
-						</div>
-					</div>
-
-					<h3>Times:</h3>
-					<div class="times">
-						<div class="row">
-							<h4>Total</h4>
-							<p>{getTime(rI, 'total')}</p>
-						</div>
-						<div class="row">
-							<h4>Prep</h4>
-							<p>{getTime(rI, 'prep')}</p>
-						</div>
-						<div class="row">
-							<h4>Cook</h4>
-							<p>{getTime(rI, 'cook')}</p>
-						</div>
-					</div>
-					<div>
-						<div class="row">
-							<h3>Servings</h3>
-							{content.serves}
-						</div>
-						{#if content.yield !== ''}
-							<div class="row">
-								<h3>Yield</h3>
-								{content.yield}
-							</div>
-						{/if}
-						{#if content.notes !== '<p></p>'}
-							<h3>Notes</h3>
-							<div class="rendered-tiptap">
-								{@html content.notes}
-							</div>
-						{/if}
-					</div>
-				</div>
-			{/if}
-		</div>
-	{/each}
-</div>
-
-<div class="review-entry">
-	<h2>Leave a Review</h2>
-	<div class="ratings-bar-holder">
-		<RatingsBar bind:rating={commentFormRating} />
-		<p>{commentFormRating.toFixed(2)}</p>
-	</div>
-	<div use:tippy={reviewCommentHelpTippy}>
-		<TipTapEditor placeholder={'Man this is so yummy!'} bind:content={commentFormText} />
-	</div>
-	<button
-		class="btn post-review-btn"
-		on:click={() => {
-			leaveReview()
-			refreshReviews()
-		}}>Post</button>
-</div>
-
-<div class="reviews">
-	{#await doGetReviews}
-		<p>Loading reviews...</p>
-	{:then reviews}
-		{#if reviews.length > 0}
-			<h2>Reviews</h2>
-		{/if}
-		{#each reviews.reviews as review}
-			{#if review.leftByUser === true}
-				<div class="review user-left-review" use:tippy={userLeftReviewHelpTippy}>
-					<img src={review.authorAvatar} alt="" />
-					<h3>{@html review.author}</h3>
-					<p class="review-date">
-						{new Intl.DateTimeFormat('en', {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						}).format(new Date(review.date))}
-					</p>
-
-					<button
-						class="btn btn-danger"
-						on:click={() => {
-							deleteReview()
-						}}>Delete</button>
-
-					<p class="rating">{review.rating} Fists</p>
-
-					<div class="comment">
-						{@html review.comment}
-					</div>
-				</div>
+		<div class="details">
+			{#if user?.username === username}
+				<button class="btn btn-danger" on:click={deleteRecipe}>Delete Recipe</button>
 			{:else}
-				<div class="review">
-					<img src={review.authorAvatar} alt="" />
-					<h3>{@html review.author}</h3>
-					<p class="review-date">
-						{new Intl.DateTimeFormat('en', {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						}).format(new Date(review.date))}
-					</p>
-					<p class="rating">{review.rating} Fists</p>
-
-					<div class="comment">
-						{@html review.comment}
-					</div>
-				</div>
+				Written by <a href="/@{username}">{'@' + username}</a>
 			{/if}
+		</div>
+
+		{#each recipe.content as content, rI}
+			<div class="content-card ">
+				{#if typeof content === 'string'}
+					<div class="write-up rendered-tiptap">
+						{@html content}
+					</div>
+				{:else if typeof content === 'object'}
+					<div class="recipe-card">
+						<div class="recipe-header">
+							{#if recipe.content.filter(el => typeof el === 'object').length > 1}
+								<div class="recipe-card-header">
+									<h1 class="title">{content.title}</h1>
+									<h2 class="description">{content.description}</h2>
+
+									<img class="cover_image" src={content.cover_image} alt="" />
+								</div>
+							{/if}
+						</div>
+
+						<div>
+							<h3>Ingredients:</h3>
+							<div class="ingredient-list">
+								<ul>
+									{#each content.ingredients ?? [] as ingredient, iI}
+										<li>
+											<div class="ingredient">
+												<h4 class="ingredient-name">
+													{ingredient?.name}
+												</h4>
+												<h5 class="ingredient-preperation">
+													{ingredient?.preperation}
+												</h5>
+
+												<h4 class="ingredient-amount">
+													{ingredient?.amount + '' + ingredient?.unit?.abbr[0]}
+												</h4>
+											</div>
+										</li>
+									{/each}
+								</ul>
+							</div>
+						</div>
+
+						<div class="nutrition">
+							{#if content.nutrition?.calories}
+								<li>
+									<p class="nutrition-amount">{content.nutrition.calories}</p>
+									<div class="nutrition-label">Calories</div>
+								</li>
+							{/if}
+							{#if content.nutrition?.protein}
+								<li>
+									<p class="nutrition-amount">{content.nutrition.protein}</p>
+									<div class="nutrition-label">Protein</div>
+								</li>
+							{/if}
+							{#if content.nutrition?.fat}
+								<li>
+									<p class="nutrition-amount">{content.nutrition.fat}</p>
+									<div class="nutrition-label">Fat</div>
+								</li>
+							{/if}
+							{#if content.nutrition?.carbs}
+								<li>
+									<p class="nutrition-amount">{content.nutrition.carbs}</p>
+									<div class="nutrition-label">Carbs</div>
+								</li>
+							{/if}
+							{#if content.nutrition?.fiber}
+								<li>
+									<p class="nutrition-amount">{content.nutrition.fiber}</p>
+									<div class="nutrition-label">Fiber</div>
+								</li>
+							{/if}
+							{#if content.nutrition?.sugar}
+								<li>
+									<p class="nutrition-amount">{content.nutrition.sugar}</p>
+									<div class="nutrition-label">Sugar</div>
+								</li>
+							{/if}
+						</div>
+
+						<div>
+							<h3>Instructions:</h3>
+
+							<div class="instruction-list">
+								{#each content.steps ?? [] as step, sI}
+									<div class="instruction-number">{sI + 1}</div>
+									<div class="instruction rendered-tiptap">
+										{@html step}
+									</div>
+								{/each}
+							</div>
+						</div>
+
+						<h3>Times:</h3>
+						<div class="times">
+							<div class="row">
+								<h4>Total</h4>
+								<p>{getTime(rI, 'total')}</p>
+							</div>
+							<div class="row">
+								<h4>Prep</h4>
+								<p>{getTime(rI, 'prep')}</p>
+							</div>
+							<div class="row">
+								<h4>Cook</h4>
+								<p>{getTime(rI, 'cook')}</p>
+							</div>
+						</div>
+						<div>
+							<div class="row">
+								<h3>Servings</h3>
+								{content.serves}
+							</div>
+							{#if content.yield !== ''}
+								<div class="row">
+									<h3>Yield</h3>
+									{content.yield}
+								</div>
+							{/if}
+							{#if content.notes !== '<p></p>'}
+								<h3>Notes</h3>
+								<div class="rendered-tiptap">
+									{@html content.notes}
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/if}
+			</div>
 		{/each}
-	{:catch error}
-		<p>Error loading reviews: {error}</p>
-	{/await}
-</div>
+	</div>
+
+	<div class="review-entry">
+		<h2>Leave a Review</h2>
+		<div class="ratings-bar-holder">
+			<RatingsBar bind:rating={commentFormRating} />
+			<p>{commentFormRating.toFixed(2)}</p>
+		</div>
+		<div use:tippy={reviewCommentHelpTippy}>
+			<TipTapEditor placeholder={'Man this is so yummy!'} bind:content={commentFormText} />
+		</div>
+		<button
+			class="btn post-review-btn"
+			on:click={() => {
+				leaveReview()
+				refreshReviews()
+			}}>Post</button>
+	</div>
+
+	<div class="reviews">
+		{#await doGetReviews}
+			<p>Loading reviews...</p>
+		{:then reviews}
+			{#if reviews?.length > 0}
+				<h2>Reviews</h2>
+			{/if}
+			{#each reviews.reviews as review}
+				{#if review.leftByUser === true}
+					<div class="review user-left-review" use:tippy={userLeftReviewHelpTippy}>
+						<img src={review.authorAvatar} alt="" />
+						<h3>{@html review.author}</h3>
+						<p class="review-date">
+							{new Intl.DateTimeFormat('en', {
+								year: 'numeric',
+								month: 'long',
+								day: 'numeric'
+							}).format(new Date(review.date))}
+						</p>
+
+						<button
+							class="btn btn-danger"
+							on:click={() => {
+								deleteReview()
+							}}>Delete</button>
+
+						<p class="rating">{review.rating} Fists</p>
+
+						<div class="comment">
+							{@html review.comment}
+						</div>
+					</div>
+				{:else}
+					<div class="review">
+						<img src={review.authorAvatar} alt="" />
+						<h3>{@html review.author}</h3>
+						<p class="review-date">
+							{new Intl.DateTimeFormat('en', {
+								year: 'numeric',
+								month: 'long',
+								day: 'numeric'
+							}).format(new Date(review.date))}
+						</p>
+						<p class="rating">{review.rating} Fists</p>
+
+						<div class="comment">
+							{@html review.comment}
+						</div>
+					</div>
+				{/if}
+			{/each}
+		{:catch error}
+			<p>Error loading reviews: {error}</p>
+		{/await}
+	</div>
 
 <style>
 	.content {
