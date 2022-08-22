@@ -4,12 +4,12 @@ import jimp from 'jimp'
 import { Upload } from '@aws-sdk/lib-storage'
 
 import { redis, mongoClient, s3Client } from '$lib/db'
-import { validateUsername, validateName } from './helper'
+import { validateUsername, validateName } from '$lib/api/helper'
 
-import type { RequestHandler } from '../../../.svelte-kit/types/src/routes/auth/__types/update'
+import type { RequestHandler } from './$types'
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 
-export const post: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.formData()
 
@@ -28,23 +28,27 @@ export const post: RequestHandler = async ({ request }) => {
 
 		let validName = validateName(newName)
 		if (!validName.success) {
-			return {
-				status: 400,
-				body: {
+			return new Response(
+				JSON.stringify({
 					message: validName.msg
+				}),
+				{
+					status: 400,
 				}
-			}
+			)
 		}
 
 		if (newUsername !== oldUsername) {
 			let validUsername = await validateUsername(newUsername)
 			if (!validUsername.success) {
-				return {
-					status: 400,
-					body: {
+				return new Response(
+					JSON.stringify({
 						message: validUsername.msg
+					}),
+					{
+						status: 400,
 					}
-				}
+				)
 			}
 		}
 
@@ -103,20 +107,24 @@ export const post: RequestHandler = async ({ request }) => {
 				)
 
 			if (mongoResult.matchedCount == 1 && s3Result.$metadata.httpStatusCode == 200) {
-				return {
-					status: 200,
-					body: {
+				return new Response(
+					JSON.stringify({
 						message: 'Success'
+					}),
+					{
+						status: 200,
 					}
-				}
+				)
 			}
 
-			return {
-				status: 500,
-				body: {
+			return new Response(
+				JSON.stringify({
 					message: 'Failed'
+				}),
+				{
+					status: 500,
 				}
-			}
+			)
 		}
 
 		const res = await mongoClient
@@ -125,26 +133,32 @@ export const post: RequestHandler = async ({ request }) => {
 			.updateOne({ email }, { $set: { name: newName, username: newUsername } })
 
 		if (res.matchedCount == 1) {
-			return {
-				status: 200,
-				body: {
+			return new Response(
+				JSON.stringify({
 					message: 'Matched with user'
+				}),
+				{
+					status: 200,
 				}
-			}
+			)
 		}
-
-		return {
-			status: 500,
-			body: {
+		return new Response(
+			JSON.stringify({
 				message: "Couldn't find user"
+			}),
+			{
+				status: 500,
 			}
-		}
+		)
+
 	} catch (error) {
-		return {
-			status: 500,
-			body: {
+		return new Response(
+			JSON.stringify({
 				message: 'Failed to upload, error: ' + error
+			}),
+			{
+				status: 500,
 			}
-		}
+		)
 	}
 }

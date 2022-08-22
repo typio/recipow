@@ -1,13 +1,13 @@
 <svelte:head>
-	<title>Terms</title>
+	<title>Privacy</title>
 </svelte:head>
 
 <div class="content">
-	<h1>Terms</h1>
+	<h1>Privacy</h1>
 
 	<p>
-		By using this site you agree to these terms. You must be at least 13 years old. Any content you
-		submit is all mine and anything bad you do is your own responsibility.
+		I may collect any of your information and I may sell it. Don't use this site in California, I
+		don't understand the privacy laws there.
 	</p>
 </div>
 

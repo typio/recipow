@@ -18,8 +18,8 @@
 
 <footer>
 	<ul>
-		<li><a sveltekit:prefetch href="/help">Help</a></li>
 		<li><a sveltekit:prefetch href="/about">About</a></li>
+		<li><a sveltekit:prefetch href="/help">Help</a></li>
 		<li><a sveltekit:prefetch href="/privacy">Privacy</a></li>
 		<li><a sveltekit:prefetch href="/terms">Terms</a></li>
 		<li><a sveltekit:prefetch href="/contact">Contact</a></li>
@@ -37,7 +37,6 @@
 		/* overflow: hidden; */
 		margin: 0 auto;
 		box-sizing: border-box;
-		
 	}
 
 	footer {
@@ -68,12 +67,9 @@
 		height: 100%;
 		display: flex;
 		align-items: center;
-		padding: 0rem .5rem;
+		padding: 0rem 0.5rem;
 		font-size: 0.9rem;
 		line-height: 2rem;
-	}
-
-	footer li a {
 	}
 
 	@media (min-width: 480px) {

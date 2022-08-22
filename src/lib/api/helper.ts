@@ -4,7 +4,7 @@ import { mongoClient } from '$lib/db'
 
 const filter = new Filter()
 
-export const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 1 // 1 days
+export const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 7 // 7 days
 
 export const validateEmail = (email: string): { success: boolean; msg?: string } => {
 	if (typeof email !== 'string' || !/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {

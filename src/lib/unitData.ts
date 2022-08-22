@@ -75,8 +75,6 @@ export const units: Unit[] = [
         base: 'milliliter',
         multiplier: 236.588236502
     },
-    // { system: 'imperial', name: ['pint', 'pints'], abbr: ['pint', 'pints'], base: true },
-    // { system: 'imperial', name: ['quart', 'quarts'], abbr: ['quart', 'quarts'], base: true },
     {
         system: 'imperial',
         name: ['gallon', 'gallons'],
@@ -84,6 +82,4 @@ export const units: Unit[] = [
         base: 'milliliter',
         multiplier: 3785.41178403
     },
-
-
 ]

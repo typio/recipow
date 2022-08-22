@@ -1,5 +1,18 @@
-<script context="module" lang="ts">
-	export const logOut = async () => {
+<script lang="ts">
+	import { page } from '$app/stores'
+	import { prefetch } from '$app/navigation'
+
+	import UserEntry from '$lib/components/header/UserEntry.svelte'
+	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
+	import Overlay from './Overlay.svelte'
+
+	let formType = 'none'
+
+	let showProfileModal = false
+
+	let user = $page.data.user
+
+	const logOut = async () => {
 		const response = await fetch('/auth/logout', {
 			method: 'POST'
 		})
@@ -8,27 +21,8 @@
 	}
 </script>
 
-<script lang="ts">
-	import { page, session } from '$app/stores'
-	import { prefetch } from '$app/navigation'
-
-	import svelte_logo from '$lib/assets/svelte-logo.svg'
-	import github_logo from '$lib/assets/github-mark.svg'
-	import UserEntry from '$lib/components/header/UserEntry.svelte'
-	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
-	import Overlay from './Overlay.svelte'
-
-	let formType = 'none'
-
-	let showProfileModal = false
-</script>
-
 <header>
-	<div class="corner">
-		<a href="https://kit.svelte.dev">
-			<img src={svelte_logo} alt=" " />
-		</a>
-	</div>
+	<div class="corner" />
 
 	<nav>
 		<svg viewBox="0 0 2 3" aria-hidden="true">
@@ -39,25 +33,29 @@
 				<a sveltekit:prefetch href="/">Home</a>
 			</li>
 
-			{#if $session.user}
+			{#if user}
 				<li class:active={$page.url.pathname === '/new-recipe'} class="a-nav">
 					<a sveltekit:prefetch href="/new-recipe">Write</a>
 				</li>
 				<li
-					class:active={$page.url.pathname === '/@' + $session.user.username ||
+					class:active={$page.url.pathname === '/@' + user.username ||
 						$page.url.pathname === '/settings'}>
 					<button
 						class="btn-nav btn-pfp"
 						on:click={() => {
-							prefetch('/profile')
+							prefetch('/@' + user.username)
 							prefetch('/settings')
 							showProfileModal = !showProfileModal
 						}}>
-						<img src={$session.user.avatar} alt=" " />
+						<img src={user.avatar} alt=" " />
 					</button>
 				</li>
 				<li>
-					<button class="btn-nav" on:click={logOut}>Log Out</button>
+					<button
+						class="btn-nav"
+						on:click={() => {
+							logOut()
+						}}>Log Out</button>
 				</li>
 			{:else}
 				<li>
@@ -81,14 +79,10 @@
 		</svg>
 	</nav>
 
-	<div class="corner">
-		<a href="https://github.com/typio/recipow">
-			<img src={github_logo} alt=" " />
-		</a>
-	</div>
+	<div class="corner" />
 
 	{#if showProfileModal}
-		<ProfileModal bind:showProfileModal />
+		<ProfileModal bind:showProfileModal on:logOut={logOut} />
 	{/if}
 
 	{#if formType != 'none'}
@@ -119,22 +113,9 @@
 		height: 3em;
 	}
 
-	.corner a {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.corner img {
-		width: 2em;
-		height: 2em;
-		object-fit: contain;
-	}
-
 	nav {
 		display: flex;
+		width: 100%;
 		justify-content: center;
 		--background: #fff;
 		filter: drop-shadow(0 0px 4px rgba(0, 0, 0, 0.6));

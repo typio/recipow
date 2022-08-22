@@ -1,22 +1,19 @@
 <script lang="ts">
 	import RecipeCollection from '$lib/components/recipe/RecipeCollection.svelte'
-
-	let urlParams = new URLSearchParams()
-	urlParams.set('hi', 'hello')
 </script>
 
 <svelte:head>
 	<title>Home</title>
-	<meta name="description" content="Protein focused recipe website." />
+	<meta name="description" content="The first fighting themed recipe website!" />
 </svelte:head>
 
-<section>
-	<h1>Welcome</h1>
-</section>
+<section />
+
+<h2>🔥 HOT Recipes 🔥</h2>
+<RecipeCollection type={'trending'} />
 
 <h2>All Recipes</h2>
-<RecipeCollection {urlParams} />
-
+<RecipeCollection type={'all'} />
 <style>
 	section {
 		display: flex;

@@ -10,8 +10,6 @@
 	let inputPassword = ''
 	let errorMessage = ''
 
-	// could dispatch the credentials for this,
-	// but it wouldn't make any more sense to have login logic in header...
 	export const signUp = async () => {
 		const response = await fetch('/auth/signup', {
 			method: 'POST',

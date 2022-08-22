@@ -1,20 +1,3 @@
-<script context="module" lang="ts">
-	import type { Load } from '@sveltejs/kit'
-	// if not logged in redirect to home page
-	export const load: Load = async ({ session }) => {
-		if (!session.user) {
-			return {
-				status: 302,
-				redirect: '/'
-			}
-		} else {
-			return {
-				status: 200
-			}
-		}
-	}
-</script>
-
 <script lang="ts">
 	import tippy from 'sveltejs-tippy'
 	import 'tippy.js/animations/perspective.css'
@@ -22,14 +5,14 @@
 	import 'tippy.js/dist/border.css'
 	import { toast } from '@zerodevx/svelte-toast'
 
-	import { session } from '$app/stores'
+	import { page } from '$app/stores'
 	import Overlay from '$lib/components/header/Overlay.svelte'
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 
 	let formType = 'none'
 
-	let name: string = $session.user.name
-	let username: string = $session.user.username
+	let name: string = $page.data.user.name
+	let username: string = $page.data.user.username
 	let files: FileList
 	let avatarFile: File | undefined
 
@@ -80,7 +63,7 @@
 
 	const deleteUser = async (event: { detail: { text: string } }) => {
 		// delete their recipes
-		const recipesResult = await fetch('/@' + $session.user.username + '/', {
+		const recipesResult = await fetch('/@' + $page.data.user.username + '/', {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
@@ -118,7 +101,7 @@
 		content: 'This is your display name, <br/>It will be shown on your recipes.',
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: false
 	}
@@ -132,7 +115,7 @@
 	<h1>Settings</h1>
 
 	<h2>
-		Hello {$session.user.name}!
+		Hello {$page.data.user.name}!
 	</h2>
 	<div use:tippy={nameHelpTippy} class="row">
 		<p>Name:</p>
@@ -141,12 +124,12 @@
 	<div class="row">
 		<p>Profile Picture:</p>
 		<div class="pfp-input">
-			<img src={$session.user.avatar} alt="" />
+			<img src={$page.data.user.avatar} alt="" />
 			<input type="file" accept="image/*" bind:files alt="" />
 		</div>
 	</div>
 	<div class="row">
-		<p>Email: {$session.user.email}</p>
+		<p>Email: {$page.data.user.email}</p>
 		<!-- <input type="text" label="Name: " value="{user.email}"> -->
 	</div>
 	<div class="row">
@@ -154,7 +137,7 @@
 		<input class="text-input" type="text" label="Name: " bind:value={username} />
 		<div class="break" />
 		<p>
-			Your URL is <a href={'/' + '@' + $session.user.username}>
+			Your URL is <a href={'/' + '@' + $page.data.user.username}>
 				https://recipow.com/{'@' + username.replaceAll(' ', '')}</a>
 		</p>
 	</div>

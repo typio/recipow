@@ -1,6 +1,7 @@
 // https://gist.github.com/slava-vishnyakov/16076dff1a77ddaca93c4bccd4ec4521?permalink_comment_id=3744392#gistcomment-3744392
 
-import { Node, nodeInputRule } from '@tiptap/core'
+import { Node, nodeInputRule, type CommandProps } from '@tiptap/core'
+import type { Attrs } from 'prosemirror-model'
 import { dropImagePlugin, type UploadFn } from './dropImage'
 
 /**
@@ -40,10 +41,8 @@ export const createImageExtension = (uploadFn: UploadFn) => {
 			}
 		],
 		renderHTML: ({ HTMLAttributes }) => ['img', HTMLAttributes],
-
-		// @ts-ignore
 		addCommands() {
-			return attrs => (state, dispatch) => {
+			return (attrs: Attrs) => ({ state, dispatch }: CommandProps) => {
 				const { selection } = state
 				const position = selection.$cursor ? selection.$cursor.pos : selection.$to.pos
 				const node = this.type.create(attrs)

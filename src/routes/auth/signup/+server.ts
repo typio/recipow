@@ -3,42 +3,48 @@ import { v4 as uuidv4 } from 'uuid'
 import stringHash from 'string-hash'
 
 import { redis, mongoClient } from '$lib/db'
-import { validateEmail, validatePassword, validateName, TOKEN_EXPIRE_TIME } from './helper'
+import { validateEmail, validatePassword, validateName, TOKEN_EXPIRE_TIME } from '$lib/api/helper'
 
 import type { AuthUser } from '$lib/types'
-import type { RequestHandler } from '.svelte-kit/types/src/routes/auth/__types/signup'
+import type { RequestHandler } from './$types'
 
-export const post: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, clientAddress }) => {
 	const { email, name, password } = await request.json()
 
 	let validEmail = validateEmail(email)
 	if (!validEmail.success) {
-		return {
-			status: 400,
-			body: {
+		return new Response(
+			JSON.stringify({
 				message: validEmail.msg
+			}),
+			{
+				status: 400,
 			}
-		}
+		)
 	}
 
 	let validPassword = validatePassword(password)
 	if (!validPassword.success) {
-		return {
-			status: 400,
-			body: {
+		return new Response(
+			JSON.stringify({
 				message: validPassword.msg
+			}),
+			{
+				status: 400,
 			}
-		}
+		)
 	}
 
 	let validName = validateName(name)
 	if (!validName.success) {
-		return {
-			status: 400,
-			body: {
+		return new Response(
+			JSON.stringify({
 				message: validName.msg
+			}),
+			{
+				status: 400,
 			}
-		}
+		)
 	}
 
 	const user: AuthUser = await (async () => {
@@ -54,12 +60,15 @@ export const post: RequestHandler = async ({ request }) => {
 	const cookieId = uuidv4()
 
 	if (user.email) {
-		return {
-			status: 400,
-			body: {
+		return new Response(
+			JSON.stringify({
 				message: 'User with this email already exists'
+			}),
+			{
+				status: 400,
 			}
-		}
+		)
+
 	}
 
 	let username = email.split('@')[0]
@@ -74,12 +83,14 @@ export const post: RequestHandler = async ({ request }) => {
 	if (
 		(await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0
 	) {
-		return {
-			status: 400,
-			body: {
-				message: "Couldn't generate unique username, please try again."
+		return new Response(
+			JSON.stringify({
+				message: 'Couldn\'t generate unique username, please try again.'
+			}),
+			{
+				status: 400,
 			}
-		}
+		)
 	}
 
 	// add user in redis
@@ -103,6 +114,7 @@ export const post: RequestHandler = async ({ request }) => {
 
 	// add user in mongo
 	let newMongoUser = {
+		ip: clientAddress,
 		email,
 		name,
 		username,
@@ -111,19 +123,21 @@ export const post: RequestHandler = async ({ request }) => {
 	await mongoClient.db('recipow').collection('users').insertOne(newMongoUser)
 
 	// set cookie
-	return {
-		status: 200,
-		headers: {
-			'Set-Cookie': cookie.serialize('sessionId', cookieId, {
-				path: '/',
-				httpOnly: true,
-				maxAge: TOKEN_EXPIRE_TIME,
-				sameSite: 'strict',
-				secure: true
-			})
-		},
-		body: {
+	return new Response(
+		JSON.stringify({
 			message: 'User created successfully'
+		}),
+		{
+			status: 200,
+			headers: {
+				'Set-Cookie': cookie.serialize('sessionId', cookieId, {
+					path: '/',
+					httpOnly: true,
+					maxAge: TOKEN_EXPIRE_TIME,
+					sameSite: 'strict',
+					secure: true
+				})
+			},
 		}
-	}
+	)
 }
