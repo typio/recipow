@@ -52,8 +52,11 @@ export const dropImagePlugin = (upload: UploadFn) => {
 					}
 
 					const images = Array.from(event.dataTransfer?.files ?? []).filter(file =>
-						/image/i.test(file.type)
+						/image\/png|image\/jpg|image\/jpeg/i.test(file.type)
 					)
+
+						
+						
 
 					if (images.length === 0) {
 						return false

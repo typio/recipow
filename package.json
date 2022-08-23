@@ -16,7 +16,7 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.24.2",
-		"@sveltejs/adapter-vercel": "next",
+		"@sveltejs/adapter-vercel": "^1.0.0-next.67",
 		"@sveltejs/kit": "^1.0.0-next.428",
 		"@types/cookie": "^0.5.1",
 		"@types/debug": "^4.1.7",

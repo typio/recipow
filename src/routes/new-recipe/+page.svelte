@@ -58,7 +58,7 @@
 		{
 			name: '',
 			amount: 0,
-			unit: units[0],
+			unit: undefined,
 			preperation: ''
 		}
 	]
@@ -147,8 +147,6 @@
 
 <svelte:window
 	on:keydown={() => {
-		console.log(recipe)
-
 		localStorage.setItem('recipe', JSON.stringify(recipe))
 	}} />
 
@@ -164,6 +162,7 @@
 		<input
 			class="recipe-cover-input"
 			type="file"
+			accept=".png, .jpg, .jpeg"
 			name=""
 			id=""
 			on:change={async e => {
@@ -253,6 +252,7 @@
 							<input
 								class="recipe-cover-input"
 								type="file"
+								accept=".png, .jpg, .jpeg"
 								name=""
 								id=""
 								on:change={async e => {
@@ -313,6 +313,7 @@
 												placeholder=""
 												bind:value={ingredient.amount} />
 											<select class="ingredient-unit" name="" id="" bind:value={ingredient.unit}>
+												<option value={undefined}> </option>
 												{#each units as unit, i}
 													<option value={unit}>{unit.name[0]}</option>
 												{/each}
@@ -349,6 +350,7 @@
 								placeholder=""
 								bind:value={newIngredients[rI].amount} />
 							<select class="ingredient-unit" name="" id="" bind:value={newIngredients[rI].unit}>
+								<option value={undefined}> </option>
 								{#each units as unit, i}
 									<option value={unit}>{unit.name[0]}</option>
 								{/each}

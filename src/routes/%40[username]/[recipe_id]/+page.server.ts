@@ -12,7 +12,8 @@ export const load: PageServerLoad = async ({ params, parent, url }) => {
 		{ method: 'GET' }
 	)
 
-	const { recipe }: Recipe = await res.json()
+	const { recipe }: { recipe: Recipe } = await res.json()
+
 
 	if (recipe) {
 
