@@ -6,10 +6,11 @@
 	export let limit = 10
 
 	export let username = ''
+	export let search = ''
 
 	const getRecipes = async () => {
 		const res = await fetch(
-			`/recipe?type=${type}&page=${page}&limit=${limit}&username=${username}`,
+			`/recipe?type=${type}&page=${page}&limit=${limit}&username=${username}&search=${search}`,
 			{ method: 'GET' }
 		)
 
@@ -98,7 +99,4 @@
 		text-align: center;
 	}
 
-	.recipe-preview {
-		width: 300px;
-	}
 </style>

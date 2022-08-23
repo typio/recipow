@@ -1,6 +1,4 @@
 import * as cookie from 'cookie'
-import jimp from 'jimp'
-import { Upload } from '@aws-sdk/lib-storage'
 import { PutObjectTaggingCommand, Tag } from '@aws-sdk/client-s3'
 import Filter from 'bad-words'
 
@@ -209,9 +207,11 @@ export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 			title: string,
 			description: string,
 			cover_image: string,
+			tags: Tag[],
 			intensity: number,
 			createdAt: string,
 			rating: number,
+			ratingCount: number,
 		}
 		link: string
 	}
@@ -240,9 +240,11 @@ export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 					title: recipe.title,
 					description: recipe.description,
 					cover_image: recipe.cover_image,
+					tags: recipe.tags,
 					intensity: recipe.intensity,
 					createdAt: recipe.createdAt,
 					rating: recipe.rating,
+					ratingCount: recipe.ratingCount,
 				}, link: `/@${user.username}/${recipe.id}`
 			})
 		}
@@ -256,9 +258,11 @@ export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 		}).slice((page - 1) * limit, page * limit)
 	} else if (type === 'search') {
 		const search = searchParams.get('search') || ''
-		recipesAndLinks = recipesAndLinks.filter(({ recipe }) => {
-			return recipe.title.toLowerCase().includes(search.toLowerCase())
-		}).slice((page - 1) * limit, page * limit)
+		if (search.replace(/\W+/g, '') == '') { recipesAndLinks = [] } else {
+			recipesAndLinks = recipesAndLinks.filter(({ recipe }) => {
+				return recipe.title.toLowerCase().includes(search.toLowerCase())
+			}).slice((page - 1) * limit, page * limit)
+		}
 	} else if (type === 'user') {
 		const username = searchParams.get('username') || ''
 		const user = await mongoClient

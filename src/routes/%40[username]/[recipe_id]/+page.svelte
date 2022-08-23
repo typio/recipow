@@ -4,6 +4,12 @@
 	import { goto, invalidate } from '$app/navigation'
 	import { page } from '$app/stores'
 
+	import intensity_1 from '$lib/assets/intensity_1.svg'
+	import intensity_2 from '$lib/assets/intensity_2.svg'
+	import intensity_3 from '$lib/assets/intensity_3.svg'
+	import intensity_4 from '$lib/assets/intensity_4.svg'
+	import intensity_5 from '$lib/assets/intensity_5.svg'
+
 	import RatingsBar from '$lib/components/recipe/RatingsBar.svelte'
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
@@ -21,7 +27,7 @@
 
 	export let data: PageData
 
-	const { recipe, username } = data
+	let { recipe, username } = data
 	let user = $page.data.user
 
 	const deleteRecipe = async () => {
@@ -105,8 +111,11 @@
 				})
 			})
 
-			await invalidate(`/@${username}/${recipe.id}`)
-			refreshReviews()
+			const res2 = await fetch(`/recipe?type=one&username=${username}&id=${recipe.id}`, {
+				method: 'GET'
+			})
+
+			recipe = (await res2.json()).recipe
 		} else {
 			// review from comment form
 
@@ -119,8 +128,13 @@
 				})
 			})
 
-			await invalidate(`/@${username}/${recipe.id}`)
 			refreshReviews()
+
+			const res2 = await fetch(`/recipe?type=one&username=${username}&id=${recipe.id}`, {
+				method: 'GET'
+			})
+
+			recipe = (await res2.json()).recipe
 		}
 	}
 
@@ -153,28 +167,33 @@
 
 	const intensityHelpTippy = {
 		content:
-			'Intensity of this recipe<br/>1 - Stick of Butter Coated in Sugar<br/>5 - Boiled Chicken Breast',
+			'Intensity of this recipe<br/>\
+			1 - Stick of Butter Coated in Sugar<br/>\
+			2 - Oatmeal w/ Fruit<br/>\
+			3 - Oatmeal w/ Peanut Butter<br/>\
+			4 - Oatmeal w/ Whey Protein<br/>\
+			5 - Boiled Chicken Breast',
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
 
 	const reviewCommentHelpTippy = {
-		content: 'Formatting options will show<br/> if you highlight your text.',
+		content: 'Formatting options will show<br/>If you highlight your text.',
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
 
 	const encourage5FistsTippy = {
-		content: "The president votes for himself<br/> Why shouldn't you?",
+		content: "The president votes for themself<br/>Why shouldn't you?",
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
@@ -183,7 +202,7 @@
 		content: 'To replace this review, write a new one.',
 		allowHTML: true,
 		placement: 'left',
-		theme: 'dark',
+		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
 	}
@@ -199,7 +218,20 @@
 	<div class="header">
 		<h1 class="title">{recipe.title}</h1>
 		<h2 class="description">{recipe.description}</h2>
-		<h2 class="intensity" use:tippy={intensityHelpTippy}>Intensity - {recipe?.intensity}</h2>
+		<div class="intensity" use:tippy={intensityHelpTippy}>
+			<h2>Intensity:</h2>
+			{#if recipe?.intensity == 1}
+				<img src={intensity_1} alt="" />
+			{:else if recipe?.intensity == 2}
+				<img src={intensity_2} alt="" />
+			{:else if recipe?.intensity == 3}
+				<img src={intensity_3} alt="" />
+			{:else if recipe?.intensity == 4}
+				<img src={intensity_4} alt="" />
+			{:else}
+				<img src={intensity_5} alt="" />
+			{/if}
+		</div>
 		<div class="header-total-time">
 			<p>Total Time</p>
 			<p class="header-time-value">{getTime(undefined, 'total')}</p>
@@ -208,16 +240,37 @@
 			<p>Cook</p>
 			<p class="header-time-value">{getTime(undefined, 'cook')}</p>
 		</div>
-		<div class="ratings">
-			<RatingsBar {rating} on:rating={leaveReview} />
-			<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
-			<p>
-				{recipe.ratingCount
-					? recipe.ratingCount === 1
-						? '1 review'
-						: recipe.ratingCount + ' reviews'
-					: 'no reviews'}
-			</p>
+		{#if user?.username === username}
+			<div class="ratings" use:tippy={encourage5FistsTippy}>
+				<RatingsBar {rating} on:rating={leaveReview} />
+				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
+				<p>
+					{recipe.ratingCount
+						? recipe.ratingCount === 1
+							? '1 review'
+							: recipe.ratingCount + ' reviews'
+						: 'no reviews'}
+				</p>
+			</div>
+		{:else}
+			<div class="ratings">
+				<RatingsBar {rating} on:rating={leaveReview} />
+				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
+				<p>
+					{recipe.ratingCount
+						? recipe.ratingCount === 1
+							? '1 review'
+							: recipe.ratingCount + ' reviews'
+						: 'no reviews'}
+				</p>
+			</div>
+		{/if}
+		<div class="tags">
+			<ul>
+				{#each recipe?.tags || [] as tag}
+					<li>{tag}</li>
+				{/each}
+			</ul>
 		</div>
 		<img class="cover_image" src={recipe.cover_image} alt="" />
 	</div>
@@ -239,7 +292,7 @@
 			{:else if typeof content === 'object'}
 				<div class="recipe-card">
 					<div class="recipe-header">
-						{#if recipe.content.filter((el: any) => typeof el === 'object').length > 1}
+						{#if recipe.content.filter(el => typeof el === 'object').length > 1}
 							<div class="recipe-card-header">
 								<h1 class="title">{content.title}</h1>
 								<h2 class="description">{content.description}</h2>
@@ -264,7 +317,15 @@
 											</h5>
 
 											<h4 class="ingredient-amount">
-												{ingredient?.amount + '' + ingredient?.unit?.abbr[0]}
+												{ingredient?.amount +
+													'' +
+													(ingredient?.amount == 1
+														? ingredient?.unit?.abbr[0]
+															? ingredient?.unit?.abbr[0]
+															: ''
+														: ingredient?.unit?.abbr[1]
+														? ingredient?.unit?.abbr[1]
+														: '')}
 											</h4>
 										</div>
 									</li>
@@ -366,10 +427,17 @@
 
 <div class="review-entry">
 	<h2>Leave a Review</h2>
-	<div class="ratings-bar-holder">
-		<RatingsBar bind:rating={commentFormRating} />
-		<p>{commentFormRating.toFixed(2)}</p>
-	</div>
+	{#if user?.username === username}
+		<div class="ratings-bar-holder" use:tippy={encourage5FistsTippy}>
+			<RatingsBar bind:rating={commentFormRating} />
+			<p>{commentFormRating.toFixed(2)}</p>
+		</div>
+	{:else}
+		<div class="ratings-bar-holder">
+			<RatingsBar bind:rating={commentFormRating} />
+			<p>{commentFormRating.toFixed(2)}</p>
+		</div>
+	{/if}
 	<div use:tippy={reviewCommentHelpTippy}>
 		<TipTapEditor placeholder={'Man this is so yummy!'} bind:content={commentFormText} />
 	</div>
@@ -464,6 +532,7 @@
 		background-color: #ffffff;
 		height: 30rem;
 		padding: 1rem;
+		overflow-y: hidden;
 	}
 
 	.header .title {
@@ -485,6 +554,7 @@
 		display: flex;
 
 		align-items: center;
+		margin-bottom: 0.5rem;
 	}
 
 	.header-total-time p {
@@ -502,10 +572,21 @@
 		grid-column: 1/6;
 		display: flex;
 		justify-content: center;
-		margin: auto;
+		margin: 0 auto 1rem auto;
 		height: fit-content;
 		text-align: center;
 		width: fit-content;
+	}
+
+	.intensity h2 {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.intensity img {
+		margin-left: 1rem;
+		width: 4rem;
 	}
 
 	.ratings {
@@ -520,6 +601,34 @@
 
 	.ratings p {
 		margin: 0 0.5rem;
+	}
+
+	.tags {
+		grid-column: 1/6;
+		display: flex;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.tags ul {
+		list-style: none;
+		display: flex;
+		overflow: hidden;
+		padding: 0;
+	}
+
+	.tags ul li {
+		text-decoration: none;
+		background-color: #ddd;
+		color: #555;
+		padding: 0.2rem 0.5rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		height: 1rem;
+		line-height: 1rem;
+		border-radius: 0.7rem;
+		margin-right: 0.4rem;
 	}
 
 	.header-nutrition {
