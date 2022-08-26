@@ -15,7 +15,7 @@ export const load: LayoutServerLoad = async ({ request, clientAddress }) => {
         .db('recipow')
         .collection('ips')
         .find({ ip: clientAddress }).toArray()).length === 0) {
-        await mongoClient.db('recipow').collection('ips').insertOne({ ip: clientAddress, location: await ipLocation(clientAddress), createdAt: new Date().toISOString() })
+        await mongoClient.db('recipow').collection('ips').insertOne({ ip: clientAddress, location: await ipLocation(clientAddress), createdAt: new Date().toISOString(), lastSeen: new Date().toISOString() })
     } else {
         await mongoClient.db('recipow').collection('ips').updateOne(
             { ip: clientAddress }, { $set: { lastSeen: new Date().toISOString() } }

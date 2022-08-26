@@ -3,7 +3,7 @@ import Filter from 'bad-words'
 
 import { redis, mongoClient } from '$lib/db'
 import type { RequestHandler } from './$types'
-import type { Recipe, Review } from '$lib/types'
+import type { Recipe, Review, User } from '$lib/types'
 
 const filter = new Filter()
 
@@ -45,8 +45,8 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
         ))?.recipes.find((r: Recipe) => r.id === recipeId)?.reviews || []
 
     // check if user already reviewed this recipe
-    if (oldRatings.map(rev => rev.author).includes(review.author)) {
-        let previousReview = oldRatings.find(rev => { return rev.author === review.author })
+    if (oldRatings.map((rev: Review) => rev.author).includes(review.author)) {
+        let previousReview = oldRatings.find((rev: Review) => { return rev.author === review.author })
         // update their review
         if (comment === '' || comment === '<p></p>' || comment === undefined) {
             review.comment = previousReview.comment
@@ -172,7 +172,7 @@ export const GET: RequestHandler = async ({ url: { searchParams }, clientAddress
             name = 'Anonymous'
         } else {
             try {
-                ({ username, name, avatar } = (await mongoClient.db('recipow').collection('users').findOne({ email: author })))
+                ({ username, name, avatar } = (await mongoClient.db('recipow').collection('users').findOne<User>({ email: author })) ?? { username: '', name: '', avatar: '' })
                 username = '@' + username
             } catch (e) {
                 console.log(e)

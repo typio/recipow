@@ -4,7 +4,8 @@ import Filter from 'bad-words'
 
 import { redis, mongoClient, s3Client } from '$lib/db'
 import type { RequestHandler } from './$types'
-import type { Recipe, RecipeCardData } from '$lib/types'
+import type { Recipe, RecipeCardData, User } from '$lib/types'
+import { tags } from '$lib/tagData'
 
 export const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
 	try {
@@ -45,6 +46,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
 	recipe.intensity = recipe.intensity > 5 ? 5 : recipe.intensity
 	recipe.intensity = recipe.intensity < 1 ? 1 : recipe.intensity
+
+	recipe.tags = recipe.tags.filter((tag: string) => {
+		return tags.includes(tag)
+	})
 
 	recipe.content.forEach((c: string | RecipeCardData) => {
 		if (typeof c === 'object') {
@@ -147,7 +152,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}'
 	).email
 
-	const { username } = await mongoClient.db('recipow').collection('users').findOne({ email })
+	const { username } = await mongoClient.db('recipow').collection('users').findOne<User>({ email }) ?? { username: '' }
 
 	mongoClient
 		.db('recipow')
@@ -206,7 +211,7 @@ export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 			id: string,
 			title: string,
 			description: string,
-			cover_image: string,
+			cover_image?: string,
 			tags: Tag[],
 			intensity: number,
 			createdAt: string,
@@ -268,19 +273,38 @@ export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 		const user = await mongoClient
 			.db('recipow')
 			.collection('users')
-			.findOne({ username })
+			.findOne<User>({ username })
 
-		if (user?.recipes?.length > 0) {
-			recipesAndLinks = user.recipes?.map(recipe => ({ recipe, link: `/@${username}/${recipe.id}` }))?.slice((page - 1) * limit, page * limit)
+		if (user !== null && user?.recipes?.length > 0) {
+			recipesAndLinks = []
+			for (const recipe of user.recipes) {
+				recipesAndLinks.push({
+					recipe: {
+						id: recipe.id,
+						title: recipe.title,
+						description: recipe.description,
+						cover_image: recipe.cover_image,
+						tags: recipe.tags,
+						intensity: recipe.intensity,
+						createdAt: recipe.createdAt,
+						rating: recipe.rating,
+						ratingCount: recipe.ratingCount,
+					}, link: `/@${user.username}/${recipe.id}`
+				})
+			}
+
+			recipesAndLinks = recipesAndLinks?.slice((page - 1) * limit, page * limit)
 		} else {
 			recipesAndLinks = []
 		}
-	} else if (type === 'tag') {
-		const tag = searchParams.get('tag') || ''
-		recipesAndLinks = recipesAndLinks.filter((recipe) => {
-			return recipe.tags.includes(tag)
-		}).slice(0, limit)
-	} else {
+	}
+	// else if (type === 'tag') {
+	// 	const tag = searchParams.get('tag') || ''
+	// 	recipesAndLinks = recipesAndLinks.filter((recipesAndLink) => {
+	// 		return recipesAndLink.recipe.tags.includes(tag)
+	// 	}).slice(0, limit)
+	// }
+	else {
 		// recent
 		recipesAndLinks = recipesAndLinks.sort((a, b) => {
 			let aScore = new Date(a.recipe.createdAt).getTime()
@@ -292,26 +316,26 @@ export const GET = async ({ url: { searchParams } }: { url: URL }) => {
 	return new Response(JSON.stringify({ recipesAndLinks }), { status: 200 })
 }
 
-export const DELETE = async ({ request }) => {
+export const DELETE: RequestHandler = async ({ request }) => {
 	const { recipeId } = await request.json()
 
 	const email = JSON.parse(
 		(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}'
 	).email
 
-	const { username } = await mongoClient.db('recipow').collection('users').findOne({ email })
+	const { username } = await mongoClient.db('recipow').collection('users').findOne<User>({ email }) ?? { username: '' }
 
-	const { recipes } = await mongoClient.db('recipow').collection('users').findOne({ username })
+	const { recipes } = await mongoClient.db('recipow').collection('users').findOne<User>({ username }) ?? { recipes: [] }
 
-	const recipe = recipes.find(recipe => recipe.id === recipeId)
+	const recipe = recipes.find((recipe: Recipe) => recipe.id === recipeId)
 
 	// replace tag on each image
-	if (recipe.cover_image) {
+	if (recipe?.cover_image) {
 		const imageKey = recipe.cover_image?.split('.com/')[1]
 		updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'true' }])
 	}
 
-	recipe.content.forEach((content: string | RecipeCardData) => {
+	recipe?.content.forEach((content: string | RecipeCardData) => {
 		if (typeof content === 'object') {
 			if (content.cover_image) {
 				const imageKey = content?.cover_image?.split('.com/')[1]

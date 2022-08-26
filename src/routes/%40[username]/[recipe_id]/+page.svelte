@@ -44,7 +44,7 @@
 	const getTime = (rI?: number, type?: 'prep' | 'cook' | 'total'): string => {
 		let totalTime = [0, 0, 0]
 		if (rI === undefined) {
-			recipe.content?.forEach((c: RecipeCardData) => {
+			recipe.content?.forEach((c: RecipeCardData | string) => {
 				if (typeof c === 'object') {
 					if (type === 'total' || type === undefined) {
 						totalTime[0] += (c.times.cook.minutes + c.times.prep.minutes) % 60
@@ -110,7 +110,7 @@
 					comment: ''
 				})
 			})
-
+			refreshReviews()
 			const res2 = await fetch(`/recipe?type=one&username=${username}&id=${recipe.id}`, {
 				method: 'GET'
 			})
@@ -140,7 +140,7 @@
 
 	const getReviews = async (page?: number, offset?: number) => {
 		const res = await fetch(
-			`/recipe/review/?recipe=${`@${username}/${recipe?.id}`}&page=${page}&offset=${offset}&userEmail=${
+			`/recipe/review/?recipe=${`@${username}/${recipe.id}`}&page=${page}&offset=${offset}&userEmail=${
 				user?.email
 			}`,
 			{ method: 'GET' }
@@ -220,13 +220,13 @@
 		<h2 class="description">{recipe.description}</h2>
 		<div class="intensity" use:tippy={intensityHelpTippy}>
 			<h2>Intensity:</h2>
-			{#if recipe?.intensity == 1}
+			{#if recipe.intensity == 1}
 				<img src={intensity_1} alt="" />
-			{:else if recipe?.intensity == 2}
+			{:else if recipe.intensity == 2}
 				<img src={intensity_2} alt="" />
-			{:else if recipe?.intensity == 3}
+			{:else if recipe.intensity == 3}
 				<img src={intensity_3} alt="" />
-			{:else if recipe?.intensity == 4}
+			{:else if recipe.intensity == 4}
 				<img src={intensity_4} alt="" />
 			{:else}
 				<img src={intensity_5} alt="" />
@@ -267,7 +267,7 @@
 		{/if}
 		<div class="tags">
 			<ul>
-				{#each recipe?.tags || [] as tag}
+				{#each recipe.tags || [] as tag}
 					<li>{tag}</li>
 				{/each}
 			</ul>
@@ -313,19 +313,15 @@
 												{ingredient?.name}
 											</h4>
 											<h5 class="ingredient-preperation">
-												{ingredient?.preperation}
+												{ingredient.preperation ?? ''}
 											</h5>
 
 											<h4 class="ingredient-amount">
 												{ingredient?.amount +
 													'' +
 													(ingredient?.amount == 1
-														? ingredient?.unit?.abbr[0]
-															? ingredient?.unit?.abbr[0]
-															: ''
-														: ingredient?.unit?.abbr[1]
-														? ingredient?.unit?.abbr[1]
-														: '')}
+														? ingredient?.unit?.abbr[0] ?? ''
+														: ingredient?.unit?.abbr[1] ?? '')}
 											</h4>
 										</div>
 									</li>

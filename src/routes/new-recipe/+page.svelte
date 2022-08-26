@@ -11,6 +11,7 @@
 
 	import type { RecipeCardData, Recipe, Ingredient } from '$lib/types'
 	import { units } from '$lib/unitData'
+	import { tags } from '$lib/tagData'
 
 	let recipeCardTemplate = {
 		ingredients: [],
@@ -65,6 +66,8 @@
 
 	let newSteps: string[] = ['', '']
 
+	let newTag: string = ''
+
 	const addIngredient = (rI: number) => {
 		if (typeof recipe.content[rI] === 'object') {
 			recipe.content[rI].ingredients = [...recipe.content[rI].ingredients, newIngredients[rI]]
@@ -78,6 +81,20 @@
 			newSteps[rI] = ''
 		}
 	}
+
+	const addTag = (tag: string) => {
+		if (!recipe.tags.includes(tag)) {
+			recipe.tags = [...recipe.tags, tag]
+			newTag = ''
+		}
+	}
+
+	const removeTag = (i: number) => {
+		recipe.tags.splice(i, 1)
+		recipe = recipe
+	}
+
+	let showAllTags = false
 
 	const postRecipe = async () => {
 		toast.push(`<h4>Uploading Recipe...</h4>`)
@@ -139,16 +156,21 @@
 		animation: 'scale',
 		hideOnClick: true
 	}
+
+	let autosave: NodeJS.Timeout
+	$: {
+		clearInterval(autosave)
+		autosave = setInterval(() => {
+			if (browser) {
+				localStorage.setItem('recipe', JSON.stringify(recipe))
+			}
+		}, 1000)
+	}
 </script>
 
 <svelte:head>
 	<title>New Recipe</title>
 </svelte:head>
-
-<svelte:window
-	on:keydown={() => {
-		localStorage.setItem('recipe', JSON.stringify(recipe))
-	}} />
 
 <div class="content">
 	<div class="recipe-header-input">
@@ -188,6 +210,67 @@
 		<div use:tippy={intensityHelpTippy}>
 			<p>Intensity:</p>
 			<input type="number" bind:value={recipe.intensity} min="1" max="5" />
+		</div>
+
+		<div class="tag-add">
+			<input
+				type="text"
+				name=""
+				id=""
+				bind:value={newTag}
+				placeholder="Tags"
+				on:focus={() => {
+					if (newTag == '') {
+						showAllTags = true
+					}
+				}}
+				on:blur={() => {
+					setTimeout(() => {
+						showAllTags = false
+					}, 100)
+				}} />
+			<ul>
+				{#if showAllTags}
+					{#each tags as tag}
+						<li>
+							<button
+								on:click={() => {
+									addTag(tag)
+								}}>{tag}</button>
+						</li>
+					{/each}
+				{:else}
+					{#each tags.filter(el => {
+						if (newTag.replace(/\s+/g, '') == '') {
+							return false
+						} else {
+							return el.toLowerCase().includes(newTag.replace(/\s+/g, '').toLowerCase())
+						}
+					}) as tag}
+						<li>
+							<button
+								on:click={() => {
+									addTag(tag)
+								}}>{tag}</button>
+						</li>
+					{/each}
+				{/if}
+			</ul>
+		</div>
+
+		<div class="tags">
+			<ul>
+				{#each recipe.tags as tag, i}
+					<li>
+						{tag}
+						<button
+							class="tag-delete"
+							on:click={() => {
+								removeTag(i)
+							}}>x</button>
+					</li>
+				{/each}
+			</ul>
 		</div>
 	</div>
 
@@ -313,7 +396,7 @@
 												placeholder=""
 												bind:value={ingredient.amount} />
 											<select class="ingredient-unit" name="" id="" bind:value={ingredient.unit}>
-												<option value={undefined}> </option>
+												<option value={undefined} />
 												{#each units as unit, i}
 													<option value={unit}>{unit.name[0]}</option>
 												{/each}
@@ -350,7 +433,7 @@
 								placeholder=""
 								bind:value={newIngredients[rI].amount} />
 							<select class="ingredient-unit" name="" id="" bind:value={newIngredients[rI].unit}>
-								<option value={undefined}> </option>
+								<option value={undefined} />
 								{#each units as unit, i}
 									<option value={unit}>{unit.name[0]}</option>
 								{/each}
@@ -666,6 +749,82 @@
 		margin: auto;
 	}
 
+	.tag-add {
+		border: 3px solid #eee;
+		border-radius: 0.4rem;
+		height: fit-content;
+	}
+
+	.tag-add input {
+		width: 100%;
+		margin: 0;
+		padding: 0;
+	}
+
+	.tag-add ul {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		padding: 0;
+		margin: 0;
+	}
+
+	.tag-add li {
+	}
+
+	.tag-add li button {
+		border: none;
+		width: 100%;
+		background-color: #f9f9f9;
+		text-align: left;
+		font-size: 0.95rem;
+	}
+
+	.tag-add li button:hover {
+		border: none;
+		width: 100%;
+		background-color: #eee;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		margin: 0 1rem;
+	}
+
+	.tags ul {
+		list-style: none;
+		display: flex;
+		overflow: hidden;
+		padding: 0;
+		margin: 0.15rem 0;
+	}
+
+	.tags ul li {
+		text-decoration: none;
+		background-color: #ddd;
+		color: #555;
+		padding: 0.2rem 0.5rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		height: 1rem;
+		line-height: 1rem;
+		border-radius: 0.7rem;
+		margin-right: 0.4rem;
+	}
+
+	.tag-delete {
+		border: none;
+		border-radius: 50%;
+		font-weight: 600;
+		color: #555;
+		padding: 0;
+		width: 16px;
+		height: 16px;
+	}
+
 	.nutrition {
 		margin-top: 1rem;
 		grid-column: 1/6;
@@ -727,7 +886,7 @@
 	input[type='text'] {
 		border: none;
 		border-bottom: 1px solid #ccc;
-		width: max-content;
+		width: 100%;
 	}
 
 	input[type='text']:focus {

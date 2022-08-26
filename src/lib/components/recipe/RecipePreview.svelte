@@ -34,74 +34,126 @@
 </script>
 
 <div class="preview">
-	<div class="intensity" use:tippy={intensityHelpTippy}>
-		{#if recipe?.intensity == 1}
-			<img src={intensity_1} alt="" />
-		{:else if recipe?.intensity == 2}
-			<img src={intensity_2} alt="" />
-		{:else if recipe?.intensity == 3}
-			<img src={intensity_3} alt="" />
-		{:else if recipe?.intensity == 4}
-			<img src={intensity_4} alt="" />
-		{:else}
-			<img src={intensity_5} alt="" />
-		{/if}
-	</div>
-
-	<div
-		class="cover_image"
-		on:click={() => {
-			goto(link)
-		}}>
-		<img src={recipe.cover_image} alt="" />
-	</div>
-
-	<div class="preview-body">
-		<h3
-			on:click={() => {
-				goto(link)
-			}}>
-			{recipe.title}
-		</h3>
-
-		<div class="row">
-			<RatingsBar active={false} rating={recipe.rating} />
-			<p class="rating-count">{recipe.ratingCount}</p>
+	<div class="preview-card">
+		<div class="intensity" use:tippy={intensityHelpTippy}>
+			{#if recipe?.intensity == 1}
+				<img src={intensity_1} alt="" />
+			{:else if recipe?.intensity == 2}
+				<img src={intensity_2} alt="" />
+			{:else if recipe?.intensity == 3}
+				<img src={intensity_3} alt="" />
+			{:else if recipe?.intensity == 4}
+				<img src={intensity_4} alt="" />
+			{:else}
+				<img src={intensity_5} alt="" />
+			{/if}
 		</div>
-		<p
-			class="description"
+
+		<div
+			class="cover_image"
 			on:click={() => {
 				goto(link)
 			}}>
-			{recipe.description}
-		</p>
-		<div class="bottom-row">
-			<ul>
-				{#each recipe?.tags || [] as tag}
-					<li>{tag}</li>
-				{/each}
-			</ul>
+			<img src={recipe.cover_image} alt="" />
+		</div>
 
-			<h4
+		<div class="preview-body">
+			<h3
 				on:click={() => {
-					goto(link.split('/')[1])
+					goto(link)
 				}}>
-				{link.split('/')[1]}
-			</h4>
+				{recipe.title}
+			</h3>
+
+			<div class="row">
+				<RatingsBar active={false} rating={recipe.rating} />
+				<p class="rating-count">{recipe.ratingCount}</p>
+			</div>
+			<p
+				class="description"
+				on:click={() => {
+					goto(link)
+				}}>
+				{recipe.description}
+			</p>
+			<div class="bottom-row">
+				<ul>
+					{#each recipe?.tags || [] as tag}
+						<li>{tag}</li>
+					{/each}
+				</ul>
+
+				<h4
+					on:click={() => {
+						goto(link.split('/')[1])
+					}}>
+					{link.split('/')[1]}
+				</h4>
+			</div>
 		</div>
 	</div>
 </div>
 
 <style>
 	.preview {
-		position: relative;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		/* justify-content: end; */
 		width: 300px;
 		height: 360px;
-		padding: 0 0.5rem;
+		margin: 0 0.25rem;
+	}
+
+	/* https://codepen.io/Axiol/pen/QWLRMVr */
+	.preview {
+		position: relative;
+		display: inline-block;
+		background-color: var(--accent-color);
+	}
+
+	.preview:before,
+	.preview:after {
+		content: '';
+		display: block;
+		background-color: var(--accent-color);
+		width: 8px;
+		height: 8px;
+		position: absolute;
+		transition: all 0.15s ease;
+	}
+
+	.preview:before {
+		top: 0;
+		left: 0;
+		transform-origin: top left;
+		transform: rotate(-45deg) scale(0);
+	}
+
+	.preview:after {
+		right: 0;
+		bottom: 0;
+		transform-origin: bottom right;
+		transform: rotate(45deg) scale(0);
+	}
+
+	.preview-card {
+		display: block;
+		width: 300px;
+		height: 360px;
+		transform: translate(0, 0);
+		transition: all 0.15s ease;
+		position: relative;
+		z-index: 10;
+		background-color: #f9f9f9;
+	}
+
+	.preview:hover .preview-card {
+		transform: translate(6px, -6px);
+	}
+
+	.preview:hover:before {
+		transform: rotate(-45deg) scale(1);
+	}
+
+	.preview:hover:after {
+		transform: rotate(45deg) scale(1);
 	}
 
 	.row {
@@ -116,6 +168,7 @@
 		flex-wrap: nowrap;
 		justify-content: space-between;
 		align-items: center;
+		margin: 0 1rem;
 	}
 
 	.bottom-row ul {
@@ -149,11 +202,13 @@
 		font-size: 1.4rem;
 		font-weight: 600;
 		text-align: left;
-		margin: 0;
+		margin: 0.6rem auto 0 auto;
 		max-width: 220px;
-		-webkit-line-clamp: 2;
+		-webkit-line-clamp: 1;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+		width: 100%;
+		text-align: center;
 	}
 
 	h3:hover {
@@ -181,10 +236,10 @@
 	}
 
 	.description {
-		margin: 0;
+		margin: 0 1rem;
 		-webkit-box-orient: vertical;
 		display: -webkit-box;
-		-webkit-line-clamp: 2;
+		-webkit-line-clamp: 1;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: normal;
