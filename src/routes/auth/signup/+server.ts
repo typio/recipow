@@ -18,7 +18,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: validEmail.msg
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -30,7 +30,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: validPassword.msg
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -42,7 +42,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: validName.msg
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -65,30 +65,25 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: 'User with this email already exists'
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
-
 	}
 
 	let username = email.split('@')[0]
 
-	if (
-		(await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0
-	) {
+	if ((await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0) {
 		username += Math.floor(Math.random() * 1000)
 	}
 
 	// dont want while in case this can be exploited somehow
-	if (
-		(await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0
-	) {
+	if ((await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0) {
 		return new Response(
 			JSON.stringify({
-				message: 'Couldn\'t generate unique username, please try again.'
+				message: "Couldn't generate unique username, please try again."
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -137,7 +132,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 					sameSite: 'strict',
 					secure: true
 				})
-			},
+			}
 		}
 	)
 }

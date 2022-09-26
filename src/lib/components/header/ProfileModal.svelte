@@ -7,7 +7,7 @@
 	const dispatch = createEventDispatcher()
 </script>
 
-<div class="profile-modal">
+<div class="profile-modal bg-stone-100 dark:bg-stone-800 shadow-xl">
 	<ul>
 		<li>
 			<button
@@ -61,11 +61,8 @@
 	.profile-modal {
 		position: absolute;
 		z-index: 100;
-		left: 51vw;
 		top: 3.4vh;
 		border-radius: 0.4rem;
-		background-color: #fff;
-		box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 	}
 
 	.profile-modal button {
@@ -74,7 +71,6 @@
 		display: flex;
 		height: 100%;
 		align-items: center;
-		color: var(--heading-color);
 		font-weight: 700;
 		font-size: 0.8rem;
 		text-transform: uppercase;
@@ -122,10 +118,8 @@
 
 	.name-display .username {
 		font-size: 0.85rem;
-		color: var(--text-color);
 	}
 
 	button:hover {
-		color: var(--accent-color);
 	}
 </style>

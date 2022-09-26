@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					sameSite: 'strict',
 					secure: true
 				})
-			},
+			}
 		}
 	)
 }

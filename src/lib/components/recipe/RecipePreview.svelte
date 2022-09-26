@@ -1,11 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 
-	import tippy from 'sveltejs-tippy'
-	import 'tippy.js/animations/perspective.css'
-	import 'tippy.js/animations/scale.css'
-	import 'tippy.js/dist/border.css'
-
 	import intensity_1 from '$lib/assets/intensity_1.svg'
 	import intensity_2 from '$lib/assets/intensity_2.svg'
 	import intensity_3 from '$lib/assets/intensity_3.svg'
@@ -16,242 +11,82 @@
 	import RatingsBar from './RatingsBar.svelte'
 	export let recipe: Recipe
 	export let link: string
-
-	const intensityHelpTippy = {
-		content:
-			'Intensity of this recipe<br/>\
-			1 - Stick of Butter Coated in Sugar<br/>\
-			2 - Oatmeal w/ Fruit<br/>\
-			3 - Oatmeal w/ Peanut Butter<br/>\
-			4 - Oatmeal w/ Whey Protein<br/>\
-			5 - Boiled Chicken Breast',
-		allowHTML: true,
-		placement: 'left',
-		theme: 'poptart',
-		animation: 'scale',
-		hideOnClick: true
-	}
 </script>
 
-<div class="preview">
-	<div class="preview-card">
-		<div class="intensity" use:tippy={intensityHelpTippy}>
-			{#if recipe?.intensity == 1}
-				<img src={intensity_1} alt="" />
-			{:else if recipe?.intensity == 2}
-				<img src={intensity_2} alt="" />
-			{:else if recipe?.intensity == 3}
-				<img src={intensity_3} alt="" />
-			{:else if recipe?.intensity == 4}
-				<img src={intensity_4} alt="" />
-			{:else}
-				<img src={intensity_5} alt="" />
-			{/if}
-		</div>
-
+<div class="preview w-80 mb-2 mx-2 mt-2">
+	<div class="preview-card flex flex-wrap flex-col bg-white dark:bg-stone-800 shadow-md rounded-xl bg-cover bg-no-repeat" style="height: 401px;">
 		<div
-			class="cover_image"
+			class="cover_image bg-cover bg-no-repeat rounded-t-xl grow"
+			style="background-image: url({recipe.cover_image})"
 			on:click={() => {
 				goto(link)
-			}}>
-			<img src={recipe.cover_image} alt="" />
-		</div>
+			}} />
 
-		<div class="preview-body">
-			<h3
+		<div class="preview-content px-2 max-w-xs flex flex-wrap flex-col ">
+			<h1
+				class="title text-2xl font-semibold text-center mt-2"
 				on:click={() => {
 					goto(link)
 				}}>
 				{recipe.title}
-			</h3>
+			</h1>
 
-			<div class="row">
-				<RatingsBar active={false} rating={recipe.rating} />
-				<p class="rating-count">{recipe.ratingCount}</p>
+			<div class="ratings-row place-items-center">
+				<div class="max-w-fit mx-auto">
+					<RatingsBar active={false} rating={recipe.rating} />
+				</div>
+				<p class="rating-count text-center font-bold">{recipe.ratingCount} reviews</p>
 			</div>
 			<p
-				class="description"
+				class="description text-center"
 				on:click={() => {
 					goto(link)
 				}}>
 				{recipe.description}
 			</p>
-			<div class="bottom-row">
-				<ul>
-					{#each recipe?.tags || [] as tag}
-						<li>{tag}</li>
-					{/each}
-				</ul>
 
-				<h4
-					on:click={() => {
-						goto(link.split('/')[1])
-					}}>
-					{link.split('/')[1]}
-				</h4>
+			<h4
+				class="username font-bold leading-7 h-7 hover:text-red-500 w-fit "
+				on:click={() => {
+					goto(link.split('/')[1])
+				}}>
+				{link.split('/')[1]}
+			</h4>
+			<div class="bottom-row flex w-full pb-2">
+				<div class="flex mr-3">
+					<h4 class="font-bold mr-2">Intensity</h4>
+					<div class="intensity w-4">
+						{#if recipe?.intensity == 1}
+							<img src={intensity_1} alt="Recipe Intensity Level 1" />
+						{:else if recipe?.intensity == 2}
+							<img src={intensity_2} alt="Recipe Intensity Level 2" />
+						{:else if recipe?.intensity == 3}
+							<img src={intensity_3} alt="Recipe Intensity Level 3" />
+						{:else if recipe?.intensity == 4}
+							<img src={intensity_4} alt="Recipe Intensity Level 4" />
+						{:else}
+							<img src={intensity_5} alt="Recipe Intensity Level 5" />
+						{/if}
+					</div>
+				</div>
+				<div class=" flex overflow-x-scroll  ">
+					{#each recipe?.tags || [] as tag}
+						<p class="whitespace-nowrap font-semibold text-sm  px-3 py-1 mr-2  bg-stone-200 text-stone-60 dark:bg-stone-600 dark:text-stone-100 rounded-full">{tag}</p>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
 
 <style>
-	.preview {
-		width: 300px;
-		height: 360px;
-		margin: 0 0.25rem;
-	}
-
-	/* https://codepen.io/Axiol/pen/QWLRMVr */
-	.preview {
-		position: relative;
-		display: inline-block;
-		background-color: var(--accent-color);
-	}
-
-	.preview:before,
-	.preview:after {
-		content: '';
-		display: block;
-		background-color: var(--accent-color);
-		width: 8px;
-		height: 8px;
-		position: absolute;
-		transition: all 0.15s ease;
-	}
-
-	.preview:before {
-		top: 0;
-		left: 0;
-		transform-origin: top left;
-		transform: rotate(-45deg) scale(0);
-	}
-
-	.preview:after {
-		right: 0;
-		bottom: 0;
-		transform-origin: bottom right;
-		transform: rotate(45deg) scale(0);
-	}
-
-	.preview-card {
-		display: block;
-		width: 300px;
-		height: 360px;
-		transform: translate(0, 0);
-		transition: all 0.15s ease;
-		position: relative;
-		z-index: 10;
-		background-color: #f9f9f9;
-	}
-
-	.preview:hover .preview-card {
-		transform: translate(6px, -6px);
-	}
-
-	.preview:hover:before {
-		transform: rotate(-45deg) scale(1);
-	}
-
-	.preview:hover:after {
-		transform: rotate(45deg) scale(1);
-	}
-
-	.row {
-		display: flex;
-		flex-wrap: nowrap;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.bottom-row {
-		display: flex;
-		flex-wrap: nowrap;
-		justify-content: space-between;
-		align-items: center;
-		margin: 0 1rem;
-	}
-
-	.bottom-row ul {
-		list-style: none;
-		display: flex;
-		overflow: hidden;
-		padding: 0;
-	}
-
-	.bottom-row ul li {
-		text-decoration: none;
-		background-color: #ddd;
-		color: #555;
-		padding: 0.2rem 0.5rem;
-		font-size: 0.8rem;
-		font-weight: 600;
-		height: 1rem;
-		line-height: 1rem;
-		border-radius: 0.7rem;
-		margin-right: 0.4rem;
-	}
-
-	.rating-count {
-		margin: 0 0 0 1rem;
-		align-items: center;
-		color: var(--color-grey-7);
-	}
-
-	h3 {
-		display: -webkit-box;
-		font-size: 1.4rem;
-		font-weight: 600;
-		text-align: left;
-		margin: 0.6rem auto 0 auto;
-		max-width: 220px;
-		-webkit-line-clamp: 1;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-		width: 100%;
-		text-align: center;
-	}
-
-	h3:hover {
-		color: var(--accent-color);
-	}
-
-	.intensity {
-		position: absolute;
-		display: block !important;
-		border-radius: 9000px !important;
-		clip-path: circle(50%);
-		width: 5rem;
-		height: 5rem;
-		right: 0;
-		background-color: #f1f1f1;
-		border: 4px solid #555;
-		z-index: 1;
-	}
-
-	.intensity img {
-		padding: 1rem;
-		height: 3rem;
-		width: 3rem;
-		border: none;
-	}
-
 	.description {
-		margin: 0 1rem;
 		-webkit-box-orient: vertical;
 		display: -webkit-box;
 		-webkit-line-clamp: 1;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: normal;
-	}
-
-	h4 {
-		margin: 0.5rem 0rem;
-		text-align: right;
-	}
-
-	h4:hover {
-		color: var(--accent-color);
 	}
 
 	.cover_image {

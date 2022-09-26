@@ -1,13 +1,10 @@
 <script lang="ts">
 	import RecipeCollection from '$lib/components/recipe/RecipeCollection.svelte'
-	import { page } from '$app/stores'
-
-	import type { User } from '$lib/types'
 
 	import type { PageData } from './$types'
 	export let data: PageData
 
-	$: ({ pageUser } = data)
+	$: ({ pageUser, user } = data)
 </script>
 
 <svelte:head>
@@ -15,7 +12,7 @@
 </svelte:head>
 
 <div class="content">
-	{#if $page.data.user?.email === pageUser.email}
+	{#if user?.email === data.pageUser.email}
 		<h1>Profile</h1>
 
 		<h2>

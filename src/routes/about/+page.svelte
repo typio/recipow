@@ -6,11 +6,11 @@
 	<title>About</title>
 </svelte:head>
 
-<div class="content">
-	<h1>About Recipow</h1>
+<div class="content font-semibold leading-6 mx-4">
+	<h1 class="text-2xl mb-12 text-center font-bold">About Recipow</h1>
 
 	<h2>The first fighting themed recipe website!</h2>
-	<h5>
+	<h5 class="pb-2">
 		> For bodyguards by bodyguards
 		<sup
 			on:mouseenter={() => {
@@ -40,9 +40,7 @@
 	</p>
 
 	<h6
-		style="color: {!highlights[0]
-			? 'var(--color-grey-7)'
-			: 'var(--accent-color)'} ; font-size: {!highlights[0] ? '.7rem' : '2rem'}"
+		style="color: {!highlights[0] ? 'var(--color-grey-7)' : 'var(--accent-color)'} ; font-size: {!highlights[0] ? '.7rem' : '2rem'}"
 		on:mouseenter={() => {
 			highlights[0] = true
 		}}
@@ -54,9 +52,7 @@
 		<sup>*</sup>Website is not made by bodyguards
 	</h6>
 	<h6
-		style="color: {!highlights[1]
-			? 'var(--color-grey-7)'
-			: 'var(--accent-color)'} ; font-size: {!highlights[1] ? '.7rem' : '2rem'}"
+		style="color: {!highlights[1] ? 'var(--color-grey-7)' : 'var(--accent-color)'} ; font-size: {!highlights[1] ? '.7rem' : '2rem'}"
 		on:mouseenter={() => {
 			highlights[1] = true
 		}}
@@ -69,9 +65,7 @@
 	</h6>
 
 	<h6
-		style="color: {!highlights[2]
-			? 'var(--color-grey-7)'
-			: 'var(--accent-color)'} ; font-size: {!highlights[2] ? '.7rem' : '2rem'}"
+		style="color: {!highlights[2] ? 'var(--color-grey-7)' : 'var(--accent-color)'} ; font-size: {!highlights[2] ? '.7rem' : '2rem'}"
 		on:mouseenter={() => {
 			highlights[2] = true
 		}}
@@ -80,30 +74,17 @@
 				highlights[2] = false
 			}, 200)
 		}}>
-		<sup>***</sup>Website is in development and any data you upload should be considered unsafe/
-		unstable. It may also be running a faulty dev build.
+		<sup>***</sup>Website is in development and any data you upload should be considered unsafe/ unstable. It may also be running a faulty dev build.
 	</h6>
 
-	<p>
-		Please share your yummy recipies whether they be generational treasures or your own concoction,
-		and try cooking something out of our abundant catalouge!
-	</p>
-	<p>
-		This is a website for bodyguards to share their fighting themed recipes. 🔥 Even if you aren't a
-		bodyguard, please sign up and create a recipe. 💯 I'm creating this website to gain experience
-		in fullstack web dev, and to make the best recipe website online!!! 🚀 If you have any
-		suggestions please email me at <a href="mailto:tohuber" target="_blank">me@tohuber.com</a>! 🙏
+	<p class="mt-2 mb-4 indent-8">Please share your yummy recipies whether they be generational treasures or your own concoction, and try cooking something out of our abundant catalouge!</p>
+	<p class="indent-8">
+		This is a website for bodyguards to share their fighting themed recipes. 🔥 Even if you aren't a bodyguard, please sign up and create a recipe. 💯 I'm creating this website to gain experience in fullstack web dev, and to make the best
+		recipe website online!!! 🚀 If you have any suggestions please email me at <a href="mailto:tohuber" target="_blank">me@tohuber.com</a>! 🙏
 	</p>
 </div>
 
 <style>
-	.content {
-		width: 100%;
-		width: fit-content;
-		max-width: var(--column-width);
-		margin: var(--column-margin-top) auto 0 auto;
-	}
-
 	sup {
 		font-size: 0.8rem;
 	}
@@ -124,6 +105,8 @@
 		margin: 0 0 0 2rem;
 		color: var(--color-grey-7);
 		transition: cubic-bezier(0.075, 0.82, 0.165, 1) 0.2s;
+
+		line-height: 2.25rem;
 		font-weight: 500;
 	}
 </style>

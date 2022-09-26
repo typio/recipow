@@ -1,4 +1,1 @@
-export const tags: string[] = [
-    'anabolic',
-    'smoothie', 'pizza', 'oats',
-]
+export const tags: string[] = ['anabolic', 'smoothie', 'pizza', 'oats']

@@ -26,7 +26,7 @@ type Review = {
 	leftByUser?: boolean
 }
 
-import { tags } from "tagData"
+import { tags } from 'tagData'
 
 export type Recipe = {
 	id: string
@@ -39,7 +39,7 @@ export type Recipe = {
 	ratingCount: number
 	reviews?: Review[]
 	createdAt: string
-	intensity: (1 | 2 | 3 | 4 | 5)
+	intensity: 1 | 2 | 3 | 4 | 5
 	visibility: 'public' | 'private' | 'unlisted'
 }
 
@@ -49,7 +49,7 @@ type Time = {
 	days: number
 }
 
-import { units } from "unitData"
+import { units } from 'unitData'
 
 type Ingredient = {
 	name: string

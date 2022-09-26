@@ -38,21 +38,12 @@
 		on:mousemove={e => {
 			const firstFistX = firstFist.getBoundingClientRect().x
 			const fistWidth = firstFist.getBoundingClientRect().width
-			const fistSpacing =
-				secondFist.getBoundingClientRect().left - firstFist.getBoundingClientRect().right
+			const fistSpacing = secondFist.getBoundingClientRect().left - firstFist.getBoundingClientRect().right
 
 			let mouseX = e.clientX
 			if (mouseX < firstFistX + (fistWidth + fistSpacing) * 5 - fistSpacing) {
 				// check if over fist (to avoid setting on offset part)
-				if (
-					((mouseX - firstFistX) / (fistWidth + fistSpacing)) % 1 <
-					fistWidth / (fistWidth + fistSpacing)
-				)
-					tempRating =
-						(mouseX -
-							firstFistX -
-							fistSpacing * Math.floor((mouseX - firstFistX) / (fistWidth + fistSpacing))) /
-						fistWidth
+				if (((mouseX - firstFistX) / (fistWidth + fistSpacing)) % 1 < fistWidth / (fistWidth + fistSpacing)) tempRating = (mouseX - firstFistX - fistSpacing * Math.floor((mouseX - firstFistX) / (fistWidth + fistSpacing))) / fistWidth
 			} else {
 				tempRating = rating
 			}
@@ -65,18 +56,11 @@
 			dispatchRating()
 		}}>
 		{#each [1, 2, 3, 4, 5] as ratingLevel, i}
-			<img
-				class="rating-{ratingLevel}-{randomPart}"
-				style="margin-left: {i * 3}rem"
-				src={recipow_fist_empty}
-				alt="Rating Fist" />
+			<img class="rating-{ratingLevel}-{randomPart}" style="margin-left: {i * 3}rem" src={recipow_fist_empty} alt="Rating Fist" />
 			{#if ratingLevel <= tempRating}
 				<img style="margin-left: {i * 3}rem" src={recipow_fist_filled} alt="Rating Fist" />
 			{:else if ratingLevel - 1 <= tempRating}
-				<img
-					style=" margin-left: {i * 3}rem; width: {(tempRating % 1) * 2}rem"
-					src={recipow_fist_filled}
-					alt="Rating Fist" />
+				<img style=" margin-left: {i * 3}rem; width: {(tempRating % 1) * 2}rem" src={recipow_fist_filled} alt="Rating Fist" />
 			{/if}
 		{/each}
 	</div>
@@ -101,18 +85,11 @@
 {:else}
 	<div class="ratings-bar">
 		{#each [1, 2, 3, 4, 5] as ratingLevel, i}
-			<img
-				class="rating-{ratingLevel}-{randomPart}"
-				style="margin-left: {i * 1.5}rem"
-				src={recipow_fist_empty}
-				alt="Rating Fist" />
+			<img class="rating-{ratingLevel}-{randomPart}" style="margin-left: {i * 1.5}rem" src={recipow_fist_empty} alt="Rating Fist" />
 			{#if ratingLevel <= tempRating}
 				<img style="margin-left: {i * 1.5}rem" src={recipow_fist_filled} alt="Rating Fist" />
 			{:else if ratingLevel - 1 <= tempRating}
-				<img
-					style=" margin-left: {i * 1.5}rem; width: {(tempRating % 1) * 1}rem"
-					src={recipow_fist_filled}
-					alt="Rating Fist" />
+				<img style=" margin-left: {i * 1.5}rem; width: {(tempRating % 1) * 1}rem" src={recipow_fist_filled} alt="Rating Fist" />
 			{/if}
 		{/each}
 	</div>
@@ -123,7 +100,7 @@
 			justify-content: space-between;
 			align-items: center;
 			width: 7rem;
-			height: 3rem;
+			height: 1rem;
 		}
 
 		.ratings-bar img {

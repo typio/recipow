@@ -20,7 +20,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				message: 'Invalid email'
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -31,7 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				message: 'Invalid password'
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -40,9 +40,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		await redis.del(previousSID)
 
 		// delete avatar
-		const avatarURL = (
-			await mongoClient.db('recipow').collection('users').findOne({ email })
-		)?.avatar.split('.com/')[1]
+		const avatarURL = (await mongoClient.db('recipow').collection('users').findOne({ email }))?.avatar.split('.com/')[1]
 
 		try {
 			const result = await s3Client.send(
@@ -86,7 +84,7 @@ export const POST: RequestHandler = async ({ request }) => {
 						sameSite: 'strict',
 						secure: true
 					})
-				},
+				}
 			}
 		)
 	}
@@ -95,7 +93,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			message: 'Invalid email or password'
 		}),
 		{
-			status: 400,
+			status: 400
 		}
 	)
 }

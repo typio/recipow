@@ -8,6 +8,7 @@
 	import { page } from '$app/stores'
 	import Overlay from '$lib/components/header/Overlay.svelte'
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
+	import type { Recipe } from '$lib/types'
 
 	let formType = 'none'
 
@@ -20,11 +21,7 @@
 	const niceBytes = (a: number) => {
 		let b = 0
 		for (; 1024 <= a && ++b; ) a /= 1024
-		return (
-			a.toFixed(10 > a && 0 < b ? 1 : 0) +
-			' ' +
-			['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][b]
-		)
+		return a.toFixed(10 > a && 0 < b ? 1 : 0) + ' ' + ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][b]
 	}
 
 	const updateUser = async () => {
@@ -37,11 +34,7 @@
 			toast.push('<h4>Updating User...</h4><p>Large photos may take a few seconds to process.</p>')
 			dataArray.append('newAvatarFile', avatarFile)
 		} else {
-			toast.push(
-				'<h4>Avatar must be smaller than 2 MB. Your image is ' +
-					niceBytes(avatarFile.size) +
-					'.</h4>'
-			)
+			toast.push('<h4>Avatar must be smaller than 2 MB. Your image is ' + niceBytes(avatarFile.size) + '.</h4>')
 			return
 		}
 
@@ -72,7 +65,7 @@
 		})
 		const { recipes } = await recipesResult.json()
 		console.log(recipes)
-		recipes.forEach(async recipe => {
+		recipes.forEach(async (recipe: Recipe) => {
 			const res = await fetch(`/recipe`, {
 				method: 'DELETE',
 				body: JSON.stringify({
@@ -137,8 +130,7 @@
 		<input class="text-input" type="text" label="Name: " bind:value={username} />
 		<div class="break" />
 		<p>
-			Your URL is <a href={'/' + '@' + $page.data.user.username}>
-				https://recipow.com/{'@' + username.replaceAll(' ', '')}</a>
+			Your URL is <a href={'/' + '@' + $page.data.user.username}> https://recipow.com/{'@' + username.replaceAll(' ', '')}</a>
 		</p>
 	</div>
 	<button
@@ -151,7 +143,7 @@
 	<br />
 
 	<button
-		class="btn btn-danger"
+		class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4"
 		on:click={() => {
 			formType = 'deleteAccount'
 		}}>Delete Account</button>

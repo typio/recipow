@@ -16,13 +16,9 @@ export const POST: RequestHandler = async ({ request }) => {
 		const newName = body.get('newName') as string
 		const newUsername = body.get('newUsername') as string
 
-		const email = JSON.parse(
-			(await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}'
-		).email
+		const email = JSON.parse((await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}').email
 
-		const oldUsername = (
-			await mongoClient.db('recipow').collection('users').find({ email }).toArray()
-		)[0].username
+		const oldUsername = (await mongoClient.db('recipow').collection('users').find({ email }).toArray())[0].username
 
 		const newAvatarFile = body.get('newAvatarFile')
 
@@ -33,7 +29,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					message: validName.msg
 				}),
 				{
-					status: 400,
+					status: 400
 				}
 			)
 		}
@@ -46,7 +42,7 @@ export const POST: RequestHandler = async ({ request }) => {
 						message: validUsername.msg
 					}),
 					{
-						status: 400,
+						status: 400
 					}
 				)
 			}
@@ -65,9 +61,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			const randomPart = '-' + Math.floor(Math.random() * 1000000)
 
 			// remove old avatar
-			const avatarURL = (
-				await mongoClient.db('recipow').collection('users').findOne({ email })
-			)?.avatar.split('.com/')[1]
+			const avatarURL = (await mongoClient.db('recipow').collection('users').findOne({ email }))?.avatar.split('.com/')[1]
 
 			if (avatarURL.startsWith('avatars/')) {
 				try {
@@ -95,16 +89,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			const s3Result = await s3Upload.done()
 
-			const newAvatarURL =
-				'https://recipow.s3.us-west-1.amazonaws.com/avatars/' + emailHash + randomPart + '.png'
+			const newAvatarURL = 'https://recipow.s3.us-west-1.amazonaws.com/avatars/' + emailHash + randomPart + '.png'
 
 			const mongoResult = await mongoClient
 				.db('recipow')
 				.collection('users')
-				.updateOne(
-					{ email },
-					{ $set: { name: newName, username: newUsername, avatar: newAvatarURL } }
-				)
+				.updateOne({ email }, { $set: { name: newName, username: newUsername, avatar: newAvatarURL } })
 
 			if (mongoResult.matchedCount == 1 && s3Result.$metadata.httpStatusCode == 200) {
 				return new Response(
@@ -112,7 +102,7 @@ export const POST: RequestHandler = async ({ request }) => {
 						message: 'Success'
 					}),
 					{
-						status: 200,
+						status: 200
 					}
 				)
 			}
@@ -122,7 +112,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					message: 'Failed'
 				}),
 				{
-					status: 500,
+					status: 500
 				}
 			)
 		}
@@ -138,7 +128,7 @@ export const POST: RequestHandler = async ({ request }) => {
 					message: 'Matched with user'
 				}),
 				{
-					status: 200,
+					status: 200
 				}
 			)
 		}
@@ -147,17 +137,16 @@ export const POST: RequestHandler = async ({ request }) => {
 				message: "Couldn't find user"
 			}),
 			{
-				status: 500,
+				status: 500
 			}
 		)
-
 	} catch (error) {
 		return new Response(
 			JSON.stringify({
 				message: 'Failed to upload, error: ' + error
 			}),
 			{
-				status: 500,
+				status: 500
 			}
 		)
 	}
