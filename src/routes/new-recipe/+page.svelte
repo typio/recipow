@@ -11,6 +11,7 @@
 
 	import type { RecipeCardData, Recipe, Ingredient } from '$lib/types'
 	import { units } from '$lib/unitData'
+	import { tags } from '$lib/tagData'
 
 	let recipeCardTemplate = {
 		ingredients: [],
@@ -65,8 +66,11 @@
 
 	let newSteps: string[] = ['', '']
 
+	let newTag: string = ''
+
 	const addIngredient = (rI: number) => {
 		if (typeof recipe.content[rI] === 'object') {
+			// @ts-ignore
 			recipe.content[rI].ingredients = [...recipe.content[rI].ingredients, newIngredients[rI]]
 			newIngredients[rI] = {} as Ingredient
 		}
@@ -74,10 +78,25 @@
 
 	const addStep = (rI: number) => {
 		if (typeof recipe.content[rI] === 'object') {
+			// @ts-ignore
 			recipe.content[rI].steps = [...recipe.content[rI].steps, newSteps[rI]]
 			newSteps[rI] = ''
 		}
 	}
+
+	const addTag = (tag: string) => {
+		if (!recipe.tags.includes(tag)) {
+			recipe.tags = [...recipe.tags, tag]
+			newTag = ''
+		}
+	}
+
+	const removeTag = (i: number) => {
+		recipe.tags.splice(i, 1)
+		recipe = recipe
+	}
+
+	let showAllTags = false
 
 	const postRecipe = async () => {
 		toast.push(`<h4>Uploading Recipe...</h4>`)
@@ -103,7 +122,12 @@
 	}
 
 	const intensityHelpTippy = {
-		content: 'Rank the recipe 1-5 intensity: <br/>1 - All Butter and Sugar<br/>5 - Pure Protein',
+		content: 'Rank the recipe 1-5 intensity:<br/>\
+			1 - Stick of Butter Coated in Sugar<br/>\
+			2 - Oatmeal w/ Fruit<br/>\
+			3 - Oatmeal w/ Peanut Butter<br/>\
+			4 - Oatmeal w/ Whey Protein<br/>\
+			5 - Boiled Chicken Breast',
 		allowHTML: true,
 		placement: 'left',
 		theme: 'poptart',
@@ -112,8 +136,7 @@
 	}
 
 	const writeUpHelpTippy = {
-		content:
-			'This is an optional section<br/> where you can tell the readers<br/> more about your recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.',
+		content: 'This is an optional section<br/> where you can tell the readers<br/> more about your recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.',
 		allowHTML: true,
 		placement: 'left',
 		theme: 'poptart',
@@ -131,13 +154,22 @@
 	}
 
 	const notesHelpTippy = {
-		content:
-			"Leave this empty and it <br/>won't appear on the recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.",
+		content: "Leave this empty and it <br/>won't appear on the recipe.<br/><br/>Formatting options will show<br/> if you highlight the text.",
 		allowHTML: true,
 		placement: 'left',
 		theme: 'poptart',
 		animation: 'scale',
 		hideOnClick: true
+	}
+
+	let autosave: NodeJS.Timeout
+	$: {
+		clearInterval(autosave)
+		autosave = setInterval(() => {
+			if (browser) {
+				localStorage.setItem('recipe', JSON.stringify(recipe))
+			}
+		}, 1000)
 	}
 </script>
 
@@ -145,47 +177,106 @@
 	<title>New Recipe</title>
 </svelte:head>
 
-<svelte:window
-	on:keydown={() => {
-		localStorage.setItem('recipe', JSON.stringify(recipe))
-	}} />
-
 <div class="content">
 	<div class="recipe-header-input">
-		<input class="recipe-title" type="text" placeholder="Recipe Title" bind:value={recipe.title} />
-		<input
-			class="recipe-description"
-			type="text"
-			placeholder="Description"
-			bind:value={recipe.description} />
+		<div class="header-left-side">
+			<input class="recipe-title" type="text" placeholder="Recipe Title" bind:value={recipe.title} />
+			<input class="recipe-description" type="text" placeholder="Description" bind:value={recipe.description} />
+
+			<div class="tag-add">
+				<input
+					type="text"
+					name=""
+					id=""
+					bind:value={newTag}
+					placeholder="Tags"
+					on:focus={() => {
+						if (newTag == '') {
+							showAllTags = true
+						}
+					}}
+					on:blur={() => {
+						setTimeout(() => {
+							showAllTags = false
+						}, 100)
+					}} />
+				<ul>
+					{#if showAllTags}
+						{#each tags as tag}
+							<li>
+								<button
+									on:click={() => {
+										addTag(tag)
+									}}>{tag}</button>
+							</li>
+						{/each}
+					{:else}
+						{#each tags.filter(el => {
+							if (newTag.replace(/\s+/g, '') == '') {
+								return false
+							} else {
+								return el.toLowerCase().includes(newTag.replace(/\s+/g, '').toLowerCase())
+							}
+						}) as tag}
+							<li>
+								<button
+									on:click={() => {
+										addTag(tag)
+									}}>{tag}</button>
+							</li>
+						{/each}
+					{/if}
+				</ul>
+			</div>
+		</div>
 		<img class="recipe-cover-preview" src={recipe.cover_image} alt="" />
-		<input
-			class="recipe-cover-input"
-			type="file"
-			accept=".png, .jpg, .jpeg"
-			name=""
-			id=""
-			on:change={async e => {
-				const reader = new FileReader()
+		<div class="recipe-cover-input">
+			<input
+				type="file"
+				accept=".png, .jpg, .jpeg"
+				name=""
+				id=""
+				on:change={async e => {
+					const reader = new FileReader()
 
-				reader.readAsDataURL(e.target.files[0])
-				reader.onload = async e => {
-					recipe.cover_image = e.target.result
+					reader.readAsDataURL(e?.target?.files[0])
+					reader.onload = async e => {
+						recipe.cover_image = e.target.result
 
-					const res = await fetch('/api/uploadImage', {
-						method: 'POST',
-						body: JSON.stringify({
-							bucketName: 'recipe_imgs',
-							imageBase64: recipe.cover_image,
-							isTemp: true
+						const res = await fetch('/api/uploadImage', {
+							method: 'POST',
+							body: JSON.stringify({
+								bucketName: 'recipe_imgs',
+								imageBase64: recipe.cover_image,
+								isTemp: true
+							})
 						})
-					})
 
-					const data = await res.json()
-					recipe.cover_image = data.imageUrl
-				}
-			}} />
-		<div use:tippy={intensityHelpTippy}>
+						const data = await res.json()
+						recipe.cover_image = data.imageUrl
+					}
+				}} />
+			<button
+				class="btn"
+				on:click={() => {
+					recipe.cover_image = undefined
+				}}>X</button>
+		</div>
+		<div class="tags">
+			<ul>
+				{#each recipe.tags as tag, i}
+					<li>
+						{tag}
+						<button
+							class="tag-delete"
+							on:click={() => {
+								removeTag(i)
+							}}>x</button>
+					</li>
+				{/each}
+			</ul>
+		</div>
+		<div class="recipe-intensity" use:tippy={intensityHelpTippy}>
 			<p>Intensity:</p>
 			<input type="number" bind:value={recipe.intensity} min="1" max="5" />
 		</div>
@@ -238,55 +329,50 @@
 				<div class="recipe-card-input">
 					<div class="recipe-header-input">
 						{#if recipe.content.filter(el => typeof el === 'object').length > 1}
-							<input
-								class="recipe-title"
-								type="text"
-								placeholder="Recipe Title"
-								bind:value={content.title} />
-							<input
-								class="recipe-description"
-								type="text"
-								placeholder="Description"
-								bind:value={content.description} />
+							<input class="recipe-title" type="text" placeholder="Recipe Title" bind:value={content.title} />
+							<input class="recipe-description" type="text" placeholder="Description" bind:value={content.description} />
 							<img class="recipe-cover-preview" src={content.cover_image} alt="" />
-							<input
-								class="recipe-cover-input"
-								type="file"
-								accept=".png, .jpg, .jpeg"
-								name=""
-								id=""
-								on:change={async e => {
-									const reader = new FileReader()
-									reader.readAsDataURL(e.target?.files[0])
-									reader.onload = async e => {
-										content.cover_image = e.target.result
 
-										const res = await fetch('/api/uploadImage', {
-											method: 'POST',
-											body: JSON.stringify({
-												bucketName: 'recipe_imgs',
-												imageBase64: content.cover_image,
-												isTemp: true
+							<div class="recipe-cover-input">
+								<input
+									class="recipe-cover-input"
+									type="file"
+									accept=".png, .jpg, .jpeg"
+									name=""
+									id=""
+									on:change={async e => {
+										const reader = new FileReader()
+										reader.readAsDataURL(e.target?.files[0])
+										reader.onload = async e => {
+											content.cover_image = e.target.result
+
+											const res = await fetch('/api/uploadImage', {
+												method: 'POST',
+												body: JSON.stringify({
+													bucketName: 'recipe_imgs',
+													imageBase64: content.cover_image,
+													isTemp: true
+												})
 											})
-										})
 
-										const data = await res.json()
-										content.cover_image = data.imageUrl
-									}
-								}} />
+											const data = await res.json()
+											content.cover_image = data.imageUrl
+										}
+									}} />
+								<button
+									class="btn"
+									on:click={() => {
+										content.cover_image = undefined
+									}}>X</button>
+							</div>
+
 							{#if [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)].find(e => typeof e === 'object') !== undefined}
 								<button
 									class="btn btn-danger remove-btn"
 									on:click={() => {
-										recipe.content = [
-											...recipe.content.slice(0, rI),
-											...recipe.content.slice(rI + 1)
-										]
+										recipe.content = [...recipe.content.slice(0, rI), ...recipe.content.slice(rI + 1)]
 
-										newIngredients = [
-											...newIngredients.slice(0, rI),
-											...newIngredients.slice(rI + 1)
-										]
+										newIngredients = [...newIngredients.slice(0, rI), ...newIngredients.slice(rI + 1)]
 
 										newSteps = [...newSteps.slice(0, rI), ...newSteps.slice(rI + 1)]
 									}}>Remove</button>
@@ -301,36 +387,21 @@
 								{#each content.ingredients ?? [] as ingredient, iI}
 									<li>
 										<div class="ingredient">
-											<input
-												class="ingredient-name"
-												type="text"
-												placeholder="ex. Salted Butter"
-												bind:value={ingredient.name} />
+											<input class="ingredient-name" type="text" placeholder="ex. Salted Butter" bind:value={ingredient.name} />
 
-											<input
-												class="ingredient-amount"
-												type="number"
-												placeholder=""
-												bind:value={ingredient.amount} />
+											<input class="ingredient-amount" type="number" placeholder="" bind:value={ingredient.amount} />
 											<select class="ingredient-unit" name="" id="" bind:value={ingredient.unit}>
-												<option value={undefined}> </option>
+												<option value={undefined} />
 												{#each units as unit, i}
 													<option value={unit}>{unit.name[0]}</option>
 												{/each}
 											</select>
-											<input
-												class="ingredient-preperation"
-												type="text"
-												placeholder="ex. Softened"
-												bind:value={ingredient.preperation} />
+											<input class="ingredient-preperation" type="text" placeholder="ex. Softened" bind:value={ingredient.preperation} />
 
 											<button
 												class="ingredient-btn btn"
 												on:click={() => {
-													content.ingredients = [
-														...content.ingredients.slice(0, iI),
-														...content.ingredients.slice(iI + 1)
-													]
+													content.ingredients = [...content.ingredients.slice(0, iI), ...content.ingredients.slice(iI + 1)]
 												}}>-</button>
 										</div>
 									</li>
@@ -338,28 +409,16 @@
 							</ul>
 						</div>
 						<div class="input-field ingredient">
-							<input
-								class="ingredient-name"
-								type="text"
-								placeholder="ex. Salted Butter"
-								bind:value={newIngredients[rI].name} />
+							<input class="ingredient-name" type="text" placeholder="ex. Salted Butter" bind:value={newIngredients[rI].name} />
 
-							<input
-								class="ingredient-amount"
-								type="number"
-								placeholder=""
-								bind:value={newIngredients[rI].amount} />
+							<input class="ingredient-amount" type="number" placeholder="" bind:value={newIngredients[rI].amount} />
 							<select class="ingredient-unit" name="" id="" bind:value={newIngredients[rI].unit}>
-								<option value={undefined}> </option>
+								<option value={undefined} />
 								{#each units as unit, i}
 									<option value={unit}>{unit.name[0]}</option>
 								{/each}
 							</select>
-							<input
-								class="ingredient-preperation"
-								type="text"
-								placeholder="ex. Softened"
-								bind:value={newIngredients[rI].preperation} />
+							<input class="ingredient-preperation" type="text" placeholder="ex. Softened" bind:value={newIngredients[rI].preperation} />
 							<button
 								class="ingredient-btn btn"
 								on:click={() => {
@@ -440,22 +499,14 @@
 										<button
 											class="btn"
 											on:click={() => {
-												content.steps = [
-													...content.steps.slice(0, sI),
-													...content.steps.slice(sI + 1)
-												]
+												content.steps = [...content.steps.slice(0, sI), ...content.steps.slice(sI + 1)]
 											}}>-</button>
 									</div>
 								</li>
 							{/each}
 						</ol>
 						<div class="input-field">
-							<span style="width:80%;">
-								<TipTapEditor
-									bind:content={newSteps[rI]}
-									mode="generic"
-									placeholder="Write a step..." />
-							</span>
+							<TipTapEditor bind:content={newSteps[rI]} mode="generic" placeholder="Write a step..." />
 							<button
 								class="btn"
 								on:click={() => {
@@ -491,18 +542,11 @@
 							</p>
 							<p class="time-unit">mins</p>
 							<p class="time-total-number">
-								{(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) +
-									(content.times.prep.hours + content.times.cook.hours)) %
-									24}
+								{(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) + (content.times.prep.hours + content.times.cook.hours)) % 24}
 							</p>
 							<p class="time-unit">hours</p>
 							<p class="time-total-number">
-								{Math.floor(
-									(Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) +
-										(content.times.prep.hours + content.times.cook.hours)) /
-										24
-								) +
-									(content.times.prep.days + content.times.cook.days)}
+								{Math.floor((Math.floor((content.times.prep.minutes + content.times.cook.minutes) / 60) + (content.times.prep.hours + content.times.cook.hours)) / 24) + (content.times.prep.days + content.times.cook.days)}
 							</p>
 							<p class="time-unit">days</p>
 						</div>
@@ -518,10 +562,7 @@
 						</div>
 						<div use:tippy={notesHelpTippy}>
 							<h3>Notes:</h3>
-							<TipTapEditor
-								bind:content={content.notes}
-								mode="generic"
-								placeholder="Write any notes..." />
+							<TipTapEditor bind:content={content.notes} mode="generic" placeholder="Write any notes..." />
 						</div>
 					</div>
 				</div>
@@ -533,15 +574,9 @@
 				class="btn"
 				on:click={() => {
 					if (recipe.content.length < 6) {
-						document
-							.getElementById((rI + 1)?.toString())
-							?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+						document.getElementById((rI + 1)?.toString())?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 
-						recipe.content = [
-							...recipe.content.slice(0, rI + 1),
-							'',
-							...recipe.content.slice(rI + 1)
-						]
+						recipe.content = [...recipe.content.slice(0, rI + 1), '', ...recipe.content.slice(rI + 1)]
 						newSteps = ['', ...newSteps]
 						newIngredients = [Object.assign({}, ingredientTemplate), ...newIngredients]
 					} else {
@@ -553,15 +588,9 @@
 				class="btn"
 				on:click={() => {
 					if (recipe.content.length < 6) {
-						document
-							.getElementById((rI + 1)?.toString())
-							?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+						document.getElementById((rI + 1)?.toString())?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-						recipe.content = [
-							...recipe.content.slice(0, rI + 1),
-							Object.assign({}, recipeCardTemplate),
-							...recipe.content.slice(rI + 1)
-						]
+						recipe.content = [...recipe.content.slice(0, rI + 1), Object.assign({}, recipeCardTemplate), ...recipe.content.slice(rI + 1)]
 
 						newSteps = ['', ...newSteps]
 						newIngredients = [Object.assign({}, ingredientTemplate), ...newIngredients]
@@ -626,44 +655,150 @@
 
 	.recipe-header-input {
 		display: grid;
-		grid-template-columns: 2fr 3fr;
-		grid-template-rows: 1fr 1fr;
+		grid-template-columns: 1fr 1fr;
+		grid-template-rows: auto auto auto;
 		gap: 1rem 1rem;
 	}
 
 	.recipe-card-input > .recipe-header-input {
 		display: grid;
-		grid-template-columns: 2fr 3fr 1fr;
+		grid-template-columns: 2fr 3fr;
 		grid-template-rows: 1fr 1fr;
 		gap: 1rem 4rem;
 	}
 
-	.recipe-title {
+	.header-left-side {
 		grid-column: 1;
-		grid-row: 1;
+		grid-row: 1/3;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.recipe-title {
+		height: 4rem;
+		margin-bottom: 1rem;
 	}
 
 	.recipe-description {
-		grid-column: 1;
-		grid-row: 2;
-	}
-
-	.recipe-cover-input {
-		grid-column: 2;
-		grid-row: 1/2;
+		height: 4rem;
+		margin-bottom: 1rem;
 	}
 
 	.recipe-cover-preview {
 		grid-column: 2;
 		grid-row: 1/2;
-		max-height: 18rem;
 		margin-bottom: 3rem;
+		max-width: 100%;
+	}
+
+	.recipe-cover-input {
+		display: flex;
+		margin: auto auto 0 auto;
+		grid-column: 2;
+		grid-row: 1/2;
+	}
+
+	.recipe-intensity {
+		display: flex;
+		justify-content: space-evenly;
+	}
+
+	.recipe-intensity p {
+		align-items: center;
+		justify-items: center;
+		margin: auto 1rem auto auto;
+		height: fit-content;
+	}
+
+	.recipe-intensity input {
+		align-items: center;
+		justify-items: center;
+		margin: auto auto auto 1rem;
+		height: fit-content;
 	}
 
 	.recipe-header-input button {
 		grid-column: 3;
 		grid-row: 1/3;
 		margin: auto;
+	}
+
+	.tag-add {
+		position: relative;
+		grid-column: 1;
+		grid-row: 1/3;
+		border: 3px solid #eee;
+		border-radius: 0.4rem;
+		height: fit-content;
+		width: 100%;
+	}
+
+	.tag-add input {
+		width: 100%;
+		margin: 0;
+		padding: 0;
+	}
+
+	.tag-add ul {
+		list-style: none;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		padding: 0;
+		margin: 0;
+	}
+
+	.tag-add li button {
+		border: none;
+		width: 100%;
+		background-color: #f9f9f9;
+		text-align: left;
+		font-size: 0.95rem;
+	}
+
+	.tag-add li button:hover {
+		border: none;
+		width: 100%;
+		background-color: #eee;
+	}
+
+	.tags {
+		grid-column: 2;
+		grid-row: 3;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		margin: 0 1rem;
+	}
+
+	.tags ul {
+		list-style: none;
+		display: flex;
+		overflow: hidden;
+		padding: 0;
+		margin: 0.15rem 0;
+	}
+
+	.tags ul li {
+		text-decoration: none;
+		background-color: #ddd;
+		color: #555;
+		padding: 0.2rem 0.5rem;
+		font-size: 0.8rem;
+		font-weight: 600;
+		height: 1rem;
+		line-height: 1rem;
+		border-radius: 0.7rem;
+		margin-right: 0.4rem;
+	}
+
+	.tag-delete {
+		border: none;
+		border-radius: 50%;
+		font-weight: 600;
+		color: #555;
+		padding: 0;
+		width: 16px;
+		height: 16px;
 	}
 
 	.nutrition {
@@ -711,12 +846,26 @@
 		margin: 2rem 0;
 	}
 
+	.instructions ol {
+		list-style-type: decimal;
+	}
+
+	.instructions ol li::marker {
+		margin: auto;
+	}
+
 	.instruction {
+		width: 100%;
 		display: flex;
 	}
 
 	.instruction:nth-child(1) {
 		color: red;
+	}
+
+	.instruction button {
+		margin: auto 0 auto 3rem;
+		height: fit-content;
 	}
 
 	input[type='file'] {
@@ -727,7 +876,7 @@
 	input[type='text'] {
 		border: none;
 		border-bottom: 1px solid #ccc;
-		width: max-content;
+		width: 100%;
 	}
 
 	input[type='text']:focus {
@@ -739,9 +888,11 @@
 		display: flex;
 		justify-content: space-around;
 		align-items: center;
+		margin-left: 3rem;
 	}
 
-	.input-field input {
+	.input-field button {
+		margin: auto auto auto 3rem;
 	}
 
 	.ingredient-list ul {

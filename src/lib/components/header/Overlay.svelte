@@ -10,16 +10,4 @@
 	}
 </script>
 
-<div class="overlay" style={'background-color:' + color} on:click={clicked} />
-
-<style>
-	.overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
-		z-index: 99;
-
-		width: 100%;
-		height: 100%;
-	}
-</style>
+<div class="overlay z-10 absolute w-screen h-screen top-0 left-0" style={'background-color:' + color} on:click={clicked} />

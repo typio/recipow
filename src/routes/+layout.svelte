@@ -1,80 +1,35 @@
 <script lang="ts">
-	import { SvelteToast } from '@zerodevx/svelte-toast'
-	import { Svrollbar } from 'svrollbar'
-
 	import Header from '$lib/components/header/Header.svelte'
 	import '../app.css'
+	import Analytics from '$lib/components/Analytics.svelte'
 </script>
+
+<svelte:head>
+	<script>
+		if (window.localStorage.getItem('theme') === 'dark') {
+			document.getElementsByTagName('html')[0].setAttribute('class', 'dark')
+			theme.set('dark')
+		}
+	</script>
+</svelte:head>
+
+<Analytics />
 
 <Header />
 
-<SvelteToast />
-
-<main>
+<main class="flex flex-col max-w-sm sm:max-w-lg md:max-w-lg lg:max-w-4xl xl:max-w-5xl 2xl:max-w-7xl mx-auto">
 	<slot />
 </main>
 
-<Svrollbar />
-
-<footer>
-	<ul>
-		<li><a sveltekit:prefetch href="/about">About</a></li>
-		<li><a sveltekit:prefetch href="/help">Help</a></li>
-		<li><a sveltekit:prefetch href="/privacy">Privacy</a></li>
-		<li><a sveltekit:prefetch href="/terms">Terms</a></li>
-		<li><a sveltekit:prefetch href="/contact">Contact</a></li>
+<footer class="">
+	<ul class="max-w-sm mx-auto my-8 flex flex-row flex-wrap place-content-around text-center">
+		<li><a class="font-bold px-2 leading-9" sveltekit:prefetch href="/about">About</a></li>
+		<li><a class="font-bold px-2 leading-9" sveltekit:prefetch href="/help">Help</a></li>
+		<li><a class="font-bold px-2 leading-9" sveltekit:prefetch href="/privacy">Privacy</a></li>
+		<li><a class="font-bold px-2 leading-9" sveltekit:prefetch href="/terms">Terms</a></li>
+		<li><a class="font-bold px-2 leading-9" sveltekit:prefetch href="/contact">Contact</a></li>
 	</ul>
 </footer>
 
 <style>
-	main {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		width: 100%;
-		max-width: 960px;
-		/* overflow: hidden; */
-		margin: 0 auto;
-		box-sizing: border-box;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
-		padding: 40px;
-	}
-
-	footer ul {
-		width: 24%;
-		position: relative;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		list-style: none;
-		background: var(--background);
-		background-size: contain;
-		text-overflow: ellipsis;
-		flex-wrap: wrap;
-	}
-
-	footer li {
-		position: relative;
-		height: 100%;
-		display: flex;
-		align-items: center;
-		padding: 0rem 0.5rem;
-		font-size: 0.9rem;
-		line-height: 2rem;
-	}
-
-	@media (min-width: 480px) {
-		footer {
-			padding: 40px 0;
-		}
-	}
 </style>

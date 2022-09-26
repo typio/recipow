@@ -17,8 +17,6 @@ export type User = {
 
 type WriteUp = string
 
-export type Tags = ('smoothie' | 'pizza' | 'meat')[]
-
 type Review = {
 	rating: number
 	comment: string
@@ -28,18 +26,20 @@ type Review = {
 	leftByUser?: boolean
 }
 
+import { tags } from 'tagData'
+
 export type Recipe = {
 	id: string
 	title: string
 	description: string
 	cover_image?: string
-	tags: Tags
+	tags: typeof tags[number]
 	content: (RecipeCardData | WriteUp)[]
 	rating: number
 	ratingCount: number
 	reviews?: Review[]
 	createdAt: string
-	intensity: (1 | 2 | 3 | 4 | 5)
+	intensity: 1 | 2 | 3 | 4 | 5
 	visibility: 'public' | 'private' | 'unlisted'
 }
 
@@ -48,6 +48,8 @@ type Time = {
 	hours: number
 	days: number
 }
+
+import { units } from 'unitData'
 
 type Ingredient = {
 	name: string

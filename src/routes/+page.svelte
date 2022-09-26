@@ -1,5 +1,5 @@
 <script lang="ts">
-	import RecipeCollection from '$lib/components/recipe/RecipeCollection.svelte'
+	const RecipeCollectionPromise = import('$lib/components/recipe/RecipeCollection.svelte')
 
 	let searchInputText = ''
 	$: searchQuery = ''
@@ -12,22 +12,52 @@
 
 <section />
 
-<h2>Trending Recipes</h2>
-<RecipeCollection type={'trending'} />
+<h2 class="font-semibold text-2xl mb-2 ml-4">Trending Recipes</h2>
+{#await RecipeCollectionPromise}
+	<div class="animate-pulse fake-collection flex flex-wrap place-items-center place-content-center">
+		<div class="preview w-80 mb-2 mx-2 mt-2">
+			<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+		</div>
+		<div class="preview w-80 mb-2 mx-2 mt-2">
+			<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+		</div>
+		<div class="preview w-80 mb-2 mx-2 mt-2">
+			<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+		</div>
+		<div class="preview w-80 mb-2 mx-2 mt-2">
+			<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+		</div>
+	</div>
+{:then { default: RecipeCollection }}
+	<RecipeCollection type={'trending'} />
+{/await}
 
-<h2>Search for Recipes</h2>
-<div class="searchRow">
-	<input type="text" bind:value={searchInputText} placeholder="Search" />
+<h2 class="font-semibold text-xl mt-8 mb-2 ml-4">Search for Recipes</h2>
+<form
+	class="flex place-content-center space-x-4 mb-4"
+	on:submit={e => {
+		e.preventDefault()
+	}}>
+	<input
+		class="semibold rounded-lg pl-4 font-semibold placeholder:text-stone-400 dark:bg-stone-600 shadow-sm 
+	focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500"
+		type="text"
+		bind:value={searchInputText}
+		placeholder="Search" />
 	<button
-		class="btn"
+		class="bg-stone-200 dark:bg-stone-700 font-semibold rounded-lg h-10 px-4"
 		on:click={() => {
 			searchQuery = searchInputText
 		}}>Search</button>
-</div>
+</form>
 
 {#key searchQuery}
 	{#if searchQuery}
-		<RecipeCollection type={'search'} search={searchQuery} />
+		{#await RecipeCollectionPromise}
+			<h2 class="font-semibold">Loading Recipies...</h2>
+		{:then { default: RecipeCollection }}
+			<RecipeCollection type={'search'} search={searchQuery} />
+		{/await}
 	{/if}
 {/key}
 
@@ -38,27 +68,5 @@
 		justify-content: center;
 		align-items: center;
 		flex: 1;
-	}
-
-	.searchRow {
-		display: flex;
-		justify-content: center;
-		margin-bottom: 1rem;
-	}
-
-	.searchRow input {
-		padding-left: 1rem;
-		border: none;
-		border-bottom: 3px solid #222;
-		margin-right: 2rem;
-	}
-
-	.searchRow input:focus {
-		outline: none;
-	}
-
-	h2 {
-		width: 100%;
-		margin-top: 3rem;
 	}
 </style>

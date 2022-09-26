@@ -42,13 +42,14 @@ export const createImageExtension = (uploadFn: UploadFn) => {
 		],
 		renderHTML: ({ HTMLAttributes }) => ['img', HTMLAttributes],
 		addCommands() {
-			return (attrs: Attrs) => ({ state, dispatch }: CommandProps) => {
-				const { selection } = state
-				const position = selection.$cursor ? selection.$cursor.pos : selection.$to.pos
-				const node = this.type.create(attrs)
-				const transaction = state.tr.insert(position, node)
-				dispatch(transaction)
-			}
+			return (attrs: Attrs) =>
+				({ state, dispatch }: CommandProps) => {
+					const { selection } = state
+					const position = selection.$cursor ? selection.$cursor.pos : selection.$to.pos
+					const node = this.type.create(attrs)
+					const transaction = state.tr.insert(position, node)
+					dispatch(transaction)
+				}
 		},
 		addInputRules() {
 			return [

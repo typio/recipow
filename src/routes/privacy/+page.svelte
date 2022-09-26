@@ -2,20 +2,12 @@
 	<title>Privacy</title>
 </svelte:head>
 
-<div class="content">
-	<h1>Privacy</h1>
+<div class="content font-semibold mx-4">
+	<h1 class="text-2xl mb-12 text-center font-bold ">Privacy</h1>
 
-	<p>
-		I may collect any of your information and I may sell it. Don't use this site in California, I
-		don't understand the privacy laws there.
-	</p>
+	<p class="leading-8">I may collect any of your information and I may sell it. *teehee*</p>
+	<p class="leading-8">Don't use this site in California, I don't understand the privacy laws there.</p>
 </div>
 
 <style>
-	.content {
-		width: 100%;
-		width: fit-content;
-		max-width: var(--column-width);
-		margin: var(--column-margin-top) auto 0 auto;
-	}
 </style>

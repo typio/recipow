@@ -9,11 +9,9 @@ import type { RequestHandler } from './$types'
 import type { AuthUser } from '$lib/types'
 
 export const POST: RequestHandler = async ({ request, clientAddress }) => {
-
 	const { email, password } = await request.json()
 
 	const previousSID = cookie.parse(request.headers.get('cookie') || '').sessionId
-
 
 	if (!validateEmail(email)) {
 		return new Response(
@@ -21,7 +19,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: 'Invalid email'
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -32,7 +30,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: 'Invalid password'
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -56,7 +54,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 				message: 'Invalid email or password'
 			}),
 			{
-				status: 400,
+				status: 400
 			}
 		)
 	}
@@ -87,10 +85,9 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 						secure: true
 					})
 				}
-			},
+			}
 		)
 	}
-
 
 	await redis.set(
 		cookieId,
@@ -104,10 +101,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 	const mongoResult = await mongoClient
 		.db('recipow')
 		.collection('users')
-		.updateOne(
-			{ email },
-			{ $set: { ip: clientAddress } }
-		)
+		.updateOne({ email }, { $set: { ip: clientAddress } })
 
 	return new Response(
 		JSON.stringify({
@@ -123,7 +117,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 					sameSite: 'strict',
 					secure: true
 				})
-			},
+			}
 		}
 	)
 }

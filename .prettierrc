@@ -4,7 +4,7 @@
 	"arrowParens": "avoid",
 	"semi": false,
 	"trailingComma": "none",
-	"printWidth": 100,
+	"printWidth": 240,
 	"bracketSameLine": true,
 	"plugins": ["prettier-plugin-svelte"],
 	"endOfLine": "lf"

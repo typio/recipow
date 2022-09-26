@@ -66,8 +66,7 @@
 	// const setImage = (src: string, alt?: string, title?: string) =>
 	// 	$editor.chain().focus().setImage({ src, alt, title }).run()
 
-	const setYoutubeVideo = (src: string, width?: number, height?: number) =>
-		$editor.chain().focus().setYoutubeVideo({ src, width, height }).run()
+	const setYoutubeVideo = (src: string, width?: number, height?: number) => $editor.chain().focus().setYoutubeVideo({ src, width, height }).run()
 
 	const toggleLink = () => {
 		if ($editor.getAttributes('link').href === undefined) {
@@ -91,8 +90,10 @@
 		if (mode === 'writeup') {
 			editor = createEditor({
 				extensions: [
-					StarterKit,
-
+					StarterKit.configure({
+						code: false,
+						strike: false
+					}),
 					Youtube,
 					Heading.configure({
 						levels: [2, 3]
@@ -108,7 +109,10 @@
 		} else {
 			editor = createEditor({
 				extensions: [
-					StarterKit,
+					StarterKit.configure({
+						code: false,
+						strike: false
+					}),
 					Placeholder.configure({
 						placeholder
 					}),
@@ -160,9 +164,12 @@
 	</BubbleMenu>
 {/if}
 
-<div class={mode}>
+<div class="{mode} editor">
 	<EditorContent editor={$editor} />
 </div>
 
 <style>
+	.editor {
+		width: 100%;
+	}
 </style>

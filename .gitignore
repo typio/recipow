@@ -11,3 +11,4 @@ node_modules
 .netlify
 .output
 /.vscode
+dist

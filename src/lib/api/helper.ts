@@ -20,10 +20,7 @@ export const validateEmail = (email: string): { success: boolean; msg?: string }
 
 export const validatePassword = (password: string): { success: boolean; msg?: string } => {
 	// require password with one lowercase, one uppercase, and one number
-	if (
-		typeof password !== 'string' ||
-		!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(password)
-	) {
+	if (typeof password !== 'string' || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(password)) {
 		return { success: false, msg: "Password doesn't meet requirements." }
 	}
 
@@ -45,9 +42,7 @@ export const validateName = (name: string): { success: boolean; msg?: string } =
 	return { success: true }
 }
 
-export const validateUsername = async (
-	username: string
-): Promise<{ success: boolean; msg?: string | undefined }> => {
+export const validateUsername = async (username: string): Promise<{ success: boolean; msg?: string | undefined }> => {
 	if (username.length < 2) {
 		return { success: false, msg: 'Username is too short.' }
 	}

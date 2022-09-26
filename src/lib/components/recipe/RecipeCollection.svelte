@@ -9,10 +9,7 @@
 	export let search = ''
 
 	const getRecipes = async () => {
-		const res = await fetch(
-			`/recipe?type=${type}&page=${page}&limit=${limit}&username=${username}&search=${search}`,
-			{ method: 'GET' }
-		)
+		const res = await fetch(`/recipe?type=${type}&page=${page}&limit=${limit}&username=${username}&search=${search}`, { method: 'GET' })
 
 		const recipesAndLinks = await res.json()
 		if (recipesAndLinks.length === 0) {
@@ -31,16 +28,27 @@
 
 <div class="recipe-collection">
 	{#await doGetRecipes}
-		<p>loading recipes...</p>
+		<div class="animate-pulse fake-collection flex flex-wrap place-items-center place-content-center">
+			<div class="preview w-80 mb-2 mx-2 mt-2">
+				<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+			</div>
+			<div class="preview w-80 mb-2 mx-2 mt-2">
+				<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+			</div>
+			<div class="preview w-80 mb-2 mx-2 mt-2">
+				<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+			</div>
+			<div class="preview w-80 mb-2 mx-2 mt-2">
+				<div class="preview-card  bg-white dark:bg-stone-800 shadow-md rounded-xl p-4" style="height: 401px" />
+			</div>
+		</div>
 	{:then { recipesAndLinks }}
-		<div class="recipes">
+		<div class="recipes flex">
 			{#if recipesAndLinks.length === 0}
-				<p>No recipes found :(</p>
+				<h2 class="font-semibold my-2">No recipes found :(</h2>
 			{:else}
 				{#each recipesAndLinks as recipeAndLink}
-					<div class="recipe-preview">
-						<RecipePreview recipe={recipeAndLink.recipe} link={recipeAndLink.link} />
-					</div>
+					<RecipePreview recipe={recipeAndLink.recipe} link={recipeAndLink.link} />
 				{/each}
 			{/if}
 		</div>
@@ -51,16 +59,16 @@
 	{/await}
 	<div class="nav-toolbar">
 		<button
-			class="btn"
+			class="bg-stone-200 dark:bg-stone-700 font-semibold rounded-lg h-10 px-4"
 			style="opacity:{page > 1 ? 1 : 0.5}"
 			on:click={() => {
 				page--
 				refreshReviews()
 			}}
 			disabled={page <= 1}>Last Page</button>
-		<p>{page}</p>
+		<p class="font-bold">{page}</p>
 		<button
-			class="btn"
+			class="bg-stone-200 dark:bg-stone-700 font-semibold rounded-lg h-10 px-4"
 			on:click={() => {
 				page++
 				refreshReviews()
@@ -98,5 +106,4 @@
 		width: 2rem;
 		text-align: center;
 	}
-
 </style>

@@ -70,13 +70,13 @@
 	}
 </script>
 
-<div class="user-entry">
-	<div class="hello">
-		<ul>
+<div class=" user-entry font-semibold absolute max-w-xs sm:max-w-lg w-screen bg-stone-100 dark:bg-stone-800 shadow-md z-20 top-24 p-4 rounded-xl">
+	<div class="hello flex place-content-between h-6 mb-6">
+		<ul class="flex relative list-none mb-4">
 			{#if formType === 'signUp' || formType === 'logIn'}
 				<li>
 					<button
-						class="tab-btns"
+						class="tab-btns mr-4 {formType === 'signUp' ? 'text-red-500' : ''}"
 						class:selected={formType === 'signUp'}
 						on:click={() => {
 							if (formType === 'logIn') {
@@ -89,7 +89,7 @@
 				</li>
 				<li>
 					<button
-						class="tab-btns"
+						class="tab-btns  {formType !== 'signUp' ? 'text-red-500' : ''}"
 						class:selected={formType === 'logIn'}
 						on:click={() => {
 							if (formType === 'signUp') {
@@ -102,24 +102,23 @@
 				</li>
 			{:else if formType === 'deleteAccount'}
 				<li>
-					<button class="tab-btns" class:selected={formType === 'deleteAccount'}
-						>Delete Account</button>
+					<button class="tab-btns" class:selected={formType === 'deleteAccount'}>Delete Account</button>
 				</li>
 			{/if}
 		</ul>
 
 		<button
-			class="close-form-btn"
+			class="close-form-btn place-self-end "
 			on:click={() => {
 				formType = 'none'
 			}}>&#10006;</button>
 	</div>
 
 	{#if errorMessage}
-		<div class="error-message"><p>{errorMessage}</p></div>
+		<div class="error-message text-red-500 mb-2"><p>{errorMessage}</p></div>
 	{/if}
 
-	<form class="entry-form">
+	<form class="entry-form flex flex-col place-items-center">
 		<div class="prompt-message">
 			{#if formType === 'deleteAccount'}
 				<p>Please confirm your account credentials.</p>
@@ -129,169 +128,53 @@
 		{#if formType === 'signUp'}
 			<div>
 				<div><label for="name-input">Name</label></div>
-				<div><input id="name-input" type="text" bind:value={inputName} /></div>
+				<div>
+					<input
+						class="mb-2 mt-1 py-1 semibold rounded-lg pl-4 font-semibold placeholder:text-stone-400 dark:bg-stone-600 shadow-sm 
+					focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500"
+						id="name-input"
+						type="text"
+						bind:value={inputName} />
+				</div>
 			</div>
 		{/if}
 
 		<div>
 			<div><label for="email-input">Email</label></div>
-			<div><input id="email-input" type="email" bind:value={inputEmail} /></div>
+			<div>
+				<input
+					class="mb-2 mt-1 py-1 semibold rounded-lg pl-4 font-semibold placeholder:text-stone-400 dark:bg-stone-600 shadow-sm 
+				focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500"
+					id="email-input"
+					type="email"
+					bind:value={inputEmail} />
+			</div>
 		</div>
 
 		<div class="prompt-message">
 			{#if formType === 'signUp'}
-				<p>Password must have one lowercase, uppercase, number and be 8+ characters.</p>
+				<p class="mx-4 my-3">Password must have one lowercase, uppercase, number and be 8+ characters.</p>
 			{/if}
 		</div>
 
 		<div>
 			<div><label for="password-input">Password</label></div>
-			<div><input id="password-input" type="password" bind:value={inputPassword} /></div>
+			<div>
+				<input
+					class="mb-2 mt-1  py-1 semibold rounded-lg pl-4 font-semibold placeholder:text-stone-400 dark:bg-stone-600 shadow-sm 
+				focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500"
+					id="password-input"
+					type="password"
+					bind:value={inputPassword} />
+			</div>
 		</div>
 
 		{#if formType === 'signUp'}
-			<button on:click={signUp} type="button" class="btn submit-form-buttons">Sign Up</button>
+			<button on:click={signUp} type="button" class="mt-2 bg-stone-200 dark:bg-stone-700 font-semibold rounded-lg h-10 px-4">Sign Up</button>
 		{:else if formType === 'logIn'}
-			<button on:click={logIn} type="button" class="btn submit-form-buttons">Log In</button>
+			<button on:click={logIn} type="button" class="mt-2 bg-stone-200 dark:bg-stone-700 font-semibold rounded-lg h-10 px-4">Log In</button>
 		{:else if formType === 'deleteAccount'}
-			<button
-				on:click={dispatchCredentials}
-				type="button"
-				class="btn btn-danger  submit-form-buttons ">
-				Delete Account
-			</button>
+			<button on:click={dispatchCredentials} type="button" class="bg-red-500 dark:bg-stone-500 font-semibold rounded-lg h-10 px-4"> Delete Account </button>
 		{/if}
 	</form>
 </div>
-
-<style>
-	.user-entry {
-		position: absolute;
-		margin: 22vh 0 0 0;
-		width: 420px;
-		left: calc(50% - 210px);
-		padding: 20px;
-		background-color: #fff;
-		border-radius: 4px;
-		color: var(--text-color);
-		font-weight: 600;
-		z-index: 100;
-	}
-
-	.user-entry p {
-		font-weight: 700;
-		font-size: 0.94rem;
-		color: #555;
-		margin: 0;
-	}
-
-	.entry-form {
-		display: flex;
-		flex-flow: column;
-		justify-content: center;
-		align-items: center;
-		margin-top: 0.8rem;
-	}
-
-	.entry-form > div {
-		width: 80%;
-	}
-
-	.error-message {
-		margin-bottom: 0.5rem;
-	}
-
-	.error-message p {
-		color: #ff0000;
-	}
-
-	.prompt-message p {
-		margin-top: 1rem;
-		margin-bottom: 0.8rem;
-		color: #555;
-	}
-
-	input {
-		margin: 0.5rem 0 1.4rem 0;
-		padding: 0.2rem 0.6rem;
-		outline: none;
-		border: 2px solid var(--color-grey-13);
-		background-color: var(--color-grey-13);
-		border-radius: 0.4rem;
-
-		transition: ease-in 0.1s;
-		width: calc(100% - 1.2rem - 2px);
-	}
-
-	input:hover {
-		outline: none;
-		border: 2px solid var(--color-grey-11);
-	}
-
-	input:focus {
-		outline: none;
-		border: 2px solid var(--accent-color);
-		background-color: #fff;
-	}
-
-	.submit-form-buttons {
-		margin-top: 10px;
-		width: 100%;
-		color: #fff;
-		background-color: var(--accent-color);
-	}
-
-	.submit-form-buttons:hover {
-		background-color: var(--accent-color-darker);
-	}
-
-	ul {
-		position: relative;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		list-style: none;
-		background: var(--background);
-		background-size: contain;
-	}
-
-	.hello {
-		display: flex;
-		justify-content: space-between;
-	}
-
-	.hello ul {
-		margin: 0 0 1rem 0;
-		width: 100%;
-	}
-
-	.tab-btns {
-		color: var(--text-color);
-		font-weight: 600;
-		background: none;
-		border: none;
-		padding: 0 0 3px 0;
-		margin: 0 10px 0 0;
-	}
-
-	.selected {
-		color: var(--accent-color);
-		border-bottom: 2px solid var(--accent-color);
-	}
-
-	.close-form-btn {
-		justify-content: flex-end;
-		border: 0;
-		background: none;
-		color: var(--color-grey-8);
-		font-weight: 700;
-		font-size: 1rem;
-		height: 1rem;
-		width: 1rem;
-		padding: 0;
-	}
-
-	.close-form-btn:hover {
-		color: var(--color-grey-6);
-	}
-</style>

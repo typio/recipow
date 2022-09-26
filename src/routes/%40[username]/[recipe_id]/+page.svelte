@@ -44,22 +44,13 @@
 	const getTime = (rI?: number, type?: 'prep' | 'cook' | 'total'): string => {
 		let totalTime = [0, 0, 0]
 		if (rI === undefined) {
-			recipe.content?.forEach((c: RecipeCardData) => {
+			recipe.content?.forEach((c: RecipeCardData | string) => {
 				if (typeof c === 'object') {
 					if (type === 'total' || type === undefined) {
 						totalTime[0] += (c.times.cook.minutes + c.times.prep.minutes) % 60
 
-						totalTime[1] +=
-							(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
-								(c.times.prep.hours + c.times.cook.hours)) %
-							24
-						totalTime[2] +=
-							Math.floor(
-								(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
-									(c.times.prep.hours + c.times.cook.hours)) /
-									24
-							) +
-							(c.times.prep.days + c.times.cook.days)
+						totalTime[1] += (Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) + (c.times.prep.hours + c.times.cook.hours)) % 24
+						totalTime[2] += Math.floor((Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) + (c.times.prep.hours + c.times.cook.hours)) / 24) + (c.times.prep.days + c.times.cook.days)
 					} else {
 						totalTime[0] += c.times[type].minutes
 						totalTime[1] += c.times[type].hours
@@ -72,17 +63,8 @@
 			if (typeof c === 'object') {
 				if (type === 'total' || type === undefined) {
 					totalTime[0] += (c.times.cook.minutes + c.times.prep.minutes) % 60
-					totalTime[1] +=
-						(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
-							(c.times.prep.hours + c.times.cook.hours)) %
-						24
-					totalTime[2] +=
-						Math.floor(
-							(Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) +
-								(c.times.prep.hours + c.times.cook.hours)) /
-								24
-						) +
-						(c.times.prep.days + c.times.cook.days)
+					totalTime[1] += (Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) + (c.times.prep.hours + c.times.cook.hours)) % 24
+					totalTime[2] += Math.floor((Math.floor((c.times.prep.minutes + c.times.cook.minutes) / 60) + (c.times.prep.hours + c.times.cook.hours)) / 24) + (c.times.prep.days + c.times.cook.days)
 				} else {
 					totalTime[0] += c.times[type].minutes
 					totalTime[1] += c.times[type].hours
@@ -90,11 +72,7 @@
 				}
 			}
 		}
-		return (
-			(totalTime[2] > 0 ? totalTime[2] + 'd ' : '') +
-				(totalTime[1] > 0 ? totalTime[1] + 'h ' : '') +
-				(totalTime[0] > 0 ? totalTime[0] + 'm' : '') || '-'
-		)
+		return (totalTime[2] > 0 ? totalTime[2] + 'd ' : '') + (totalTime[1] > 0 ? totalTime[1] + 'h ' : '') + (totalTime[0] > 0 ? totalTime[0] + 'm' : '') || '-'
 	}
 
 	const leaveReview = async (event?: { detail: { text: string } }) => {
@@ -110,7 +88,7 @@
 					comment: ''
 				})
 			})
-
+			refreshReviews()
 			const res2 = await fetch(`/recipe?type=one&username=${username}&id=${recipe.id}`, {
 				method: 'GET'
 			})
@@ -139,22 +117,14 @@
 	}
 
 	const getReviews = async (page?: number, offset?: number) => {
-		const res = await fetch(
-			`/recipe/review/?recipe=${`@${username}/${recipe?.id}`}&page=${page}&offset=${offset}&userEmail=${
-				user?.email
-			}`,
-			{ method: 'GET' }
-		)
+		const res = await fetch(`/recipe/review/?recipe=${`@${username}/${recipe.id}`}&page=${page}&offset=${offset}&userEmail=${user?.email}`, { method: 'GET' })
 		const data = await res.json()
 
 		return data
 	}
 
 	const deleteReview = async () => {
-		const res = await fetch(
-			`/recipe/review?recipe=${`@${username}/${recipe.id}`}&userEmail=${user?.email}`,
-			{ method: 'DELETE' }
-		)
+		const res = await fetch(`/recipe/review?recipe=${`@${username}/${recipe.id}`}&userEmail=${user?.email}`, { method: 'DELETE' })
 		await invalidate(`/@${username}/${recipe.id}`)
 		refreshReviews()
 	}
@@ -166,8 +136,7 @@
 	}
 
 	const intensityHelpTippy = {
-		content:
-			'Intensity of this recipe<br/>\
+		content: 'Intensity of this recipe<br/>\
 			1 - Stick of Butter Coated in Sugar<br/>\
 			2 - Oatmeal w/ Fruit<br/>\
 			3 - Oatmeal w/ Peanut Butter<br/>\
@@ -214,19 +183,19 @@
 	<meta name="author" content={'@' + username} />
 </svelte:head>
 
-<div class="content">
-	<div class="header">
+<div class="content mx-4">
+	<div class="header bg-white dark:bg-stone-800 shadow-md rounded-xl p-4">
 		<h1 class="title">{recipe.title}</h1>
 		<h2 class="description">{recipe.description}</h2>
 		<div class="intensity" use:tippy={intensityHelpTippy}>
 			<h2>Intensity:</h2>
-			{#if recipe?.intensity == 1}
+			{#if recipe.intensity == 1}
 				<img src={intensity_1} alt="" />
-			{:else if recipe?.intensity == 2}
+			{:else if recipe.intensity == 2}
 				<img src={intensity_2} alt="" />
-			{:else if recipe?.intensity == 3}
+			{:else if recipe.intensity == 3}
 				<img src={intensity_3} alt="" />
-			{:else if recipe?.intensity == 4}
+			{:else if recipe.intensity == 4}
 				<img src={intensity_4} alt="" />
 			{:else}
 				<img src={intensity_5} alt="" />
@@ -245,11 +214,7 @@
 				<RatingsBar {rating} on:rating={leaveReview} />
 				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
 				<p>
-					{recipe.ratingCount
-						? recipe.ratingCount === 1
-							? '1 review'
-							: recipe.ratingCount + ' reviews'
-						: 'no reviews'}
+					{recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
 				</p>
 			</div>
 		{:else}
@@ -257,18 +222,14 @@
 				<RatingsBar {rating} on:rating={leaveReview} />
 				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
 				<p>
-					{recipe.ratingCount
-						? recipe.ratingCount === 1
-							? '1 review'
-							: recipe.ratingCount + ' reviews'
-						: 'no reviews'}
+					{recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
 				</p>
 			</div>
 		{/if}
 		<div class="tags">
 			<ul>
-				{#each recipe?.tags || [] as tag}
-					<li>{tag}</li>
+				{#each recipe.tags || [] as tag}
+					<p class="whitespace-nowrap font-semibold text-sm leading-4 px-3 py-1 mr-2  bg-stone-500 text-stone-50 dark:bg-stone-600 dark:text-stone-100 rounded-full">{tag}</p>
 				{/each}
 			</ul>
 		</div>
@@ -277,14 +238,14 @@
 
 	<div class="details">
 		{#if user?.username === username}
-			<button class="btn btn-danger" on:click={deleteRecipe}>Delete Recipe</button>
+			<button class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4" on:click={deleteRecipe}>Delete Recipe</button>
 		{:else}
 			Written by <a href="/@{username}">{'@' + username}</a>
 		{/if}
 	</div>
 
 	{#each recipe.content as content, rI}
-		<div class="content-card ">
+		<div class="content-card bg-white dark:bg-stone-800 shadow-md rounded-xl p-4">
 			{#if typeof content === 'string'}
 				<div class="write-up rendered-tiptap">
 					{@html content}
@@ -313,19 +274,11 @@
 												{ingredient?.name}
 											</h4>
 											<h5 class="ingredient-preperation">
-												{ingredient?.preperation}
+												{ingredient.preperation ?? ''}
 											</h5>
 
 											<h4 class="ingredient-amount">
-												{ingredient?.amount +
-													'' +
-													(ingredient?.amount == 1
-														? ingredient?.unit?.abbr[0]
-															? ingredient?.unit?.abbr[0]
-															: ''
-														: ingredient?.unit?.abbr[1]
-														? ingredient?.unit?.abbr[1]
-														: '')}
+												{ingredient?.amount + '' + (ingredient?.amount == 1 ? ingredient?.unit?.abbr[0] ?? '' : ingredient?.unit?.abbr[1] ?? '')}
 											</h4>
 										</div>
 									</li>
@@ -333,7 +286,6 @@
 							</ul>
 						</div>
 					</div>
-
 					<div class="nutrition">
 						{#if content.nutrition?.calories}
 							<li>
@@ -376,14 +328,16 @@
 					<div>
 						<h3>Instructions:</h3>
 
-						<div class="instruction-list">
+						<ul class="instruction-list">
 							{#each content.steps ?? [] as step, sI}
-								<div class="instruction-number">{sI + 1}</div>
-								<div class="instruction rendered-tiptap">
-									{@html step}
-								</div>
+								<li class="instruction">
+									<div class="instruction-number">{sI + 1}</div>
+									<div class="instruction-text rendered-tiptap">
+										{@html step}
+									</div>
+								</li>
 							{/each}
-						</div>
+						</ul>
 					</div>
 
 					<h3>Times:</h3>
@@ -425,7 +379,7 @@
 	{/each}
 </div>
 
-<div class="review-entry">
+<div class="review-entry mx-4">
 	<h2>Leave a Review</h2>
 	{#if user?.username === username}
 		<div class="ratings-bar-holder" use:tippy={encourage5FistsTippy}>
@@ -449,7 +403,7 @@
 		}}>Post</button>
 </div>
 
-<div class="reviews">
+<div class="reviews mx-4">
 	{#await doGetReviews}
 		<p>Loading reviews...</p>
 	{:then reviews}
@@ -470,16 +424,18 @@
 					</p>
 
 					<button
-						class="btn btn-danger"
+						class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4"
 						on:click={() => {
 							deleteReview()
 						}}>Delete</button>
 
 					<p class="rating">{review.rating} Fists</p>
 
-					<div class="comment">
-						{@html review.comment}
-					</div>
+					{#if review.comment.replaceAll(/(<([^>]+)>)/gi, '') !== ''}
+						<div class="comment">
+							{@html review.comment}
+						</div>
+					{/if}
 				</div>
 			{:else}
 				<div class="review">
@@ -493,10 +449,11 @@
 						}).format(new Date(review.date))}
 					</p>
 					<p class="rating">{review.rating} Fists</p>
-
-					<div class="comment">
-						{@html review.comment}
-					</div>
+					{#if review.comment.replaceAll(/(<([^>]+)>)/gi, '') !== ''}
+						<div class="comment">
+							{@html review.comment}
+						</div>
+					{/if}
 				</div>
 			{/if}
 		{/each}
@@ -529,7 +486,6 @@
 		display: grid;
 		grid-template-columns: repeat(12, 1fr);
 		border-radius: 1.2rem;
-		background-color: #ffffff;
 		height: 30rem;
 		padding: 1rem;
 		overflow-y: hidden;
@@ -689,9 +645,6 @@
 	}
 
 	.cover_image {
-		-webkit-filter: drop-shadow(1px 2px 8px rgb(175, 175, 175));
-		filter: drop-shadow(1px 2px 8px rgb(175, 175, 175));
-
 		text-align: right;
 		max-width: 500px;
 		width: 50%;
@@ -705,14 +658,8 @@
 	}
 
 	.content-card {
-		border: #eee solid 3px;
-		border-radius: 0.4rem;
 		margin-bottom: 2rem;
 		overflow: hidden;
-	}
-
-	.write-up {
-		margin: 3rem 3rem;
 	}
 
 	.recipe-card {
@@ -721,10 +668,6 @@
 
 	.recipe-header {
 		display: grid;
-	}
-
-	.instruction {
-		display: flex;
 	}
 
 	li {
@@ -744,13 +687,14 @@
 		display: grid;
 		width: 100%;
 		grid-template-columns: 1fr 1fr;
-		grid-template-rows: 1fr 1fr;
+		grid-template-rows: 1fr 1rem;
 	}
 
 	.ingredient-name {
 		grid-column: 1;
 		grid-row: 1;
 		font-size: 1.25rem;
+		font-weight: 700;
 		margin: 0;
 	}
 
@@ -758,6 +702,7 @@
 		grid-column: 1;
 		grid-row: 2;
 		font-size: 0.875rem;
+		font-weight: 700;
 		margin: 0;
 	}
 
@@ -767,9 +712,17 @@
 
 	.ingredient-amount {
 		margin: 0;
+		font-weight: 700;
 	}
 
 	.instruction-list {
+		display: flex;
+		flex-direction: column;
+		list-style: none;
+		padding: 0;
+	}
+
+	.instruction {
 		display: flex;
 		flex-direction: row;
 	}
@@ -777,6 +730,10 @@
 	.instruction-number {
 		font-size: 1.25rem;
 		margin: auto 1rem auto 2rem;
+	}
+
+	.instruction-text {
+		width: 80%;
 	}
 
 	.times {
@@ -810,60 +767,5 @@
 		width: 100%;
 		justify-content: center;
 		align-items: center;
-	}
-
-	.reviews {
-		margin: 1rem 1rem 1rem 0;
-	}
-
-	.review {
-		display: grid;
-		grid-template-columns: auto auto 1fr;
-		grid-template-rows: 2fr 1fr 4fr;
-		margin-bottom: 3rem;
-		border: 3px solid #eee;
-		border-radius: 0.4rem;
-		padding: 2rem;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.user-left-review {
-		background-color: palegoldenrod;
-	}
-
-	.review h3 {
-		margin: 0 1rem;
-	}
-
-	.review img {
-		width: 64px;
-		height: 64px;
-		object-fit: cover;
-		grid-column: 1;
-		grid-row: 1/3;
-		border-radius: 100%;
-	}
-
-	.review .review-date {
-		text-align: center;
-		margin: 0;
-		margin-right: 0.4rem;
-		grid-row: 1/3;
-	}
-
-	.review .rating {
-		grid-column: 2/3;
-		grid-row: 2;
-		padding-left: 1rem;
-		text-align: left;
-		margin: 0;
-	}
-
-	.review .comment {
-		grid-column: 1/5;
-		grid-row: 3;
-		font-size: 1.25rem;
-		margin: 0;
 	}
 </style>
