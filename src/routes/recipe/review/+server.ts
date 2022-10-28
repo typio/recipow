@@ -12,7 +12,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 	const { recipe, rating, comment } = res
 
 	let recipeAuthor = recipe.split('/')[0].split('@')[1]
-	let recipeId = recipe.split('/')[1]
+	let recipeId = recipe.split('/recipe-')[1]
 
 	let review: Review = {
 		rating: 4,
@@ -147,7 +147,7 @@ export const GET: RequestHandler = async ({ url: { searchParams }, clientAddress
 			name = 'Anonymous'
 		} else {
 			try {
-				;({ username, name, avatar } = (await mongoClient.db('recipow').collection('users').findOne<User>({ email: author })) ?? { username: '', name: '', avatar: '' })
+				; ({ username, name, avatar } = (await mongoClient.db('recipow').collection('users').findOne<User>({ email: author })) ?? { username: '', name: '', avatar: '' })
 				username = '@' + username
 			} catch (e) {
 				console.log(e)

@@ -237,7 +237,7 @@ export const GET: RequestHandler = async ({ url: { searchParams } }: { url: URL 
 					rating: recipe.rating,
 					ratingCount: recipe.ratingCount
 				},
-				link: `/@${user.username}/${recipe.id}`
+				link: `/@${user.username}/recipe-${recipe.id}`
 			})
 		}
 	}
@@ -280,7 +280,7 @@ export const GET: RequestHandler = async ({ url: { searchParams } }: { url: URL 
 						rating: recipe.rating,
 						ratingCount: recipe.ratingCount
 					},
-					link: `/@${user.username}/${recipe.id}`
+					link: `/@${user.username}/recipe-${recipe.id}`
 				})
 			}
 
