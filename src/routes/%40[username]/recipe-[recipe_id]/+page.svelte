@@ -201,13 +201,21 @@
 				<img class="ml-2 w-6 h-6" src={intensity_5} alt="" />
 			{/if}
 		</div>
-		<div class="header-total-time">
-			<p>Total Time</p>
-			<p class="header-time-value">{getTime(undefined, 'total')}</p>
-			<p>Prep</p>
-			<p class="header-time-value">{getTime(undefined, 'prep')}</p>
-			<p>Cook</p>
-			<p class="header-time-value">{getTime(undefined, 'cook')}</p>
+		<div class="">
+			<div class="flex flex-row">
+				<p>Total Time</p>
+				<p class="pl-2 font-semibold">{getTime(undefined, 'total')}</p>
+			</div>
+			<div class="flex flex-row ">
+				<div class="flex flex-row ">
+					<p>Prep</p>
+					<p class="pl-2 font-semibold">{getTime(undefined, 'prep')}</p>
+				</div>
+				<div class="flex flex-row pl-4">
+					<p>Cook</p>
+					<p class="pl-2 font-semibold">{getTime(undefined, 'cook')}</p>
+				</div>
+			</div>
 		</div>
 		{#if user?.username === username}
 			<div class="ratings" use:tippy={encourage5FistsTippy}>
@@ -219,11 +227,15 @@
 			</div>
 		{:else}
 			<div class="ratings">
-				<RatingsBar {rating} on:rating={leaveReview} />
-				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
-				<p>
-					{recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
-				</p>
+				<div class="bg-slate-500 ml-10">
+					<RatingsBar {rating} on:rating={leaveReview} />
+				</div>
+				<div class="flex flex-row flex-nowrap">
+					<p class="">{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
+					<p class="">
+						{recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
+					</p>
+				</div>
 			</div>
 		{/if}
 		<div class="tags">
