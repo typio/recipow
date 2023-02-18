@@ -3,7 +3,7 @@
 	import moonEmoji from '$lib/assets/moon-emoji.svg'
 
 	import { writable } from 'svelte/store'
-	import { browser } from '$app/env'
+	import { browser } from '$app/environment'
 
 	const defaultValue = 'light'
 	const initialValue = browser ? window.localStorage.getItem('theme') ?? defaultValue : defaultValue

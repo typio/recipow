@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/stores'
-	import { prefetch } from '$app/navigation'
 
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
@@ -27,25 +26,23 @@
 		<nav class=" px-3 text-xs sm:text-sm sm:py-1 sm:px-6 whitespace-nowrap font-bold font-sans shadow-md rounded-full bg-stone-100 dark:bg-stone-800">
 			<ul class=" flex space-x-4">
 				<li class="leading-10 h-10 {$page.url.pathname === '/' ? 'text-red-500 ' : ''} uppercase tracking-wider">
-					<a sveltekit:prefetch href="/">For You</a>
+					<a href="/">For You</a>
 				</li>
 
 				<li class="leading-10 h-10 {$page.url.pathname === '/browse' ? 'text-red-500 ' : ''} uppercase tracking-wider">
-					<a sveltekit:prefetch href="/browse">Browse</a>
+					<a href="/browse">Browse</a>
 				</li>
 
 				{#if user}
 					<button
 						class=""
 						on:click={() => {
-							prefetch('/@' + user.username)
-							prefetch('/settings')
 							showProfileModal = !showProfileModal
 						}}>
 						<img class="w-8 h-8 sm:w-10 sm:h-10 leading-10 rounded-full" src={user.avatar} alt=" " />
 					</button>
 					<li class="leading-10 h-10 {$page.url.pathname === '/new-recipe' ? 'text-red-500 ' : ''} uppercase tracking-wider">
-						<a sveltekit:prefetch href="/new-recipe">Write</a>
+						<a href="/new-recipe">Write</a>
 					</li>
 				{:else}
 					<li>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto, prefetch } from '$app/navigation'
+	import { goto } from '$app/navigation'
 	import { page } from '$app/stores'
 	import { createEventDispatcher } from 'svelte'
 
@@ -13,7 +13,6 @@
 			<button
 				class="btn-nav btn-pfp"
 				on:click={() => {
-					prefetch('/profile')
 					goto('/profile')
 					showProfileModal = false
 				}}>
