@@ -7,7 +7,7 @@ import type { RequestHandler } from './$types'
 import type { Recipe, RecipeCardData, User } from '$lib/types'
 import { tags } from '$lib/tagData'
 
-export const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
+ const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
 	try {
 		const result = await s3Client.send(
 			new PutObjectTaggingCommand({

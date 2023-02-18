@@ -6,13 +6,13 @@ import ipLocation from 'iplocation'
 import type { LayoutServerLoad } from './$types'
 import type { User } from '$lib/types'
 
-export const load: LayoutServerLoad = async ({ request, clientAddress }) => {
+export const load: LayoutServerLoad = async ({ request, clientAddress }) => {	
 	const cookies = cookie.parse(request.headers.get('cookie') || '')
 
 	const email = JSON.parse((await redis.get(cookies.sessionId)) || '{}').email
 
 	// log IP address
-	if ((await mongoClient.db('recipow').collection('ips').find({ ip: clientAddress }).toArray()).length === 0) {
+	if (clientAddress && (await mongoClient.db('recipow').collection('ips').find({ ip: clientAddress }).toArray()).length === 0) {
 		await mongoClient
 			.db('recipow')
 			.collection('ips')

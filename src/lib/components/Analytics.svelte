@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores'
 
-	const measurement_id = 'G-VR9MW6WD01'
+	 const measurement_id = 'G-VR9MW6WD01'
 
 	$: {
 		if (typeof gtag !== 'undefined') {
@@ -17,6 +17,8 @@
 	<script async src="https://www.googletagmanager.com/gtag/js?id={measurement_id}">
 	</script>
 	<script>
+		const measurement_id = 'G-VR9MW6WD01'
+
 		window.dataLayer = window.dataLayer || []
 
 		function gtag() {

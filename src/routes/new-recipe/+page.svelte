@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation'
 	import { toast } from '@zerodevx/svelte-toast'
-	import { browser } from '$app/env'
+	import { browser } from '$app/environment'
 	import tippy from 'sveltejs-tippy'
 	import 'tippy.js/animations/perspective.css'
 	import 'tippy.js/animations/scale.css'
