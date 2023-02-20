@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types'
 
+    import {onMount} from 'svelte'
+
 	import { goto, invalidate } from '$app/navigation'
 	import { page } from '$app/stores'
 
@@ -129,7 +131,13 @@
 		refreshReviews()
 	}
 
-	let doGetReviews = getReviews()
+
+    let doGetReviews: Promise<any>;
+
+    onMount(()=> {
+	    doGetReviews = getReviews()
+    })
+
 
 	const refreshReviews = async () => {
 		doGetReviews = getReviews()
@@ -416,6 +424,7 @@
 </div>
 
 <div class="reviews mx-4">
+    {#if doGetReviews !== undefined}
 	{#await doGetReviews}
 		<p>Loading reviews...</p>
 	{:then reviews}
@@ -472,4 +481,5 @@
 	{:catch error}
 		<p>Error loading reviews: {error}</p>
 	{/await}
+    {/if}
 </div>

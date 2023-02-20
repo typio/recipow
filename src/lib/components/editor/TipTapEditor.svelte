@@ -1,17 +1,24 @@
 <script lang="ts">
-	import { onMount } from 'svelte'
-	import type { Readable } from 'svelte/store'
+	import { onMount, onDestroy } from 'svelte'
+
+	import { Editor } from '@tiptap/core'
+
+	import { createImageExtension } from '$lib/TipTapExtensions/image'
 	import StarterKit from '@tiptap/starter-kit'
 	import Heading from '@tiptap/extension-heading'
-	import { createImageExtension } from '$lib/TipTapExtensions/image'
-	import type { UploadFn } from '$lib/TipTapExtensions/dropImage'
 	import Youtube from '@tiptap/extension-youtube'
 	import Link from '@tiptap/extension-link'
 	import Placeholder from '@tiptap/extension-placeholder'
+    import BubbleMenu from '@tiptap/extension-bubble-menu'
+    import FloatingMenu from '@tiptap/extension-floating-menu'
 
-	import { Editor, EditorContent, FloatingMenu, BubbleMenu, createEditor } from 'svelte-tiptap'
+	import type { UploadFn } from '$lib/TipTapExtensions/dropImage'
 
-	let editor: Readable<Editor>
+    import YouTubePlayButtonSVG from '$lib/assets/yt_play_btn_mono.svg'
+
+
+    let element: Element
+	let editor: Editor
 
 	export let content = ''
 	export let mode = 'generic'
@@ -30,49 +37,53 @@
 						isTemp: true
 					})
 				})
-					.then(res => res.json())
-					.then(data => {
-						console.log(data)
-						resolve(data.imageUrl)
-					})
-					.catch(err => {
-						resolve(err)
-						reject(err)
-					})
+                .then(res => res.json())
+                .then(data => {
+                    if (data?.message == "Internal Error") {
+                        alert("Failed to upload image. Currently only PNGs are accepted.")
+                    } else {
+                        console.log(data)
+                    }
+                    resolve(data.imageUrl)
+                })
+                .catch(err => {
+                    resolve(err)
+                    reject(err)
+                })
 			}
 		})
 	}
 
 	const toggleHeading = (level: any) => {
 		return () => {
-			$editor.chain().focus().toggleHeading({ level }).run()
+			editor.chain().focus().toggleHeading({ level }).run()
 		}
 	}
 
 	const setParagraph = () => {
 		return () => {
-			$editor.chain().focus().setParagraph().run()
+			editor.chain().focus().setParagraph().run()
 		}
 	}
 
 	const toggleBold = () => {
-		$editor.chain().focus().toggleBold().run()
+		editor.chain().focus().toggleBold().run()
 	}
 
 	const toggleItalic = () => {
-		$editor.chain().focus().toggleItalic().run()
+		editor.chain().focus().toggleItalic().run()
 	}
 
 	// const setImage = (src: string, alt?: string, title?: string) =>
 	// 	$editor.chain().focus().setImage({ src, alt, title }).run()
 
-	const setYoutubeVideo = (src: string, width?: number, height?: number) => $editor.chain().focus().setYoutubeVideo({ src, width, height }).run()
+	const setYoutubeVideo = (src: string, width?: number, height?: number) => editor.chain().focus().setYoutubeVideo({ src, width, height }).run()
 
 	const toggleLink = () => {
-		if ($editor.getAttributes('link').href === undefined) {
+		if (editor.getAttributes('link').href === undefined) {
 			let href = window.prompt('Enter link URL (must be an https website):')
 			if (href) {
-				$editor
+				editor
 					.chain()
 					.focus()
 					.toggleLink({
@@ -82,32 +93,42 @@
 					.run()
 			}
 		} else {
-			$editor.commands.unsetLink()
+			editor.commands.unsetLink()
 		}
 	}
 
 	onMount(() => {
+        let bubbleMenuElement: HTMLElement= document.getElementById('bubble-menu')!
+        bubbleMenuElement.style.display = 'inline'
+
+        let floatingMenuElement: HTMLElement= document.getElementById('floating-menu')!
+        floatingMenuElement.style.display = 'inline'
+
 		if (mode === 'writeup') {
-			editor = createEditor({
+			editor = new Editor({
+                element,
 				extensions: [
 					StarterKit.configure({
 						code: false,
 						strike: false
 					}),
 					Youtube,
-					Heading.configure({
-						levels: [2, 3]
-					}),
+					Heading.configure({ levels: [2, 3] }),
 					Link,
-					Placeholder.configure({
-						placeholder
-					}),
-					createImageExtension(uploadImage)
+					Placeholder.configure({ placeholder }),
+					createImageExtension(uploadImage),
+                    BubbleMenu.configure({
+                        element: bubbleMenuElement,
+                    }),
+                    FloatingMenu.configure({
+                    element: floatingMenuElement
+                    })
 				],
-				content
+				content,
+                onTransaction: () => { editor = editor }
 			})
 		} else {
-			editor = createEditor({
+			editor = new Editor({
 				extensions: [
 					StarterKit.configure({
 						code: false,
@@ -122,51 +143,75 @@
 			})
 		}
 
-		editor.subscribe(a => {
-			content = a.getHTML()
-		})
+		// editor.subscribe(a => {
+		//  content = a.getHTML()
+		// })
 	})
 
-	$: isActive = (name: string, attrs = {}) => $editor.isActive(name, attrs)
+    onDestroy(() => {
+        if (editor) editor.destroy()
+    })
 </script>
+    
 
-{#if editor}
-	{#if mode === 'writeup'}
-		<FloatingMenu editor={$editor}>
-			<div class="floating-menu">
-				<button on:click={toggleHeading(2)}>h2</button>
-				<button on:click={toggleHeading(3)}>h3</button>
-				<button on:click={setParagraph()}>p</button>
-				<!-- <button
-					on:click={() => {
-						let src = window.prompt('Enter image URL:')
-						if (src) {
-							setImage(src)
-						}
-					}}>img</button> -->
-				<button
-					on:click={() => {
-						let src = window.prompt('Enter youtube video URL:')
-						if (src) {
-							setYoutubeVideo(src, 640, 480)
-						}
-					}}>yt</button>
-			</div>
-		</FloatingMenu>
-	{/if}
-
-	<BubbleMenu editor={$editor}>
-		<div class="bubble-menu">
-			<button on:click={toggleBold}>bold</button>
-			<button on:click={toggleItalic}>italic</button>
-			<button on:click={toggleLink}>link</button>
-		</div>
-	</BubbleMenu>
-{/if}
-
-<div class="{mode} editor">
-	<EditorContent editor={$editor} />
+<div id="floating-menu" class="hidden">
+    <button 
+        class="text-stone-500 text-lg mr-2"
+        on:click={toggleHeading(2)}>
+        H2
+    </button>
+    <button 
+        class="text-stone-500 text-md mr-2"
+        on:click={toggleHeading(3)}>
+        H3
+    </button>
+    <button 
+        class="text-stone-500 mr-2"
+        on:click={setParagraph()}>
+        p
+    </button>
+    <!-- <button
+        class="text-stone-500"
+        on:click={() => {
+            let src = window.prompt('Enter image URL:')
+            if (src) {
+                //setImage(src)
+            }
+        }}>img</button> -->
+    <button
+        class="text-stone-500"
+        on:click={() => {
+            let src = window.prompt('Enter a YouTube video URL:')
+            if (src) {
+                setYoutubeVideo(src, 640, 480)
+            }
+        }}>
+        <img
+            class="dark:brightness-[500] w-6 fixed top-[6px]"
+            src={YouTubePlayButtonSVG} alt="YouTube logo" 
+        />
+    </button>
 </div>
+
+<div id="bubble-menu" class="hidden">
+    <button
+        class="ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2 mr-2"
+        on:click={toggleBold}>
+        bold
+    </button>
+    <button
+        class="ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2 mr-2"
+        on:click={toggleItalic}>
+        italic
+    </button>
+    <button
+        class="ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2"
+        on:click={toggleLink}>
+        link
+    </button>
+</div>
+
+<div class="{mode} editor" bind:this={element} />
 
 <style>
 	.editor {
