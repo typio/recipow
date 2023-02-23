@@ -14,8 +14,7 @@
 
 	import type { UploadFn } from '$lib/TipTapExtensions/dropImage'
 
-    import YouTubePlayButtonSVG from '$lib/assets/yt_play_btn_mono.svg'
-
+    import YouTubePlayButtonSVG from '$lib/assets/yt_play_btn_mono.svelte'
 
     let element: Element
 	let editor: Editor
@@ -81,7 +80,7 @@
 
 	const toggleLink = () => {
 		if (editor.getAttributes('link').href === undefined) {
-			let href = window.prompt('Enter link URL (must be an https website):')
+			let href = window.prompt('Enter link URL (must start with https://):')
 			if (href) {
 				editor
 					.chain()
@@ -102,7 +101,8 @@
         bubbleMenuElement.style.display = 'inline'
 
         let floatingMenuElement: HTMLElement= document.getElementById('floating-menu')!
-        floatingMenuElement.style.display = 'inline'
+        if (mode === 'writeup')
+            floatingMenuElement.style.display = 'inline'
 
 		if (mode === 'writeup') {
 			editor = new Editor({
@@ -129,6 +129,7 @@
 			})
 		} else {
 			editor = new Editor({
+                element,
 				extensions: [
 					StarterKit.configure({
 						code: false,
@@ -137,22 +138,24 @@
 					Placeholder.configure({
 						placeholder
 					}),
-					Link
+					Link,
+                    BubbleMenu.configure({
+                        element: bubbleMenuElement,
+                    }),
 				],
-				content
+				content,
+                onTransaction: () => { editor = editor }
 			})
 		}
-
-		// editor.subscribe(a => {
-		//  content = a.getHTML()
-		// })
+        editor.on('update', ({ editor }) => {
+            content = editor.getHTML()
+		});
 	})
 
     onDestroy(() => {
         if (editor) editor.destroy()
     })
 </script>
-    
 
 <div id="floating-menu" class="hidden">
     <button 
@@ -186,26 +189,27 @@
                 setYoutubeVideo(src, 640, 480)
             }
         }}>
-        <img
-            class="dark:brightness-[500] w-6 fixed top-[6px]"
-            src={YouTubePlayButtonSVG} alt="YouTube logo" 
-        />
+        <!--<img
+            class="w-6 align-text-bottom"
+            src={YouTubePlayButtonSVG} alt="YouTube logo"
+        />-->
+        <YouTubePlayButtonSVG />
     </button>
 </div>
 
 <div id="bubble-menu" class="hidden">
     <button
-        class="ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2 mr-2"
+        class="bg-white font-bold dark:bg-stone-800 ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2 mr-2"
         on:click={toggleBold}>
         bold
     </button>
     <button
-        class="ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2 mr-2"
+        class="bg-white italic dark:bg-stone-800 ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2 mr-2"
         on:click={toggleItalic}>
         italic
     </button>
     <button
-        class="ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2"
+        class="bg-white underline underline-offset-2 dark:bg-stone-800 ring-2 ring-stone-700 dark:ring-stone-300 rounded px-2"
         on:click={toggleLink}>
         link
     </button>

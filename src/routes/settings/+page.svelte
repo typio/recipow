@@ -134,16 +134,13 @@
 		</p>
 	</div>
 	<button
-		class="btn"
+		class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold rounded-lg h-10 px-4"
 		on:click={() => {
 			updateUser()
 		}}>Update Details</button>
 
-	<br />
-	<br />
-
 	<button
-		class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4"
+		class="bg-red-600 hover:bg-red-700 text-stone-50 font-semibold rounded-lg h-10 px-4"
 		on:click={() => {
 			formType = 'deleteAccount'
 		}}>Delete Account</button>
