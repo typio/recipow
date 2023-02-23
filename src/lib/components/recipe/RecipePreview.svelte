@@ -54,20 +54,22 @@
 			</h4>
 			<div class="bottom-row flex w-full pb-2">
 				<div class="flex mr-3">
-					<h4 class="font-bold mr-2">Intensity</h4>
-					<div class="intensity w-4">
+					<h4 class="font-bold mr-2 leading-8">Intensity</h4>
+					<div class="intensity">
 						{#if recipe?.intensity == 1}
-							<img src={intensity_1} alt="Recipe Intensity Level 1" />
+							<img class="h-8" src={intensity_1} alt="Recipe Intensity Level 1" />
 						{:else if recipe?.intensity == 2}
-							<img src={intensity_2} alt="Recipe Intensity Level 2" />
+							<img class="h-8" src={intensity_2} alt="Recipe Intensity Level 2" />
 						{:else if recipe?.intensity == 3}
-							<img src={intensity_3} alt="Recipe Intensity Level 3" />
+							<img class="h-8" src={intensity_3} alt="Recipe Intensity Level 3" />
 						{:else if recipe?.intensity == 4}
-							<img src={intensity_4} alt="Recipe Intensity Level 4" />
+							<img class="h-8" src={intensity_4} alt="Recipe Intensity Level 4" />
 						{:else}
-							<img src={intensity_5} alt="Recipe Intensity Level 5" />
+							<img class="h-8" src={intensity_5} alt="Recipe Intensity Level 5" />
 						{/if}
 					</div>
+                        <p class="font-semibold mt-2 ml-[2px]">/</p>
+                        <p class="font-bold mt-3">5</p>
 				</div>
 				<div class=" flex overflow-x-scroll  ">
 					{#each recipe?.tags || [] as tag}
@@ -92,14 +94,8 @@
 	.cover_image {
 		position: relative;
 		width: 100%;
+        max-height: 212px;
 		overflow: hidden;
 	}
 
-	.cover_image img {
-		border: none;
-		width: 100%;
-		height: 200px;
-		object-fit: contain;
-		vertical-align: top;
-	}
 </style>

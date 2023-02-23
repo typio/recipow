@@ -1,8 +1,4 @@
 <script lang="ts">
-	import tippy from 'sveltejs-tippy'
-	import 'tippy.js/animations/perspective.css'
-	import 'tippy.js/animations/scale.css'
-	import 'tippy.js/dist/border.css'
 	import { toast } from '@zerodevx/svelte-toast'
 
 	import { page } from '$app/stores'
@@ -90,34 +86,26 @@
 		})
 		location.reload()
 	}
-	const nameHelpTippy = {
-		content: 'This is your display name, <br/>It will be shown on your recipes.',
-		allowHTML: true,
-		placement: 'left',
-		theme: 'poptart',
-		animation: 'scale',
-		hideOnClick: false
-	}
 </script>
 
 <svelte:head>
 	<title>Settings</title>
 </svelte:head>
 
-<div class="content">
-	<h1>Settings</h1>
+<div class="content mx-4 space-y-2">
+	<h1 class="font-semibold text-xl mb-6">Settings</h1>
 
 	<h2>
 		Hello {$page.data.user.name}!
 	</h2>
-	<div use:tippy={nameHelpTippy} class="row">
+	<div  class="row">
 		<p>Name:</p>
-		<input class="text-input" type="text" label="Name: " bind:value={name} />
+		<input class="text-input" type="text" bind:value={name} />
 	</div>
-	<div class="row">
+	<div class="row flex flex-row ">
 		<p>Profile Picture:</p>
 		<div class="pfp-input">
-			<img src={$page.data.user.avatar} alt="" />
+			<img class="rounded-full" src={$page.data.user.avatar} alt="" />
 			<input type="file" accept="image/*" bind:files alt="" />
 		</div>
 	</div>
@@ -127,23 +115,20 @@
 	</div>
 	<div class="row">
 		<p>Username:</p>
-		<input class="text-input" type="text" label="Name: " bind:value={username} />
+		<input class="text-input" type="text" bind:value={username} />
 		<div class="break" />
 		<p>
 			Your URL is <a href={'/' + '@' + $page.data.user.username}> https://recipow.com/{'@' + username.replaceAll(' ', '')}</a>
 		</p>
 	</div>
 	<button
-		class="btn"
+		class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-semibold rounded-lg h-10 px-4"
 		on:click={() => {
 			updateUser()
 		}}>Update Details</button>
 
-	<br />
-	<br />
-
 	<button
-		class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4"
+		class="bg-red-600 hover:bg-red-700 text-stone-50 font-semibold rounded-lg h-10 px-4"
 		on:click={() => {
 			formType = 'deleteAccount'
 		}}>Delete Account</button>

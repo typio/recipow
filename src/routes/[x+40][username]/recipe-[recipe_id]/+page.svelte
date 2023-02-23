@@ -15,10 +15,6 @@
 	import RatingsBar from '$lib/components/recipe/RatingsBar.svelte'
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
-	import tippy from 'sveltejs-tippy'
-	import 'tippy.js/animations/perspective.css'
-	import 'tippy.js/animations/scale.css'
-	import 'tippy.js/dist/border.css'
 	import type { RecipeCardData } from '$lib/types'
 
 	// TODO: check if this user left a review, then show that
@@ -102,7 +98,7 @@
 			const res = await fetch(`/recipe/review`, {
 				method: 'POST',
 				body: JSON.stringify({
-					recipe: `@${username}/${recipe.id}`,
+					recipe: `@${username}/recipe-${recipe.id}`,
 					rating: commentFormRating,
 					comment: commentFormText
 				})
@@ -131,57 +127,14 @@
 		refreshReviews()
 	}
 
-
     let doGetReviews: Promise<any>;
 
     onMount(()=> {
 	    doGetReviews = getReviews()
     })
 
-
 	const refreshReviews = async () => {
 		doGetReviews = getReviews()
-	}
-
-	const intensityHelpTippy = {
-		content: 'Intensity of this recipe<br/>\
-			1 - Stick of Butter Coated in Sugar<br/>\
-			2 - Oatmeal w/ Fruit<br/>\
-			3 - Oatmeal w/ Peanut Butter<br/>\
-			4 - Oatmeal w/ Whey Protein<br/>\
-			5 - Boiled Chicken Breast',
-		allowHTML: true,
-		placement: 'left',
-		theme: 'poptart',
-		animation: 'scale',
-		hideOnClick: true
-	}
-
-	const reviewCommentHelpTippy = {
-		content: 'Formatting options will show<br/>If you highlight your text.',
-		allowHTML: true,
-		placement: 'left',
-		theme: 'poptart',
-		animation: 'scale',
-		hideOnClick: true
-	}
-
-	const encourage5FistsTippy = {
-		content: "The president votes for themself<br/>Why shouldn't you?",
-		allowHTML: true,
-		placement: 'left',
-		theme: 'poptart',
-		animation: 'scale',
-		hideOnClick: true
-	}
-
-	const userLeftReviewHelpTippy = {
-		content: 'To replace this review, write a new one.',
-		allowHTML: true,
-		placement: 'left',
-		theme: 'poptart',
-		animation: 'scale',
-		hideOnClick: true
 	}
 </script>
 
@@ -193,70 +146,70 @@
 
 <div class="content mx-4">
 	<div class="header bg-white dark:bg-stone-800 shadow-md rounded-xl p-4">
-		<h1 class="title font-semibold text-3xl text-center">{recipe.title}</h1>
-		<h2 class="description text-sm">{recipe.description}</h2>
-		<div class="intensity flex flex-row items-center h-8" use:tippy={intensityHelpTippy}>
-			<h2 class=" inline-block align-middle">Intensity:</h2>
-			{#if recipe.intensity == 1}
-				<img class="ml-2 w-6 h-6" src={intensity_1} alt="" />
-			{:else if recipe.intensity == 2}
-				<img class="ml-2 w-6 h-6" src={intensity_2} alt="" />
-			{:else if recipe.intensity == 3}
-				<img class="ml-2 w-6 h-6" src={intensity_3} alt="" />
-			{:else if recipe.intensity == 4}
-				<img class="ml-2 w-6 h-6" src={intensity_4} alt="" />
-			{:else}
-				<img class="ml-2 w-6 h-6" src={intensity_5} alt="" />
-			{/if}
-		</div>
-		<div class="">
-			<div class="flex flex-row">
-				<p>Total Time</p>
-				<p class="pl-2 font-semibold">{getTime(undefined, 'total')}</p>
-			</div>
-			<div class="flex flex-row ">
-				<div class="flex flex-row ">
-					<p>Prep</p>
-					<p class="pl-2 font-semibold">{getTime(undefined, 'prep')}</p>
-				</div>
-				<div class="flex flex-row pl-4">
-					<p>Cook</p>
-					<p class="pl-2 font-semibold">{getTime(undefined, 'cook')}</p>
-				</div>
-			</div>
-		</div>
-		{#if user?.username === username}
-			<div class="ratings" use:tippy={encourage5FistsTippy}>
-				<RatingsBar {rating} on:rating={leaveReview} />
-				<p>{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
-				<p>
-					{recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
-				</p>
-			</div>
-		{:else}
-			<div class="ratings">
-				<div class="bg-slate-500 ml-10">
-					<RatingsBar {rating} on:rating={leaveReview} />
-				</div>
-				<div class="flex flex-row flex-nowrap">
-					<p class="">{recipe.rating ? recipe.rating.toFixed(2) : ''}</p>
-					<p class="">
-						{recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
-					</p>
-				</div>
-			</div>
-		{/if}
-		<div class="tags">
-			<ul>
+        <div class="lg:flex">
+            <div class="lg:my-auto mx-auto">
+                <h1 class="title font-bold text-3xl text-center text-stone-800 dark:text-stone-200">{recipe.title}</h1>
+                <h2 class="description text-sm lg:text-md text-center mb-4">{recipe.description}</h2>
+            </div>
+            <img class="mx-auto lg:ml-auto lg:mr-0 max-h-[60vh] object-cover" src={recipe.cover_image} alt="" />
+        </div>
+        <div class="ratings flex flex-col mt-4" >
+            <div class="mx-auto">
+            <RatingsBar {rating} on:rating={leaveReview} />
+            </div>
+            <div class="flex flex-row mx-auto">
+            {#if recipe.rating}
+                <p class="mr-4">{recipe.rating.toFixed(1) + ' fists'}</p>
+            {/if}
+            <p>
+                {recipe.ratingCount ? (recipe.ratingCount === 1 ? '1 review' : recipe.ratingCount + ' reviews') : 'no reviews'}
+            </p>
+            </div>
+        </div>
+        <div class="flex flex-row mt-2 max-w-md mx-auto">
+            <div class="">
+                <div class="flex flex-row">
+                    <p>Total Time</p>
+                    <p class="pl-2 font-semibold">{getTime(undefined, 'total')}</p>
+                </div>
+                <div class="flex flex-row ">
+                    <div class="flex flex-row ">
+                        <p>Prep</p>
+                        <p class="pl-2 font-semibold">{getTime(undefined, 'prep')}</p>
+                    </div>
+                    <div class="flex flex-row pl-4">
+                        <p>Cook</p>
+                        <p class="pl-2 font-semibold">{getTime(undefined, 'cook')}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ml-auto mr-0 my-auto flex flex-row items-center h-8" >
+                <h2 class="leading-8">Intensity:</h2>
+                {#if recipe.intensity == 1}
+                    <img class="ml-2 h-8" src={intensity_1} alt="" />
+                {:else if recipe.intensity == 2}
+                    <img class="ml-2 h-8" src={intensity_2} alt="" />
+                {:else if recipe.intensity == 3}
+                    <img class="ml-2 h-8" src={intensity_3} alt="" />
+                {:else if recipe.intensity == 4}
+                    <img class="ml-2 h-8" src={intensity_4} alt="" />
+                {:else}
+                    <img class="ml-2 h-8" src={intensity_5} alt="" />
+                {/if}
+                <p class="font-semibold mt-2 ml-[2px]">/</p>
+                <p class="font-bold mt-4 ml-[2px]">5</p>
+            </div>
+        </div>
+		<div>
+			<ul class="flex flex-row mt-2 lg:mt-4 overflow-x-auto max-w-md mx-auto">
 				{#each recipe.tags || [] as tag}
-					<p class="whitespace-nowrap font-semibold text-sm leading-4 px-3 py-1 mr-2  bg-stone-500 text-stone-50 dark:bg-stone-600 dark:text-stone-100 rounded-full">{tag}</p>
+					<li class="w-fit whitespace-nowrap font-semibold text-sm leading-4 px-3 py-1 mr-2 bg-stone-500 text-stone-50 dark:bg-stone-600 dark:text-stone-100 rounded-full">{tag}</li>
 				{/each}
 			</ul>
 		</div>
-		<img class="cover_image" src={recipe.cover_image} alt="" />
 	</div>
 
-	<div class="details">
+	<div class="details my-4">
 		{#if user?.username === username}
 			<button class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4" on:click={deleteRecipe}>Delete Recipe</button>
 		{:else}
@@ -265,7 +218,7 @@
 	</div>
 
 	{#each recipe.content as content, rI}
-		<div class="content-card bg-white dark:bg-stone-800 shadow-md rounded-xl p-4">
+		<div class="content-card bg-white dark:bg-stone-800 shadow-md rounded-xl p-4 mb-6">
 			{#if typeof content === 'string'}
 				<div class="write-up rendered-tiptap">
 					{@html content}
@@ -284,74 +237,55 @@
 					</div>
 
 					<div>
-						<h3>Ingredients:</h3>
-						<div class="ingredient-list">
-							<ul>
-								{#each content.ingredients ?? [] as ingredient, iI}
-									<li>
-										<div class="ingredient">
-											<h4 class="ingredient-name">
+						<h3 class="font-semibold text-xl">Ingredients</h3>
+						<div class="">
+							<ul class="">
+								{#each content.ingredients ?? [] as ingredient}
+									<li class="flex flex-row mb-4 relative w-full max-w-lg ">
+                                        <div class="flex flex-row pl-4">
+                                            <h4 class="font-bold text-xl text-center flex flex-col my-auto">
+                                                {ingredient?.amount}
+                                            </h4>
+                                            <h4 class="my-auto ml-1">
+                                                {(ingredient?.amount == 1 ? ingredient?.unit?.abbr[0] ?? '' : ingredient?.unit?.abbr[1] ?? '')}
+                                            </h4>
+                                        </div>
+										<div class="ml-auto mr-0 pl-2 w-48">
+											<h4 class="font-semibold text-lg">
 												{ingredient?.name}
 											</h4>
-											<h5 class="ingredient-preperation">
+											<h5 class="">
 												{ingredient.preperation ?? ''}
 											</h5>
 
-											<h4 class="ingredient-amount">
-												{ingredient?.amount + '' + (ingredient?.amount == 1 ? ingredient?.unit?.abbr[0] ?? '' : ingredient?.unit?.abbr[1] ?? '')}
-											</h4>
 										</div>
 									</li>
 								{/each}
 							</ul>
 						</div>
 					</div>
-					<div class="nutrition">
-						{#if content.nutrition?.calories}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.calories}</p>
-								<div class="nutrition-label">Calories</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.protein}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.protein}</p>
-								<div class="nutrition-label">Protein</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.fat}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.fat}</p>
-								<div class="nutrition-label">Fat</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.carbs}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.carbs}</p>
-								<div class="nutrition-label">Carbs</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.fiber}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.fiber}</p>
-								<div class="nutrition-label">Fiber</div>
-							</li>
-						{/if}
-						{#if content.nutrition?.sugar}
-							<li>
-								<p class="nutrition-amount">{content.nutrition.sugar}</p>
-								<div class="nutrition-label">Sugar</div>
-							</li>
-						{/if}
-					</div>
+
+                    {#if content.nutrition}
+                    <h2 class="font-semibold mt-8 text-xl mb-2">Nutrition Facts <span class="text-sm">(Estimates)</span></h2>
+					<ul class="flex flex-row space-x-4 overflow-x-auto">
+                            {#each Object.entries(content.nutrition) as nutrition}
+                                <li class="bg-stone-200 dark:bg-stone-700 dark:text-stone-100 rounded-full p-2 w-[4.5rem] h-[106px] font-semibold">
+                                    <p class="bg-stone-300 dark:bg-stone-600 w-14 h-14 leading-[56px] px-2 mx-auto text-center rounded-full">
+                                        {nutrition[1]}
+                                    </p>
+                                    <div class="text-sm mt-1 text-center">{nutrition[0]}</div>
+                                </li>
+                            {/each}
+					</ul>
+                    {/if}
 
 					<div>
-						<h3>Instructions:</h3>
+						<h3 class="font-semibold mt-8 text-xl">Instructions</h3>
 
-						<ul class="instruction-list">
+						<ul class="pl-4">
 							{#each content.steps ?? [] as step, sI}
-								<li class="instruction">
-									<div class="instruction-number">{sI + 1}</div>
+								<li class="flex flex-row">
+									<div class="mr-2 font-bold">{sI + 1}</div>
 									<div class="instruction-text rendered-tiptap">
 										{@html step}
 									</div>
@@ -360,35 +294,36 @@
 						</ul>
 					</div>
 
-					<h3>Times:</h3>
-					<div class="times">
-						<div class="row">
+					<h3 class="font-semibold text-xl mt-8">Times</h3>
+					<div class="pl-4 flex text-center space-x-8">
+						<div >
 							<h4>Total</h4>
-							<p>{getTime(rI, 'total')}</p>
+							<p class="font-semibold">{getTime(rI, 'total')}</p>
 						</div>
-						<div class="row">
+						<div class="">
 							<h4>Prep</h4>
-							<p>{getTime(rI, 'prep')}</p>
+							<p class="font-semibold">{getTime(rI, 'prep')}</p>
 						</div>
-						<div class="row">
+						<div class="">
 							<h4>Cook</h4>
-							<p>{getTime(rI, 'cook')}</p>
+							<p class="font-semibold">{getTime(rI, 'cook')}</p>
 						</div>
 					</div>
-					<div>
-						<div class="row">
-							<h3>Servings</h3>
+					<div class="mt-8">
+						<div class="flex flex-row">
+							<h3 class="mr-2 font-semibold">Servings</h3>
 							{content.serves}
 						</div>
 						{#if content.yield !== ''}
-							<div class="row">
-								<h3>Yield</h3>
-								{content.yield}
+							<div class="flex flex-row mt-2">
+								<h3 class="font-semibold mr-2">Yields</h3>
+                                <h3>{content.yield}</h3>
 							</div>
 						{/if}
-						{#if content.notes !== '<p></p>'}
-							<h3>Notes</h3>
-							<div class="rendered-tiptap">
+                        <!-- if there is text inbetween tags -->
+						{#if content?.notes?.match(/(?<=\>)(.+?)(?=\<)/) !== null}
+							<h3 class="font-semibold mt-4">Notes</h3>
+							<div class="rendered-tiptap ml-6">
 								{@html content.notes}
 							</div>
 						{/if}
@@ -399,24 +334,17 @@
 	{/each}
 </div>
 
-<div class="review-entry mx-4">
-	<h2>Leave a Review</h2>
-	{#if user?.username === username}
-		<div class="ratings-bar-holder" use:tippy={encourage5FistsTippy}>
-			<RatingsBar bind:rating={commentFormRating} />
-			<p>{commentFormRating.toFixed(2)}</p>
-		</div>
-	{:else}
-		<div class="ratings-bar-holder">
-			<RatingsBar bind:rating={commentFormRating} />
-			<p>{commentFormRating.toFixed(2)}</p>
-		</div>
-	{/if}
-	<div use:tippy={reviewCommentHelpTippy}>
-		<TipTapEditor placeholder={'Man this is so yummy!'} bind:content={commentFormText} />
-	</div>
+<div class="w-full my-12">
+	<h2 class="font-semibold ml-4 text-lg">Leave a Review</h2>
+    <div class="flex flex-col mt-2 text-center place-items-center place-content-center" >
+        <RatingsBar bind:rating={commentFormRating} />
+        <p>{commentFormRating < 4.8 ? commentFormRating.toFixed(1) : 5}</p>
+    </div>
+    <div class="mx-8">
+	<TipTapEditor placeholder="Man this is so yummy!" bind:content={commentFormText} />
+</div>
 	<button
-		class="btn post-review-btn"
+		class="flex ml-auto mr-4 mt-2 rounded-lg leading-10 font-semibold bg-stone-200 text-stone-700 h-10 px-6"
 		on:click={() => {
 			leaveReview()
 			refreshReviews()
@@ -433,45 +361,54 @@
 		{/if}
 		{#each reviews.reviews as review}
 			{#if review.leftByUser === true}
-				<div class="review user-left-review" use:tippy={userLeftReviewHelpTippy}>
-					<img src={review.authorAvatar} alt="" />
-					<h3>{@html review.author}</h3>
-					<p class="review-date">
-						{new Intl.DateTimeFormat('en', {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						}).format(new Date(review.date))}
-					</p>
+				<div class="review user-left-review mb-8" >
+                    <div class="flex">
+                        <img class="rounded-full w-12 h-12" src={review.authorAvatar} alt="" />
+                        <div class="flex ml-4 flex-col">
+                            <h3 class="font-semibold">{@html review.author}</h3>
+                            <p class="review-date">
+                                {new Intl.DateTimeFormat('en', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                }).format(new Date(review.date))}
+                            </p>
+                        </div>
+                        <div class="ml-auto mr-2">
+                            <p class="rating font-semibold text-center">{review.rating} Fists</p>
+                            <button
+                                class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4 mt-1"
+                                on:click={() => {
+                                    deleteReview()
+                                }}>Delete
+                            </button>
+                        </div>
+                    </div>
 
-					<button
-						class="bg-red-600 text-stone-50 font-semibold rounded-lg h-10 px-4"
-						on:click={() => {
-							deleteReview()
-						}}>Delete</button>
-
-					<p class="rating">{review.rating} Fists</p>
-
-					{#if review.comment.replaceAll(/(<([^>]+)>)/gi, '') !== ''}
-						<div class="comment">
-							{@html review.comment}
-						</div>
-					{/if}
-				</div>
+                    {#if review.comment.replaceAll(/(<([^>]+)>)/gi, '') !== ''}
+                        <div class="comment ">
+                            {@html review.comment}
+                        </div>
+                    {/if}
+                </div>
 			{:else}
-				<div class="review">
-					<img src={review.authorAvatar} alt="" />
-					<h3>{@html review.author}</h3>
-					<p class="review-date">
-						{new Intl.DateTimeFormat('en', {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						}).format(new Date(review.date))}
-					</p>
-					<p class="rating">{review.rating} Fists</p>
+				<div class="review  mb-8">
+                    <div class="flex">
+                        <img class="rounded-full w-12 h-12" src={review.authorAvatar} alt="" />
+                        <div class="flex ml-4 flex-col">
+                            <h3 class="font-semibold">{@html review.author}</h3>
+                            <p class="review-date">
+                                {new Intl.DateTimeFormat('en', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                }).format(new Date(review.date))}
+                            </p>
+                        </div>
+                        <p class="rating ml-auto mr-4 font-semibold">{review.rating} Fists</p>
+                    </div>
 					{#if review.comment.replaceAll(/(<([^>]+)>)/gi, '') !== ''}
-						<div class="comment">
+						<div class="comment mt-2">
 							{@html review.comment}
 						</div>
 					{/if}

@@ -59,7 +59,7 @@ button {
 .ProseMirror p.is-editor-empty:first-child::before {
 	content: attr(data-placeholder);
 	float: left;
-	color: #adb5bd;
+	color: rgb(120, 113, 108);
 	pointer-events: none;
 	height: 0;
 }
@@ -71,73 +71,27 @@ button {
 }
 
 .generic .ProseMirror {
-	border-bottom: 3px solid #000;
+	border-bottom: 2px solid #777;
 }
 
-.ProseMirror * {
+.ProseMirror:first-child {
+	padding: 4px 12px;
 	text-align: left;
 }
 
 .ProseMirror h1 {
+	font-size: 4em;
 }
 
 .ProseMirror h2 {
+	font-size: 3em;
 }
 
 .ProseMirror h3 {
+	font-size: 2em;
 }
 
-.ProseMirror a,
-.rendered-tiptap a {
-	color: var(--accent-color);
-	text-decoration: none;
-	border-bottom: 2px solid var(--accent-color);
-}
-
-.tippy-box[data-theme~='light'] {
-	--tippy-light-background: var(--color-grey-15);
-	background-color: var(--tippy-light-background);
-	color: var(--color-grey-4);
-	box-shadow: -2px 2px 3px #999;
-	font-weight: 600;
-}
-
-.tippy-box[data-theme~='light'][data-placement^='top'] > .tippy-arrow::before {
-	border-top-color: var(--tippy-light-background);
-}
-
-.tippy-box[data-theme~='light'][data-placement^='bottom'] > .tippy-arrow::before {
-	border-bottom-color: var(--tippy-light-background);
-}
-
-.tippy-box[data-theme~='light'][data-placement^='left'] > .tippy-arrow::before {
-	border-left-color: var(--tippy-light-background);
-}
-
-.tippy-box[data-theme~='light'][data-placement^='right'] > .tippy-arrow::before {
-	border-right-color: var(--tippy-light-background);
-}
-
-.tippy-box[data-theme~='dark'] {
-	--tippy-dark-background: var(--color-grey-4);
-	background-color: var(--tippy-dark-background);
-	color: var(--color-grey-14);
-	box-shadow: -2px 2px 3px #999;
-	font-weight: 600;
-}
-
-.tippy-box[data-theme~='dark'][data-placement^='top'] > .tippy-arrow::before {
-	border-top-color: var(--tippy-dark-background);
-}
-
-.tippy-box[data-theme~='dark'][data-placement^='bottom'] > .tippy-arrow::before {
-	border-bottom-color: var(--tippy-dark-background);
-}
-
-.tippy-box[data-theme~='dark'][data-placement^='left'] > .tippy-arrow::before {
-	border-left-color: var(--tippy-dark-background);
-}
-
-.tippy-box[data-theme~='dark'][data-placement^='right'] > .tippy-arrow::before {
-	border-right-color: var(--tippy-dark-background);
+.ProseMirror a {
+	text-decoration: underline;
+	text-underline-offset: 2px;
 }
