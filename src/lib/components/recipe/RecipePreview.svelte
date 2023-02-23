@@ -68,6 +68,8 @@
 							<img class="h-8" src={intensity_5} alt="Recipe Intensity Level 5" />
 						{/if}
 					</div>
+                        <p class="font-semibold mt-2 ml-[2px]">/</p>
+                        <p class="font-bold mt-3">5</p>
 				</div>
 				<div class=" flex overflow-x-scroll  ">
 					{#each recipe?.tags || [] as tag}

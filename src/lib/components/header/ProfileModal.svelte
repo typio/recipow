@@ -7,16 +7,16 @@
 	const dispatch = createEventDispatcher()
 </script>
 
-<div class="profile-modal bg-stone-100 dark:bg-stone-800 shadow-xl">
+<div class="profile-modal rounded-xl bg-stone-100 dark:bg-stone-800 shadow-xl">
 	<ul>
 		<li>
 			<button
 				class="btn-nav btn-pfp"
 				on:click={() => {
-					goto('/profile')
+					goto('/@' + $page.data.user.username)
 					showProfileModal = false
 				}}>
-				<img src={$page.data.user.avatar} alt=" " />
+				<img class="rounded-full h-16 w-16" src={$page.data.user.avatar} alt=" " />
 			</button>
 
 			<div class="name-display">
@@ -24,7 +24,6 @@
 				<p class="username">{`@${$page.data.user.username}`}</p>
 			</div>
 		</li>
-		<hr />
 		<li>
 			<button
 				on:click={() => {
@@ -43,7 +42,6 @@
 				Settings
 			</button>
 		</li>
-		<hr />
 		<li>
 			<button
 				on:click={() => {
@@ -61,7 +59,6 @@
 		position: absolute;
 		z-index: 100;
 		top: 3.4vh;
-		border-radius: 0.4rem;
 	}
 
 	.profile-modal button {
@@ -117,8 +114,5 @@
 
 	.name-display .username {
 		font-size: 0.85rem;
-	}
-
-	button:hover {
 	}
 </style>
