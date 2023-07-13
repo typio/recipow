@@ -29,8 +29,12 @@
 					<a href="/">For You</a>
 				</li>
 
-				<li class="leading-10 h-10 {$page.url.pathname === '/browse' ? 'text-red-500 ' : ''} uppercase tracking-wider">
+				<!-- <li class="leading-10 h-10 {$page.url.pathname === '/browse' ? 'text-red-500 ' : ''} uppercase tracking-wider">
 					<a href="/browse">Browse</a>
+				</li> -->
+
+				<li class="leading-10 h-10 uppercase tracking-wider opacity-25 select-none">
+					<p>Browse</p>
 				</li>
 
 				{#if user}

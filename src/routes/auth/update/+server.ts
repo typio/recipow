@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.formData()
 
-		const newName = body.get('newName') as string
+		const newName = (body.get('newName') as string).replace(/</g, "&lt;").replace(/>/g, "&gt;");
 		const newUsername = body.get('newUsername') as string
 
 		const email = JSON.parse((await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}').email
