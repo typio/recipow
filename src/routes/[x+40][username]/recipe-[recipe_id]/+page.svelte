@@ -367,7 +367,7 @@
 							<img class="rounded-full w-12 h-12" src={review.authorAvatar} alt="" />
 							<div class="flex ml-4 flex-col">
 								<h3 class="font-semibold">
-									{DOMPurify.sanitize(review.author, {
+									{@html DOMPurify.sanitize(review.author, {
 										ALLOWED_TAGS: ['a'],
 										ALLOWED_ATTR: ['href'],
 										FORBID_ATTR: ['target'],
