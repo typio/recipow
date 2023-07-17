@@ -2,19 +2,7 @@
 	import sunEmoji from '$lib/assets/sun-emoji.svg'
 	import moonEmoji from '$lib/assets/moon-emoji.svg'
 
-	import { writable } from 'svelte/store'
-	import { browser } from '$app/environment'
-
-	const defaultValue = 'light'
-	const initialValue = browser ? window.localStorage.getItem('theme') ?? defaultValue : defaultValue
-
-	export const theme = writable<string>(initialValue)
-
-	theme.subscribe(value => {
-		if (browser) {
-			window.localStorage.setItem('theme', value)
-		}
-	})
+	import { theme } from './themeStore.ts'
 
 	if ($theme === 'dark') document.getElementsByTagName('html')[0].setAttribute('class', 'dark')
 </script>

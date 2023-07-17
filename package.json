@@ -20,6 +20,7 @@
 		"@sveltejs/kit": "^1.7.2",
 		"@types/cookie": "^0.5.1",
 		"@types/debug": "^4.1.7",
+		"@types/dompurify": "^3.0.2",
 		"@types/ioredis": "^4.28.10",
 		"@types/string-hash": "^1.1.1",
 		"@types/uuid": "^8.3.4",

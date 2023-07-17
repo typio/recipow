@@ -1,17 +1,19 @@
 <script lang="ts">
+	import { onMount } from 'svelte'
 	import Header from '$lib/components/header/Header.svelte'
 	import '../app.css'
 	import Analytics from '$lib/components/Analytics.svelte'
-</script>
 
-<svelte:head>
-	<script>
-		if (window.localStorage.getItem('theme') === 'dark') {
+	import { theme } from '$lib/components/header/themeStore.ts';
+
+	onMount(() => {
+		const currentTheme = window.localStorage.getItem('theme')
+		if (currentTheme === 'dark') {
 			document.getElementsByTagName('html')[0].setAttribute('class', 'dark')
 			theme.set('dark')
 		}
-	</script>
-</svelte:head>
+	})
+</script>
 
 <Analytics />
 
