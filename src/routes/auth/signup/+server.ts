@@ -113,7 +113,7 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 		email,
 		name,
 		username,
-		avatar: 'https://www.fillmurray.com/' + (Math.floor(32 + Math.random() * 96) + '/').repeat(2)
+		avatar: 'https://placekitten.com/' + (Math.floor(32 + Math.random() * 96) + '/').repeat(2)
 	}
 	await mongoClient.db('recipow').collection('users').insertOne(newMongoUser)
 
