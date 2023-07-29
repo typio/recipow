@@ -19,13 +19,33 @@ export const validateEmail = (email: string): { success: boolean; msg?: string }
 }
 
 export const validatePassword = (password: string): { success: boolean; msg?: string } => {
-	// require password with one lowercase, one uppercase, and one number
-	if (typeof password !== 'string' || !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/.test(password)) {
-		return { success: false, msg: "Password doesn't meet requirements." }
+	if (typeof password !== 'string') {
+		return { success: false, msg: "Password must be a string." }
+	}
+
+	if (password.length < 8) {
+		return { success: false, msg: "Password must be at least 8 characters." }
+	}
+
+	if (!/^[\x20-\x7E]+$/.test(password)) {
+		return { success: false, msg: "Password can only contain printable ASCII characters." }
+	}
+
+	if (!/[a-z]/.test(password)) {
+		return { success: false, msg: "Password must contain at least one lowercase letter." }
+	}
+
+	if (!/[A-Z]/.test(password)) {
+		return { success: false, msg: "Password must contain at least one uppercase letter." }
+	}
+
+	if (!/\d/.test(password)) {
+		return { success: false, msg: "Password must contain at least one number." }
 	}
 
 	return { success: true }
 }
+
 
 export const validateName = (name: string): { success: boolean; msg?: string } => {
 	if (name.length < 2) {
