@@ -52,16 +52,10 @@
 
 	const deleteUser = async (event: { detail: { text: string } }) => {
 		// delete their recipes
-		const recipesResult = await fetch('/@' + $page.data.user.username + '/', {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json',
-				Accept: 'application/json'
-			}
-		})
-		const { recipes } = await recipesResult.json()
-		console.log(recipes)
-		recipes.forEach(async (recipe: Recipe) => {
+		const recipesResult = await fetch(`/recipe?type=${'user'}&page=${1}&limit=${1000}&username=${username}`, { method: 'GET' })
+		const { recipesAndLinks } = await recipesResult.json()
+		recipesAndLinks?.forEach(async ({ recipe }: { recipe: Recipe }) => {
+			console.log(recipe)
 			const res = await fetch(`/recipe`, {
 				method: 'DELETE',
 				body: JSON.stringify({
@@ -98,7 +92,7 @@
 	<h2>
 		Hello {$page.data.user.name}!
 	</h2>
-	<div  class="row">
+	<div class="row">
 		<p>Name:</p>
 		<input class="text-input" type="text" bind:value={name} />
 	</div>

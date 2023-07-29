@@ -70,7 +70,7 @@
 	}
 </script>
 
-<div class=" user-entry font-semibold absolute max-w-xs sm:max-w-lg w-screen bg-stone-100 dark:bg-stone-800 shadow-md z-20 top-24 p-4 rounded-xl">
+<div class="user-entry font-semibold absolute max-w-xs sm:max-w-lg w-screen bg-stone-100 dark:bg-stone-800 shadow-md z-20 top-24 p-4 rounded-xl">
 	<div class="hello flex place-content-between h-6 mb-6">
 		<ul class="flex relative list-none mb-4">
 			{#if formType === 'signUp' || formType === 'logIn'}
@@ -174,7 +174,7 @@
 		{:else if formType === 'logIn'}
 			<button on:click={logIn} type="button" class="mt-2 bg-stone-200 dark:bg-stone-700 font-semibold rounded-lg h-10 px-4">Log In</button>
 		{:else if formType === 'deleteAccount'}
-			<button on:click={dispatchCredentials} type="button" class="bg-red-500 dark:bg-stone-500 font-semibold rounded-lg h-10 px-4"> Delete Account </button>
+			<button on:click={dispatchCredentials} type="button" class="text-stone-50 bg-red-600 font-semibold rounded-lg h-10 px-4">Delete Account </button>
 		{/if}
 	</form>
 </div>
