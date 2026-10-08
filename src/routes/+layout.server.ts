@@ -1,45 +1,25 @@
 import * as cookie from 'cookie'
-import { redis, mongoClient } from '$lib/db'
-
-import ipLocation from 'iplocation'
 
 import type { LayoutServerLoad } from './$types'
+import { redis, sql } from '$lib/server/db'
 import type { User } from '$lib/types'
+import type { ResultSetHeader, RowDataPacket } from 'mysql2'
 
-export const load: LayoutServerLoad = async ({ request, clientAddress }) => {	
+export const load: LayoutServerLoad = async ({ request, getClientAddress }) => {
+	const clientAddress = getClientAddress()
 	const cookies = cookie.parse(request.headers.get('cookie') || '')
 
 	const email = JSON.parse((await redis.get(cookies.sessionId)) || '{}').email
 
 	// log IP address
-	if (clientAddress && (await mongoClient.db('recipow').collection('ips').find({ ip: clientAddress }).toArray()).length === 0) {
-		await mongoClient
-			.db('recipow')
-			.collection('ips')
-			.insertOne({
-				ip: clientAddress,
-				location: await ipLocation(clientAddress),
-				createdAt: new Date().toISOString(),
-				lastSeen: new Date().toISOString()
-			})
-	} else {
-		await mongoClient
-			.db('recipow')
-			.collection('ips')
-			.updateOne({ ip: clientAddress }, { $set: { lastSeen: new Date().toISOString() } })
-	}
+	sql.query<ResultSetHeader>('INSERT INTO ips (ip) VALUES (?) ON DUPLICATE KEY UPDATE last_seen = CURRENT_TIMESTAMP(3)', [clientAddress]).catch(() => {})
 
 	// return user if logged in
 	if (email != undefined) {
-		const user = await mongoClient
-			.db('recipow')
-			.collection('users')
-			.findOne<User>({ email }, { projection: { _id: 0, recipes: 0 } })
+		const [userRows, _] = await sql.query<(User & RowDataPacket)[]>('SELECT id, email, name, username, avatar FROM users WHERE email = ?', [email])
 
-		if (user?.email) {
-			return {
-				user
-			}
+		return {
+			user: userRows[0]
 		}
 	}
 

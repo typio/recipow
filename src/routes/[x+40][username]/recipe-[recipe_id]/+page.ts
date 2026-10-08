@@ -1,7 +1,7 @@
 import type { Recipe } from '$lib/types'
 import type { PageLoad } from './$types'
 
-export const load: PageLoad = async ({ params, url }) => {
+export const load: PageLoad = async ({ params, url, fetch }) => {
     const { username, recipe_id } = params
 
     const res = await fetch(`${url.origin}/recipe?type=one&username=${username}&id=${recipe_id}`, {

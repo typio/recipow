@@ -2,6 +2,7 @@
 	import { toast } from '@zerodevx/svelte-toast'
 
 	import { page } from '$app/stores'
+	import { avatarSrc } from '$lib/avatar'
 	import Overlay from '$lib/components/header/Overlay.svelte'
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import type { Recipe } from '$lib/types'
@@ -99,7 +100,7 @@
 	<div class="row flex flex-row ">
 		<p>Profile Picture:</p>
 		<div class="pfp-input">
-			<img class="rounded-full" src={$page.data.user.avatar} alt="" />
+			<img class="rounded-full" src={avatarSrc($page.data.user.avatar)} alt="" />
 			<input type="file" accept="image/*" bind:files alt="" />
 		</div>
 	</div>

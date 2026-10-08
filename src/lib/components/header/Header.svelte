@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores'
 
+	import { avatarSrc } from '$lib/avatar'
 	import UserEntry from '$lib/components/header/UserEntry.svelte'
 	import ProfileModal from '$lib/components/header/ProfileModal.svelte'
 	import Overlay from './Overlay.svelte'
@@ -43,7 +44,7 @@
 						on:click={() => {
 							showProfileModal = !showProfileModal
 						}}>
-						<img class="w-8 h-8 sm:w-10 sm:h-10 leading-10 rounded-full" src={user.avatar} alt=" " />
+						<img class="w-8 h-8 sm:w-10 sm:h-10 leading-10 rounded-full" src={avatarSrc(user.avatar)} alt=" " />
 					</button>
 					<li class="leading-10 h-10 {$page.url.pathname === '/new-recipe' ? 'text-red-500 ' : ''} uppercase tracking-wider">
 						<a href="/new-recipe">Write</a>

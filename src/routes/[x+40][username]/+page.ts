@@ -2,7 +2,7 @@ import type { User } from '$lib/types'
 import { error, redirect } from '@sveltejs/kit'
 import type { PageLoad } from './$types'
 
-export const load: PageLoad = async ({ params, url }) => {
+export const load: PageLoad = async ({ params, url, fetch }) => {
     const { username } = params
 
     const res = await fetch(`${url.origin}/api/user?username=${username}`, { method: 'GET' })

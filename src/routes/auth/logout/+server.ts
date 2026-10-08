@@ -1,6 +1,6 @@
 import * as cookie from 'cookie'
 
-import { redis } from '$lib/db'
+import { redis } from '$lib/server/db'
 import type { RequestHandler } from './$types'
 
 export const POST: RequestHandler = async ({ request }) => {

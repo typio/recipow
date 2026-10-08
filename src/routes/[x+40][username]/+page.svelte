@@ -1,5 +1,6 @@
 <script lang="ts">
 	import RecipeCollection from '$lib/components/recipe/RecipeCollection.svelte'
+	import { avatarSrc } from '$lib/avatar'
 
 	import type { PageData } from './$types'
 	export let data: PageData
@@ -12,7 +13,7 @@
 </svelte:head>
 
 <div class="content">
-	{#if user?.email === data.pageUser.email}
+	{#if user?.username === data.pageUser.username}
 		<h1>Profile</h1>
 
 		<h2>
@@ -21,7 +22,7 @@
 
 		<div class="row">
 			<div class="pfp-display">
-				<img class="rounded-full" src={pageUser.avatar} alt="" />
+				<img class="rounded-full" src={avatarSrc(pageUser.avatar)} alt="" />
 			</div>
 		</div>
 		<h3>{pageUser.name}</h3>
@@ -36,7 +37,7 @@
 
 		<div class="row">
 			<div class="pfp-display">
-				<img class="rounded-full" src={pageUser.avatar} alt={pageUser.name + "'s profile photo"} />
+				<img class="rounded-full" src={avatarSrc(pageUser.avatar)} alt={pageUser.name + "'s profile photo"} />
 			</div>
 		</div>
 		<div>

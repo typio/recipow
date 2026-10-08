@@ -1,35 +1,37 @@
-import * as cookie from 'cookie'
-import { PutObjectTaggingCommand } from '@aws-sdk/client-s3'
-import type { Tag } from '@aws-sdk/client-s3'
-
 import Filter from 'bad-words'
+import type { ResultSetHeader, RowDataPacket } from 'mysql2'
 
-import { redis, mongoClient, s3Client } from '$lib/db'
+import { dupKey, json, sql } from '$lib/server/db'
+import { sessionUser } from '$lib/server/session'
 import type { RequestHandler } from './$types'
-import type { Recipe, RecipeCardData, User } from '$lib/types'
+import type { Recipe, RecipeCardData } from '$lib/types'
 import { tags } from '$lib/tagData'
 
-const updateS3Tags = async (key: string | undefined, tagset: Tag[]) => {
-    try {
-        const result = await s3Client.send(
-            new PutObjectTaggingCommand({
-                Bucket: 'recipow',
-                Key: key,
-                Tagging: { TagSet: tagset }
-            })
-        )
-        console.log('S3 result: ', result)
-    } catch (err) {
-        console.log('Failed to delete avatar from S3, error: ', err)
-    }
-}
+// rating isn't stored, it's averaged from reviews on read
+const CARD_COLUMNS = `r.slug AS id, r.title, r.description, r.cover_image, r.tags, r.intensity, r.created_at AS createdAt, u.username,
+    COALESCE(ROUND(AVG(v.rating), 2), 0) AS rating, COUNT(v.id) AS ratingCount`
+const CARD_FROM = 'FROM recipes r JOIN users u ON u.id = r.user_id LEFT JOIN reviews v ON v.recipe_id = r.id'
+
+type CardRow = {
+    id: string
+    title: string
+    description: string
+    cover_image: string | null
+    tags: unknown
+    intensity: number
+    createdAt: Date
+    username: string
+    rating: number
+    ratingCount: number
+} & RowDataPacket
 
 export const POST: RequestHandler = async ({ request }) => {
-    let recipe: Recipe = (await request.json()).recipe
+    const user = await sessionUser(request)
+    if (!user) {
+        return new Response(JSON.stringify({ message: 'You need to be logged in to post a recipe.' }), { status: 401 })
+    }
 
-    recipe.reviews = []
-    recipe.rating = 0
-    recipe.createdAt = new Date().toISOString()
+    let recipe: Recipe = (await request.json()).recipe
 
     if (recipe.title.replace(/\W/g, '').length < 4) {
         return new Response(
@@ -38,6 +40,11 @@ export const POST: RequestHandler = async ({ request }) => {
             }),
             { status: 400 }
         )
+    }
+
+    // slug column is 191 chars
+    if (recipe.title.length > 100) {
+        return new Response(JSON.stringify({ message: 'Title must be at most 100 characters.' }), { status: 400 })
     }
 
     let error = ''
@@ -106,62 +113,31 @@ export const POST: RequestHandler = async ({ request }) => {
         return new Response(JSON.stringify({ message: error }), { status: 400 })
     }
 
-    recipe.id = recipe.title.replace(/\s/g, '-').replace(/\s+/g, ' ').trim().replace(/\W/g, '').toLowerCase()
+    const slug = recipe.title.replace(/\s/g, '-').replace(/\s+/g, ' ').trim().replace(/\W/g, '').toLowerCase()
 
-    // replace tag on each image
-    if (recipe.cover_image) {
-        const imageKey = recipe.cover_image?.split('.com/')[1]
-        updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'false' }])
-    }
-
-    recipe.content.forEach((content: string | RecipeCardData) => {
-        if (typeof content === 'object') {
-            if (content.cover_image) {
-                const imageKey = content?.cover_image?.split('.com/')[1]
-                console.log(imageKey)
-
-                updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'false' }])
-            }
-        } else {
-            const imageURLs = content.match(/https:\/\/recipow.s3.us-west-1.amazonaws.com\/.[^"<>]*\.png/g)
-            imageURLs?.forEach((imageURL: string) => {
-                const imageKey = imageURL.split('.com/')[1]
-                updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'false' }])
+    try {
+        await sql.query<ResultSetHeader>('INSERT INTO recipes (user_id, slug, title, description, cover_image, tags, intensity, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+            user.id,
+            slug,
+            recipe.title,
+            recipe.description,
+            recipe.cover_image || null,
+            JSON.stringify(recipe.tags),
+            Number(recipe.intensity) || 1,
+            JSON.stringify(recipe.content)
+        ])
+    } catch (err) {
+        if (dupKey(err) === 'uniq_user_slug') {
+            return new Response(JSON.stringify({ message: 'You already have a recipe with this title.' }), {
+                status: 400
             })
         }
-    })
-
-    if (
-        (
-            await mongoClient
-                .db('recipow')
-                .collection('users')
-                .find({ recipes: { $elemMatch: { id: recipe.id } } })
-                .toArray()
-        ).length > 0
-    ) {
-        return new Response(JSON.stringify({ message: 'You already have a recipe with this title.' }), {
-            status: 400
-        })
+        throw err
     }
-
-    const email = JSON.parse((await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}').email
-
-    const { username } = (await mongoClient.db('recipow').collection('users').findOne<User>({ email })) ?? { username: '' }
-
-    mongoClient
-        .db('recipow')
-        .collection('users')
-        .updateOne(
-            { email },
-            {
-                $push: { recipes: recipe }
-            }
-        )
 
     return new Response(
         JSON.stringify({
-            url: `/@${username}/${recipe.id}`
+            url: `/@${user.username}/recipe-${slug}`
         }),
         { status: 200 }
     )
@@ -174,15 +150,16 @@ export const GET: RequestHandler = async ({ url: { searchParams } }: { url: URL 
     if (type === 'one') {
         const username = searchParams.get('username') || ''
         const id = searchParams.get('id') || ''
-        const user = await mongoClient.db('recipow').collection('users').findOne({ username })
+        const [[row]] = await sql.query<(CardRow & { content: unknown })[]>(
+            `SELECT ${CARD_COLUMNS}, r.content ${CARD_FROM} WHERE u.username = ? AND r.slug = ? GROUP BY r.id, u.username`,
+            [username, id]
+        )
 
-        if (user) {
-            const recipe = user.recipes.find((recipe: Recipe) => recipe.id === id)
-            if (recipe) {
-                return new Response(JSON.stringify({ recipe }), {
-                    status: 200
-                })
-            }
+        if (row) {
+            const { username: _, ...recipe } = row
+            return new Response(JSON.stringify({ recipe: { ...recipe, tags: json(row.tags), content: json(row.content) } }), {
+                status: 200
+            })
         }
 
         return new Response(JSON.stringify({ message: 'Recipe not found.' }), {
@@ -191,172 +168,57 @@ export const GET: RequestHandler = async ({ url: { searchParams } }: { url: URL 
     }
 
     // getting a list of recipe previews with their links
-    const page = parseInt(searchParams.get('page') || '') || 1
-    const limit = parseInt(searchParams.get('limit') || '') || 10
+    const page = Math.max(1, parseInt(searchParams.get('page') || '') || 1)
+    const limit = Math.min(1000, Math.max(1, parseInt(searchParams.get('limit') || '') || 10))
 
-    type RecipeAndLink = {
-        recipe: {
-            id: string
-            title: string
-            description: string
-            cover_image?: string
-            tags: Tag[]
-            intensity: number
-            createdAt: string
-            rating: number
-            ratingCount: number
-        }
-        link: string
-    }
-
-    let recipesAndLinks: RecipeAndLink[] = []
-
-    const usersWithRecipes = await mongoClient
-        .db('recipow')
-        .collection('users')
-        .aggregate([
-            {
-                $match: {
-                    $expr: {
-                        $getField: 'recipes'
-                    }
-                }
-            }
-        ])
-        .toArray()
-
-    for (const user of usersWithRecipes) {
-        for (const recipe of user.recipes) {
-            recipesAndLinks.push({
-                recipe: {
-                    id: recipe.id,
-                    title: recipe.title,
-                    description: recipe.description,
-                    cover_image: recipe.cover_image,
-                    tags: recipe.tags,
-                    intensity: recipe.intensity,
-                    createdAt: recipe.createdAt,
-                    rating: recipe.rating,
-                    ratingCount: recipe.ratingCount
-                },
-                link: `/@${user.username}/recipe-${recipe.id}`
-            })
-        }
-    }
+    let where = ''
+    let order = 'r.created_at DESC'
+    const params: unknown[] = []
 
     if (type === 'trending') {
-        recipesAndLinks = recipesAndLinks
-            .sort((a, b) => {
-                let aScore = a.recipe.rating / new Date(a.recipe.createdAt).getTime()
-                let bScore = b.recipe.rating / new Date(b.recipe.createdAt).getTime()
-                return bScore - aScore
-            })
-            .slice((page - 1) * limit, page * limit)
+        order = 'COALESCE(AVG(v.rating), 0) / UNIX_TIMESTAMP(r.created_at) DESC'
     } else if (type === 'search') {
         const search = searchParams.get('search') || ''
         if (search.replace(/\W+/g, '') == '') {
-            recipesAndLinks = []
-        } else {
-            recipesAndLinks = recipesAndLinks
-                .filter(({ recipe }) => {
-                    return recipe.title.toLowerCase().includes(search.toLowerCase())
-                })
-                .slice((page - 1) * limit, page * limit)
+            return new Response(JSON.stringify({ recipesAndLinks: [] }), { status: 200 })
         }
+        // escape like wildcards so "%" searches for a literal %
+        where = 'WHERE r.title LIKE ?'
+        params.push(`%${search.replace(/[\\%_]/g, '\\$&')}%`)
     } else if (type === 'user') {
-        const username = searchParams.get('username') || ''
-        const user = await mongoClient.db('recipow').collection('users').findOne<User>({ username })
-
-        if (user !== null && user?.recipes?.length > 0) {
-            recipesAndLinks = []
-            for (const recipe of user.recipes) {
-                recipesAndLinks.push({
-                    recipe: {
-                        id: recipe.id,
-                        title: recipe.title,
-                        description: recipe.description,
-                        cover_image: recipe.cover_image,
-                        tags: recipe.tags,
-                        intensity: recipe.intensity,
-                        createdAt: recipe.createdAt,
-                        rating: recipe.rating,
-                        ratingCount: recipe.ratingCount
-                    },
-                    link: `/@${user.username}/recipe-${recipe.id}`
-                })
-            }
-
-            recipesAndLinks = recipesAndLinks?.slice((page - 1) * limit, page * limit)
-        } else {
-            recipesAndLinks = []
-        }
+        where = 'WHERE u.username = ?'
+        params.push(searchParams.get('username') || '')
+        order = 'r.created_at ASC'
     }
-    // else if (type === 'tag') {
-    // 	const tag = searchParams.get('tag') || ''
-    // 	recipesAndLinks = recipesAndLinks.filter((recipesAndLink) => {
-    // 		return recipesAndLink.recipe.tags.includes(tag)
-    // 	}).slice(0, limit)
-    // }
-    else {
-        // recent
-        recipesAndLinks = recipesAndLinks
-            .sort((a, b) => {
-                let aScore = new Date(a.recipe.createdAt).getTime()
-                let bScore = new Date(b.recipe.createdAt).getTime()
-                return bScore - aScore
-            })
-            .slice((page - 1) * limit, page * limit)
-    }
+
+    const [rows] = await sql.query<CardRow[]>(`SELECT ${CARD_COLUMNS} ${CARD_FROM} ${where} GROUP BY r.id, u.username ORDER BY ${order} LIMIT ? OFFSET ?`, [
+        ...params,
+        limit,
+        (page - 1) * limit
+    ])
+
+    const recipesAndLinks = rows.map(({ username, ...recipe }) => ({
+        recipe: { ...recipe, tags: json(recipe.tags) },
+        link: `/@${username}/recipe-${recipe.id}`
+    }))
 
     return new Response(JSON.stringify({ recipesAndLinks }), { status: 200 })
 }
 
-export const DELETE: RequestHandler = async ({ request, clientAddress }) => {
+export const DELETE: RequestHandler = async ({ request }) => {
+    const user = await sessionUser(request)
+    if (!user) {
+        return new Response(JSON.stringify({ message: 'You need to be logged in.' }), { status: 401 })
+    }
+
     const { recipeId } = await request.json()
 
-    const email = JSON.parse((await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}').email
+    // only your own recipe, its reviews go with it (on delete cascade)
+    const [res] = await sql.query<ResultSetHeader>('DELETE FROM recipes WHERE user_id = ? AND slug = ?', [user.id, recipeId])
 
-    const { username } = (await mongoClient.db('recipow').collection('users').findOne<User>({ email })) ?? { username: '' }
-
-    const { recipes } = (await mongoClient.db('recipow').collection('users').findOne<User>({ username })) ?? { recipes: [] }
-
-    const recipe = recipes.find((recipe: Recipe) => recipe.id === recipeId)
-
-    if (!recipe) {
-        return new Response(JSON.stringify({ message: 'Failed to find recipe.' }), { status: 500 })
+    if (!res.affectedRows) {
+        return new Response(JSON.stringify({ message: 'Failed to find recipe.' }), { status: 404 })
     }
-
-    // replace tag on each image
-    if (recipe?.cover_image) {
-        const imageKey = recipe.cover_image?.split('.com/')[1]
-        updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'true' }])
-    }
-
-    recipe?.content.forEach((content: string | RecipeCardData) => {
-        if (typeof content === 'object') {
-            if (content.cover_image) {
-                const imageKey = content?.cover_image?.split('.com/')[1]
-                console.log(imageKey)
-                updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'true' }])
-            }
-        } else {
-            const imageURLs = content.match(/https:\/\/recipow.s3.us-west-1.amazonaws.com\/.[^"<>]*\.png/g)
-            imageURLs?.forEach((imageURL: string) => {
-                const imageKey = imageURL.split('.com/')[1]
-                updateS3Tags(imageKey, [{ Key: 'isTemp', Value: 'true' }])
-            })
-        }
-    })
-
-    await mongoClient
-        .db('recipow')
-        .collection('users')
-        .updateOne(
-            { email },
-            {
-                $pull: { recipes: { id: recipeId } }
-            }
-        )
 
     return new Response(
         JSON.stringify({

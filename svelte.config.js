@@ -1,4 +1,4 @@
-import vercel from '@sveltejs/adapter-vercel'
+import adapter from 'svelte-adapter-bun'
 import preprocess from 'svelte-preprocess'
 
 const config = {
@@ -6,8 +6,9 @@ const config = {
         postcss: true
     }),
     kit: {
-        adapter: vercel({
-            runtime: 'edge'
+        adapter: adapter({
+            out: 'build',
+            precompress: { gzip: true }
         })
     }
 }

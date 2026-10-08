@@ -1,206 +1,118 @@
-import * as cookie from 'cookie'
 import Filter from 'bad-words'
+import type { RowDataPacket } from 'mysql2'
 
-import { redis, mongoClient } from '$lib/db'
+import { sql } from '$lib/server/db'
+import { sessionUser } from '$lib/server/session'
 import type { RequestHandler } from './$types'
-import type { Recipe, Review, User } from '$lib/types'
 
 const filter = new Filter()
 
-export const POST: RequestHandler = async ({ request, clientAddress }) => {
+// @user + slug -> recipes.id
+const recipeIdOf = async (username: string, slug: string) => {
+    const [[row]] = await sql.query<({ id: number } & RowDataPacket)[]>('SELECT r.id FROM recipes r JOIN users u ON u.id = r.user_id WHERE u.username = ? AND r.slug = ?', [username, slug])
+    return row?.id ?? null
+}
+
+const notFound = () => new Response(JSON.stringify({ message: 'Recipe not found.' }), { status: 404 })
+
+export const POST: RequestHandler = async ({ request, getClientAddress }) => {
+    const clientAddress = getClientAddress()
     const res = await request.json()
     const { recipe, rating, comment } = res
 
     let recipeAuthor = recipe.split('/')[0].split('@')[1]
     let recipeId = recipe.split('/recipe-')[1]
 
-    let review: Review = {
-        rating: 4,
-        comment: '<p></p>',
-        date: '',
-        author: ''
-    }
+    const id = await recipeIdOf(recipeAuthor, recipeId)
+    if (!id) return notFound()
 
-    const email = JSON.parse((await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}').email
+    // author comes from the session, anonymous reviews are keyed by ip
+    const user = await sessionUser(request)
 
-    review.author = email ? email : `ip/${clientAddress}`
-    review.date = new Date().toISOString()
-
-    if (rating > 4.8) {
-        review.rating = 5
-    } else if (rating < 0.2) {
-        review.rating = 0.2
+    let reviewRating = Number(rating) || 0
+    if (reviewRating > 4.8) {
+        reviewRating = 5
+    } else if (reviewRating < 0.2) {
+        reviewRating = 0.2
     } else {
-        review.rating = parseFloat(rating.toFixed(1))
+        reviewRating = parseFloat(reviewRating.toFixed(1))
     }
 
-    review.comment = filter.clean(comment || '<p></p>')
-
-    let oldRatings = (await mongoClient.db('recipow').collection('users').findOne({ username: recipeAuthor }))?.recipes.find((r: Recipe) => r.id === recipeId)?.reviews || []
-
-    // check if user already reviewed this recipe
-    if (oldRatings.map((rev: Review) => rev.author).includes(review.author)) {
-        let previousReview = oldRatings.find((rev: Review) => {
-            return rev.author === review.author
-        })
-        // update their review
-        if (comment === '' || comment === '<p></p>' || comment === undefined) {
-            review.comment = previousReview.comment
-        }
-
-        await mongoClient
-            .db('recipow')
-            .collection('users')
-            .updateOne(
-                { username: recipeAuthor },
-                {
-                    $set: {
-                        'recipes.$[i].reviews.$[j]': review
-                    }
-                },
-                {
-                    arrayFilters: [{ 'i.id': recipeId }, { 'j.author': review.author }]
-                }
-            )
-    } else {
-        // check if user has already reviewed this recipe with ip
-        if (review.author.split('/')[0] === 'ip') {
-            // check if user has already reviewed this recipe with username
-        } //else if () {
-
-        // }
-        // post their review
-        await mongoClient
-            .db('recipow')
-            .collection('users')
-            .updateOne(
-                { username: recipeAuthor },
-                {
-                    $push: {
-                        'recipes.$[i].reviews': {
-                            $each: [review],
-                            $position: 0
-                        }
-                    }
-                },
-                {
-                    arrayFilters: [{ 'i.id': recipeId }]
-                }
-            )
-    }
-
-    let newRatings = (await mongoClient.db('recipow').collection('users').findOne({ username: recipeAuthor }))?.recipes.find((r: Recipe) => r.id === recipeId)?.reviews || []
-
-    await mongoClient
-        .db('recipow')
-        .collection('users')
-        .updateOne(
-            { username: recipeAuthor },
-            {
-                $set: {
-                    'recipes.$[i].rating': parseFloat((newRatings.reduce((a: number, b: any) => a + b.rating, 0) / newRatings.length).toFixed(2)),
-                    'recipes.$[i].ratingCount': newRatings.length
-                }
-            },
-            {
-                arrayFilters: [{ 'i.id': recipeId }]
-            }
-        )
+    // one review per author per recipe, an empty comment keeps the previous one
+    await sql.query(
+        `INSERT INTO reviews (recipe_id, user_id, ip, rating, comment) VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = IF(VALUES(comment) IN ('', '<p></p>'), comment, VALUES(comment)), created_at = CURRENT_TIMESTAMP(3)`,
+        [id, user?.id ?? null, user ? null : clientAddress, reviewRating, filter.clean(comment || '<p></p>')]
+    )
 
     return new Response(null, { status: 200 })
 }
 
-export const GET: RequestHandler = async ({ url: { searchParams }, clientAddress }) => {
+type ReviewRow = {
+    rating: number
+    comment: string
+    date: Date
+    user_id: number | null
+    ip: string | null
+    username: string | null
+    name: string | null
+    avatar: string | null
+} & RowDataPacket
+
+export const GET: RequestHandler = async ({ request, url: { searchParams }, getClientAddress }) => {
+    const clientAddress = getClientAddress()
     const recipe = searchParams.get('recipe') || ''
-    const page = parseInt(searchParams.get('page') || '') || 1
-    const limit = parseInt(searchParams.get('limit') || '') || 10
-    const userEmailOrIP = searchParams.get('userEmail') !== 'undefined' ? searchParams.get('userEmail') : 'ip/' + clientAddress
 
     let recipeAuthor = recipe.split('/')[0].split('@')[1]
     let recipeId = recipe.split('/')[1]
 
-    let reviews: Review[] = []
+    const id = await recipeIdOf(recipeAuthor, recipeId)
+    if (!id) return new Response(JSON.stringify({ reviews: [] }), { status: 200 })
 
-    reviews = (await mongoClient.db('recipow').collection('users').findOne({ username: recipeAuthor }))?.recipes.find((r: Recipe) => r.id === recipeId)?.reviews
+    const user = await sessionUser(request)
 
-    reviews.sort((a: Review, b: Review) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime()
-    })
+    const [rows] = await sql.query<ReviewRow[]>(
+        `SELECT v.rating, v.comment, v.created_at AS date, v.user_id, v.ip, u.username, u.name, u.avatar
+         FROM reviews v LEFT JOIN users u ON u.id = v.user_id
+         WHERE v.recipe_id = ? ORDER BY v.created_at DESC`,
+        [id]
+    )
 
-    let userReview = reviews.find(rev => rev.author === userEmailOrIP)
+    // ip + user_id never leave the server
+    const reviews = rows.map(row => ({
+        rating: row.rating.toFixed(1),
+        comment: row.comment,
+        date: row.date,
+        author: row.user_id ? `<a href="/@${row.username}">${row.name}</a>` : '<a href="/about">Anonymous</a>',
+        authorAvatar: row.avatar,
+        leftByUser: user ? row.user_id === user.id : row.user_id === null && row.ip === clientAddress
+    }))
 
-    if (userReview) {
-        reviews = reviews.filter(review => review.author !== userEmailOrIP)
-        userReview.leftByUser = true
-        reviews.unshift(userReview)
-    }
-
-    reviews.slice((page - 1) * limit, page * limit) || []
-
-    for (let review of reviews) {
-        let author = review.author
-        let name = 'Unknown'
-        let username = 'about'
-        let avatar = `https://recipow.s3.us-west-1.amazonaws.com/avatars/default_avatar_${Math.floor(Math.random() * 3) + 1}.png`
-
-        if (author.split('/')[0] === 'ip') {
-            name = 'Anonymous'
-        } else {
-            try {
-                ; ({ username, name, avatar } = (await mongoClient.db('recipow').collection('users').findOne<User>({ email: author })) ?? { username: '', name: '', avatar: '' })
-                username = '@' + username
-            } catch (e) {
-                console.log(e)
-            }
-        }
-        review.author = `<a href="/${username}">${name}</a>`
-        review.authorAvatar = avatar
-        review.rating = review.rating.toFixed(1)
-    }
+    // your own review first, sort is stable so the rest stay newest first
+    reviews.sort((a, b) => Number(b.leftByUser) - Number(a.leftByUser))
 
     return new Response(JSON.stringify({ reviews }), {
         status: 200
     })
 }
 
-export const DELETE: RequestHandler = async ({ url: { searchParams }, clientAddress }) => {
+export const DELETE: RequestHandler = async ({ request, url: { searchParams }, getClientAddress }) => {
+    const clientAddress = getClientAddress()
     const recipe = searchParams.get('recipe') || ''
-    const userEmailOrIP = searchParams.get('userEmail') !== 'undefined' ? searchParams.get('userEmail') : 'ip/' + clientAddress
 
     let recipeAuthor = recipe.split('/')[0].split('@')[1]
     let recipeId = recipe.split('/')[1]
 
-    const res = await mongoClient
-        .db('recipow')
-        .collection('users')
-        .updateOne(
-            { username: recipeAuthor },
-            {
-                $pull: { 'recipes.$[i].reviews': { author: userEmailOrIP } }
-            },
+    const id = await recipeIdOf(recipeAuthor, recipeId)
+    if (!id) return notFound()
 
-            {
-                arrayFilters: [{ 'i.id': recipeId }]
-            }
-        )
-
-    let newRatings: Review[] = (await mongoClient.db('recipow').collection('users').findOne({ username: recipeAuthor }))?.recipes.find((r: Recipe) => r.id === recipeId)?.reviews || []
-
-    await mongoClient
-        .db('recipow')
-        .collection('users')
-        .updateOne(
-            { username: recipeAuthor },
-            {
-                $set: {
-                    'recipes.$[i].rating': newRatings.reduce((a: number, b: Review) => a + b.rating, 0) / newRatings.length,
-                    'recipes.$[i].ratingCount': newRatings.length
-                }
-            },
-            {
-                arrayFilters: [{ 'i.id': recipeId }]
-            }
-        )
+    // only ever your own review, ?userEmail is ignored
+    const user = await sessionUser(request)
+    if (user) {
+        await sql.query('DELETE FROM reviews WHERE recipe_id = ? AND user_id = ?', [id, user.id])
+    } else {
+        await sql.query('DELETE FROM reviews WHERE recipe_id = ? AND user_id IS NULL AND ip = ?', [id, clientAddress])
+    }
 
     return new Response(JSON.stringify({ message: 'Review deleted' }), { status: 200 })
 }

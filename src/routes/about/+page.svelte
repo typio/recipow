@@ -31,7 +31,7 @@
 	</p>
 
 	<h6
-        class="ml-8 mt-4 leading-8 "
+		class="ml-8 mt-4 leading-8"
 		style="color: {!highlights[0] ? 'var(--color-grey-7)' : 'var(--accent-color)'} ; font-size: {!highlights[0] ? '.7rem' : '2rem'}"
 		on:mouseenter={() => {
 			highlights[0] = true
@@ -45,7 +45,7 @@
 	</h6>
 
 	<h6
-        class="ml-8 mt-4 leading-8"
+		class="ml-8 mt-4 leading-8"
 		style="color: {!highlights[1] ? 'var(--color-grey-7)' : 'var(--accent-color)'} ; font-size: {!highlights[1] ? '.7rem' : '2rem'}"
 		on:mouseenter={() => {
 			highlights[1] = true
@@ -55,13 +55,13 @@
 				highlights[1] = false
 			}, 200)
 		}}>
-		<sup class="text-2xl leading-none">**</sup>Website is in development and any data you upload should be considered unsafe/ unstable. It may also be running a faulty dev build.
+		<sup class="text-2xl leading-none">**</sup>Website is not made to professional standards and anything you upload should be considered at risk of being lost at any moment.
 	</h6>
 
 	<p class="mt-2 mb-4 indent-8">Please share your yummy recipies whether they be generational treasures or your own concoction, and try cooking something out of our abundant catalouge!</p>
 	<p class="indent-8">
 		This is a website for bodybuilders to share their power themed recipes. 🔥 Even if you aren't a bodybuilder, please sign up and create a recipe. 💯 I'm creating this website to gain experience in fullstack web dev, and to make the best
-		recipe website online!!! 🚀 If you have any suggestions please email me at <a href="mailto:tohuber" target="_blank">me@tohuber.com</a>! 🙏
+		recipe website online!!! 🚀 If you have any suggestions please email me at <a href="mailto:tom@tomon.om" target="_blank">tom@tomon.om</a>! 🙏
 	</p>
 </div>
 

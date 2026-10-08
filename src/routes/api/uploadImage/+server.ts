@@ -1,17 +1,25 @@
 import jimp from 'jimp'
-import { v4 as uuidv4 } from 'uuid'
-import { Upload } from '@aws-sdk/lib-storage'
 
-import { s3Client } from '$lib/db'
+import { sessionUser } from '$lib/server/session'
+import { saveUpload } from '$lib/server/uploads'
 
 import type { RequestHandler } from './$types'
 
 export const POST: RequestHandler = async ({ request }) => {
-	const { bucketName, imageBase64, isTemp } = await request.json()
+	// local disk now, anonymous uploads would just fill it
+	if (!(await sessionUser(request))) {
+		return new Response(
+			JSON.stringify({
+				message: 'You need to be logged in to upload images.'
+			}),
+			{
+				status: 401
+			}
+		)
+	}
 
-	const randomPart = uuidv4()
-
-	const Key = bucketName + '/' + randomPart + '.png'
+	// bucketName + isTemp were s3 only, the folder is fixed so it can't be steered
+	const { imageBase64 } = await request.json()
 
 	const image = await jimp.read(Buffer.from(imageBase64.split(',')[1], 'base64'))
 
@@ -23,23 +31,7 @@ export const POST: RequestHandler = async ({ request }) => {
 		image.contain(jimp.AUTO, 800, jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_MIDDLE)
 	}
 
-	const newImageBuffer = await image.getBufferAsync(jimp.MIME_PNG)
+	const imageUrl = await saveUpload('recipe_imgs', await image.getBufferAsync(jimp.MIME_PNG))
 
-	const s3Upload = new Upload({
-		client: s3Client,
-		params: {
-			Bucket: 'recipow',
-			Key,
-			Body: newImageBuffer
-		},
-		tags: [{ Key: 'isTemp', Value: isTemp }]
-	})
-
-	const s3Result = await s3Upload.done()
-
-	console.log(s3Result)
-
-	const newImageURL = 'https://recipow.s3.us-west-1.amazonaws.com/' + Key
-
-	return new Response(JSON.stringify({ imageUrl: newImageURL }), { status: 200 })
+	return new Response(JSON.stringify({ imageUrl }), { status: 200 })
 }

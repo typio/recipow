@@ -1,25 +1,30 @@
-import * as cookie from 'cookie'
-import stringHash from 'string-hash'
 import jimp from 'jimp'
-import { Upload } from '@aws-sdk/lib-storage'
 
-import { redis, mongoClient, s3Client } from '$lib/db'
+import { dupKey, sql } from '$lib/server/db'
+import { sessionUser } from '$lib/server/session'
+import { removeUpload, saveUpload } from '$lib/server/uploads'
 import { validateUsername, validateName } from '$lib/api/helper'
 
 import type { RequestHandler } from './$types'
-import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
+		const user = await sessionUser(request)
+		if (!user) {
+			return new Response(
+				JSON.stringify({
+					message: 'You need to be logged in.'
+				}),
+				{
+					status: 401
+				}
+			)
+		}
+
 		const body = await request.formData()
 
-		const newName = (body.get('newName') as string).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		const newName = (body.get('newName') as string).replace(/</g, '&lt;').replace(/>/g, '&gt;')
 		const newUsername = body.get('newUsername') as string
-
-		const email = JSON.parse((await redis.get(cookie.parse(request.headers.get('cookie') || '').sessionId)) || '{}').email
-
-		const oldUsername = (await mongoClient.db('recipow').collection('users').find({ email }).toArray())[0].username
-
 		const newAvatarFile = body.get('newAvatarFile')
 
 		let validName = validateName(newName)
@@ -34,7 +39,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			)
 		}
 
-		if (newUsername !== oldUsername) {
+		// usernames are case-insensitive in sql, recasing your own would otherwise collide with yourself
+		if (newUsername.toLowerCase() !== user.username.toLowerCase()) {
 			let validUsername = await validateUsername(newUsername)
 			if (!validUsername.success) {
 				return new Response(
@@ -48,96 +54,40 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 		}
 
-		if (newAvatarFile !== null) {
-			// not sure how fix FormDataEntryValue type error
-			const image = await jimp.read((await (newAvatarFile as File).arrayBuffer()) as Buffer)
-
+		let avatar = user.avatar
+		if (newAvatarFile && typeof newAvatarFile !== 'string') {
+			const image = await jimp.read(Buffer.from(await newAvatarFile.arrayBuffer()))
 			image.cover(128, 128, jimp.HORIZONTAL_ALIGN_CENTER | jimp.VERTICAL_ALIGN_TOP)
+			avatar = await saveUpload('avatars', await image.getBufferAsync(jimp.MIME_PNG))
+		}
 
-			const newAvatarBuffer = await image.getBufferAsync(jimp.MIME_PNG)
-
-			const emailHash = stringHash(email)
-
-			const randomPart = '-' + Math.floor(Math.random() * 1000000)
-
-			// remove old avatar
-			const avatarURL = (await mongoClient.db('recipow').collection('users').findOne({ email }))?.avatar.split('.com/')[1]
-
-			if (avatarURL.startsWith('avatars/')) {
-				try {
-					const result = await s3Client.send(
-						new DeleteObjectCommand({
-							Bucket: 'recipow',
-							Key: avatarURL
-						})
-					)
-					console.log('S3 result: ', result)
-				} catch (err) {
-					console.log('Failed to delete avatar from S3, error: ', err)
-				}
-			}
-
-			// upload new avatar
-			const s3Upload = new Upload({
-				client: s3Client,
-				params: {
-					Bucket: 'recipow',
-					Key: 'avatars/' + emailHash + randomPart + '.png',
-					Body: newAvatarBuffer
-				}
-			})
-
-			const s3Result = await s3Upload.done()
-
-			const newAvatarURL = 'https://recipow.s3.us-west-1.amazonaws.com/avatars/' + emailHash + randomPart + '.png'
-
-			const mongoResult = await mongoClient
-				.db('recipow')
-				.collection('users')
-				.updateOne({ email }, { $set: { name: newName, username: newUsername, avatar: newAvatarURL } })
-
-			if (mongoResult.matchedCount == 1 && s3Result.$metadata.httpStatusCode == 200) {
+		try {
+			await sql.query('UPDATE users SET name = ?, username = ?, avatar = ? WHERE id = ?', [newName, newUsername, avatar, user.id])
+		} catch (err) {
+			// someone took the name between the check above and now
+			if (dupKey(err) === 'username') {
+				await removeUpload(avatar === user.avatar ? null : avatar)
 				return new Response(
 					JSON.stringify({
-						message: 'Success'
+						message: 'Username is being used by someone else.'
 					}),
 					{
-						status: 200
+						status: 400
 					}
 				)
 			}
-
-			return new Response(
-				JSON.stringify({
-					message: 'Failed'
-				}),
-				{
-					status: 500
-				}
-			)
+			throw err
 		}
 
-		const res = await mongoClient
-			.db('recipow')
-			.collection('users')
-			.updateOne({ email }, { $set: { name: newName, username: newUsername } })
+		// old file only once the row points at the new one
+		if (avatar !== user.avatar) await removeUpload(user.avatar)
 
-		if (res.matchedCount == 1) {
-			return new Response(
-				JSON.stringify({
-					message: 'Matched with user'
-				}),
-				{
-					status: 200
-				}
-			)
-		}
 		return new Response(
 			JSON.stringify({
-				message: "Couldn't find user"
+				message: 'Success'
 			}),
 			{
-				status: 500
+				status: 200
 			}
 		)
 	} catch (error) {

@@ -12,6 +12,7 @@
 	import intensity_4 from '$lib/assets/intensity_4.svg'
 	import intensity_5 from '$lib/assets/intensity_5.svg'
 
+	import { avatarSrc } from '$lib/avatar'
 	import RatingsBar from '$lib/components/recipe/RatingsBar.svelte'
 	import TipTapEditor from '$lib/components/editor/TipTapEditor.svelte'
 
@@ -368,7 +369,7 @@
 					{#if review.leftByUser === true}
 						<div class="review user-left-review mb-8">
 							<div class="flex">
-								<img class="rounded-full w-12 h-12" src={review.authorAvatar} alt="" />
+								<img class="rounded-full w-12 h-12" src={avatarSrc(review.authorAvatar)} alt="" />
 								<div class="flex ml-4 flex-col">
 									<h3 class="font-semibold">
 										{@html DOMPurify.sanitize(review.author, {
@@ -411,7 +412,7 @@
 					{:else}
 						<div class="review  mb-8">
 							<div class="flex">
-								<img class="rounded-full w-12 h-12" src={review.authorAvatar} alt="" />
+								<img class="rounded-full w-12 h-12" src={avatarSrc(review.authorAvatar)} alt="" />
 								<div class="flex ml-4 flex-col">
 									<h3 class="font-semibold">
 										{@html DOMPurify.sanitize(review.author, {

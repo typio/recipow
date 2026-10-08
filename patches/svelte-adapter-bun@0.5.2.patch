@@ -1,0 +1,14 @@
+diff --git a/files/handler.js b/files/handler.js
+index 9fe113534bbbc393c334a35bb87a9f9401885d31..eee812a0a9b0c5dafb40d0d73da641f2ddb372a1 100644
+--- a/files/handler.js
++++ b/files/handler.js
+@@ -676,7 +676,8 @@ var serve = function(path2, client = false) {
+ };
+ var ssr = function(request) {
+   if (origin) {
+-    const requestOrigin = get_origin(request.headers);
++    // behind a tls proxy bun sees http://, compare the real url not the https guess
++    const requestOrigin = new URL(request.url).origin;
+     if (origin !== requestOrigin) {
+       const url = request.url.slice(request.url.split("/", 3).join("/").length);
+       request = new Request(origin + url, {

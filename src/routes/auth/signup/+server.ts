@@ -1,14 +1,16 @@
 import * as cookie from 'cookie'
 import { v4 as uuidv4 } from 'uuid'
-import stringHash from 'string-hash'
 
-import { redis, mongoClient } from '$lib/db'
+import { dupKey, redis, sql } from '$lib/server/db'
 import { validateEmail, validatePassword, validateName, TOKEN_EXPIRE_TIME } from '$lib/api/helper'
 
-import type { AuthUser } from '$lib/types'
+import type { User } from '$lib/types'
 import type { RequestHandler } from './$types'
+import type { ResultSetHeader, RowDataPacket } from 'mysql2'
+import { hashPassword } from '$lib/server/password'
 
-export const POST: RequestHandler = async ({ request, clientAddress }) => {
+export const POST: RequestHandler = async ({ request, getClientAddress }) => {
+	const clientAddress = getClientAddress()
 	const { email, name, password } = await request.json()
 
 	let validEmail = validateEmail(email)
@@ -47,19 +49,10 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 		)
 	}
 
-	const user: AuthUser = await (async () => {
-		try {
-			return JSON.parse((await redis.get(email)) || '{}')
-		} catch (error) {
-			console.log('Failed to parse JSON of redis value, error:', error)
-			return {}
-		}
-	})()
-
-	const hash = stringHash(password)
 	const cookieId = uuidv4()
 
-	if (user.email) {
+	const [userRows, _] = await sql.query<(User & RowDataPacket)[]>('SELECT 1 FROM users WHERE email = ?', [email])
+	if (userRows.length > 0) {
 		return new Response(
 			JSON.stringify({
 				message: 'User with this email already exists'
@@ -70,32 +63,21 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 		)
 	}
 
-	let username = email.split('@')[0]
+	let username = email.split('@')[0].slice(0, 27)
 
-	if ((await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0) {
+	if ((await sql.query<(User & RowDataPacket)[]>('SELECT 1 FROM users WHERE username = ?', [username]))[0].length) {
 		username += Math.floor(Math.random() * 1000)
 	}
 
-	// dont want while in case this can be exploited somehow
-	if ((await mongoClient.db('recipow').collection('users').find({ username }).toArray()).length > 0) {
-		return new Response(
-			JSON.stringify({
-				message: "Couldn't generate unique username, please try again."
-			}),
-			{
-				status: 400
-			}
-		)
+	try {
+		// add user
+		await sql.query<ResultSetHeader>('INSERT INTO users (email, username, name, password_hash, ip) VALUES (?, ?, ?, ?, ?)', [email, username, name, await hashPassword(password), clientAddress])
+	} catch (err) {
+		const key = dupKey(err)
+		if (key === 'email') return new Response(JSON.stringify({ message: 'Email already in use.' }), { status: 400 })
+		if (key === 'username') return new Response(JSON.stringify({ message: "Couldn't generate a new username, try again." }), { status: 400 })
+		throw err
 	}
-
-	// add user in redis
-	await redis.set(
-		email,
-		JSON.stringify({
-			email,
-			passwordHash: hash
-		})
-	)
 
 	// add cookie in redis
 	await redis.set(
@@ -106,16 +88,6 @@ export const POST: RequestHandler = async ({ request, clientAddress }) => {
 		'EX',
 		TOKEN_EXPIRE_TIME
 	)
-
-	// add user in mongo
-	let newMongoUser = {
-		ip: clientAddress,
-		email,
-		name,
-		username,
-		avatar: 'https://placekitten.com/' + (Math.floor(128 + Math.random() * 64) + '/').repeat(2)
-	}
-	await mongoClient.db('recipow').collection('users').insertOne(newMongoUser)
 
 	// set cookie
 	return new Response(

@@ -5,6 +5,9 @@ node_modules
 /package
 .env
 .env.*
+!.env.example
+/backup
+/uploads
 
 .vercel
 .vercel_build_output
@@ -12,3 +15,6 @@ node_modules
 .output
 /.vscode
 dist
+
+/migrations
+/deploy

@@ -6,7 +6,7 @@
 	<h1 class="text-2xl mb-12 text-center font-bold">Contact</h1>
 
 	<p>
-		My email is <a href="mailto:me@tohuber.com">me@tohuber.com</a>.
+		My email is <a href="mailto:tom@tomonom.om">tom@tomon.om</a>.
 	</p>
 </div>
 

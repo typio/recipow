@@ -3,6 +3,8 @@
 	import { page } from '$app/stores'
 	import { createEventDispatcher } from 'svelte'
 
+	import { avatarSrc } from '$lib/avatar'
+
 	export let showProfileModal = true
 	const dispatch = createEventDispatcher()
 </script>
@@ -16,7 +18,7 @@
 					goto('/@' + $page.data.user.username)
 					showProfileModal = false
 				}}>
-				<img class="rounded-full h-16 w-16" src={$page.data.user.avatar} alt=" " />
+				<img class="rounded-full h-16 w-16" src={avatarSrc($page.data.user.avatar)} alt=" " />
 			</button>
 
 			<div class="name-display">

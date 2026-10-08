@@ -1,6 +1,8 @@
 import Filter from 'bad-words'
 
-import { mongoClient } from '$lib/db'
+import { sql } from '$lib/server/db'
+import type { User } from '$lib/types'
+import type { RowDataPacket } from 'mysql2'
 
 const filter = new Filter()
 
@@ -20,32 +22,31 @@ export const validateEmail = (email: string): { success: boolean; msg?: string }
 
 export const validatePassword = (password: string): { success: boolean; msg?: string } => {
 	if (typeof password !== 'string') {
-		return { success: false, msg: "Password must be a string." }
+		return { success: false, msg: 'Password must be a string.' }
 	}
 
 	if (password.length < 8) {
-		return { success: false, msg: "Password must be at least 8 characters." }
+		return { success: false, msg: 'Password must be at least 8 characters.' }
 	}
 
 	if (!/^[\x20-\x7E]+$/.test(password)) {
-		return { success: false, msg: "Password can only contain printable ASCII characters." }
+		return { success: false, msg: 'Password can only contain printable ASCII characters.' }
 	}
 
 	if (!/[a-z]/.test(password)) {
-		return { success: false, msg: "Password must contain at least one lowercase letter." }
+		return { success: false, msg: 'Password must contain at least one lowercase letter.' }
 	}
 
 	if (!/[A-Z]/.test(password)) {
-		return { success: false, msg: "Password must contain at least one uppercase letter." }
+		return { success: false, msg: 'Password must contain at least one uppercase letter.' }
 	}
 
 	if (!/\d/.test(password)) {
-		return { success: false, msg: "Password must contain at least one number." }
+		return { success: false, msg: 'Password must contain at least one number.' }
 	}
 
 	return { success: true }
 }
-
 
 export const validateName = (name: string): { success: boolean; msg?: string } => {
 	if (name.length < 2) {
@@ -79,9 +80,9 @@ export const validateUsername = async (username: string): Promise<{ success: boo
 		return { success: false, msg: "Username can't have spaces." }
 	}
 
-	const res = await mongoClient.db('recipow').collection('users').find({ username }).toArray()
+	const [userRows] = await sql.query<(User & RowDataPacket)[]>('SELECT 1 FROM users WHERE username = ?', [username])
 
-	if (res.length > 0) {
+	if (userRows.length > 0) {
 		return { success: false, msg: 'Username is being used by someone else.' }
 	}
 

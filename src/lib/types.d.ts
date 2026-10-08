@@ -1,18 +1,10 @@
-// user in Redis
-export type AuthUser = {
-	email: string
-	passwordHash: number
-}
-
-// user in MondoDB
 export type User = {
-	ip: string
+	id: number
 	email: string
 	name: string
 	username: string
-	avatar: string
-	recipes: Recipe[]
-	favorites: string[]
+	avatar: string | null
+	ip?: string
 }
 
 type WriteUp = string
@@ -33,7 +25,7 @@ export type Recipe = {
 	title: string
 	description: string
 	cover_image?: string
-	tags: typeof tags[number]
+	tags: (typeof tags)[number]
 	content: (RecipeCardData | WriteUp)[]
 	rating: number
 	ratingCount: number
@@ -54,7 +46,7 @@ import { units } from 'unitData'
 type Ingredient = {
 	name: string
 	amount: number
-	unit?: typeof units[number]
+	unit?: (typeof units)[number]
 	preperation?: string
 }
 
